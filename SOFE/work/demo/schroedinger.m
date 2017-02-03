@@ -1,6 +1,6 @@
-N = 50; M = 30; T = 3;
+N = 50; M = 100; T = 3;
 % DATA
-data.a    = @(x) -1i*0.05 + 0*x(:,1);
+data.a    = @(x) i*0.05 + 0*x(:,1);
 data.f    = @(x) 0*x(:,1);
 data.dLoc = @(x) x(:,1) < Inf;
 data.ud   = @(x) 0*x(:,1);
@@ -23,6 +23,6 @@ for k = 1:2:nT
   clf
   v.show(abs(p.solution{k}).^2, 'g', struct('N',100));
   caxis([0.0, 0.03]); axis([0 1 0 1 0.0 0.1]); axis normal, view(-60,40),
-  fprintf('timestep: %d / %d\n', k, N);
+  fprintf('timestep: %d / %d\n', k, nT);
   pause(0.05);
 end
