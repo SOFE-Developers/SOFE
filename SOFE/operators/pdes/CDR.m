@@ -1,0 +1,24 @@
+classdef CDR < PDE
+% GradGrad(a) + Grad(b) + Id(c) + Id_Gamma(h) = FId(f) + FId_Gamma(g)
+  methods % constructor
+    function obj = CDR(data, fesTrial, varargin)
+      lap = Op_data_GRAD_GRAD(data.a, fesTrial, varargin{:});
+      lhs = {lap};
+      try
+        lhs = [lhs, {Op_Data_GRAD_Id2(data.b, fesTrial, varargin{:})}];
+      end
+      try
+        lhs = [lhs, {Op_data_Id_Id(data.c, 0, fesTrial, varargin{:})}];
+      end
+      try
+        lhs = [lhs, {Op_data_Id_Id(data.h, 1, lap.feSpaceTrial, lap.feSpaceTest)}];
+      end
+      %
+      rhs = {Fc_Data_Id(data.f, lap.feSpaceTest, 0)};
+      try
+        rhs = [rhs,{Fc_Data_Id(data.g, lap.feSpaceTest, 1)}];
+      end
+      obj = obj@PDE({lhs}, {rhs});
+    end
+  end
+end

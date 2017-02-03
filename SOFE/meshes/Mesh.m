@@ -1,0 +1,218 @@
+classdef Mesh < SOFEClass
+  properties
+    element
+    topology
+    nBlock = 1;
+  end
+  methods % constructor & more
+    function obj = Mesh(nodes, elems, varargin) % [dimP]
+      if nargin > 2, dimP = varargin{:}; else dimP = size(nodes, 2); end
+      obj.element = MeshTopology.getShapeElement(size(elems,2), dimP);
+      obj.topology = MeshTopology.getTopology(nodes, elems, dimP);
+    end
+    function R = getBlock(obj, codim, varargin) % [I]
+      nE = obj.topology.getNumber(obj.topology.dimP - codim);
+      if obj.nBlock>nE, error('!Number of blocks exceeds number of elements!'); end
+      R = unique(floor(linspace(0,nE,obj.nBlock+1)));
+      R = [R(1:end-1)+1; R(2:end)];
+      if nargin > 2
+        R = R(:,varargin{1});
+      end
+    end
+  end
+  methods % reference map
+    function R = evalReferenceMap(obj, points, order, varargin) % [I]
+      I = ':'; if nargin > 3, I = varargin{1}; end
+      if isempty(points)
+        R = permute(obj.topology.nodes(I,:), [1 3 2]); % nEx1xnW
+        return;
+      end
+      if iscell(points)
+        I = points{2}; points = points{1};
+        pVecN = [1 3 4 5 2]; pVecB = [2 3 4 5 1];
+      else
+        pVecN = [1 4 3 5 2]; pVecB = [5 2 3 4 1];
+      end
+      entity = obj.topology.getEntity(size(points,2), I); % nExnB
+      B = obj.element.evalBasis(points, order); % nBxnPx1[xnD]
+      N = reshape(obj.topology.nodes(entity(:),:),[],size(B,1),obj.topology.dimW); % nExnBxnW
+      R = sum(bsxfun(@times, permute(N,pVecN), permute(B,pVecB)),5); % nExnPxnW[xnD] or nExnW[xnD]
+    end
+    function [R, invR, jacR] = evalTrafoInfo(obj, points, varargin) % [I]
+      R = obj.evalReferenceMap(points, 1, varargin{:}); % nExnPxnWxnD or nExnWxnD
+      nW = obj.topology.dimW; nD = obj.topology.dimP;
+      if iscell(points)
+        nD = size(points{1}, 2); nP = -1;
+      else
+        [nP,nD] = size(points);
+        R = reshape(R,[],nW,nD); % (nE*nP)xnWxnD
+      end
+      switch nD
+        case 1 % line
+          switch nW
+            case 1
+              invR = 1.0;
+              jacR = R; 
+              invR = bsxfun(@rdivide, invR, jacR);
+            case {2,3}
+              RTR = sum(bsxfun(@times, permute(R,[1 3 4 2]), permute(R,[1 4 3 2])),4); % (nE*nP)x1x1
+              invR = 1;
+              jacR = RTR; % (nE*nP)
+              invR = bsxfun(@rdivide, invR, jacR);
+              invR = sum(bsxfun(@times, permute(invR,[1 2 4 3]), permute(R,[1 4 2 3])),4); % (nE*nP)x1xnW
+              jacR = sqrt(jacR); % (nE*nP)
+          end
+        case 2 % surface
+          switch nW
+            case 2
+              invR = -R;
+              invR(:,1,1) = R(:,2,2);
+              invR(:,2,2) = R(:,1,1); % (nE*nP)x2x2
+              jacR = R(:,1,1).*R(:,2,2) - R(:,1,2).*R(:,2,1); 
+              invR = bsxfun(@rdivide, invR, jacR);
+            case 3 % pseudo inverse
+              RTR = sum(bsxfun(@times, permute(R,[1 3 4 2]), permute(R,[1 4 3 2])),4); % (nE*nP)x3x2
+              invR = -RTR;
+              invR(:,1,1) = RTR(:,2,2);
+              invR(:,2,2) = RTR(:,1,1); % (nE*nP)x2x3
+              jacR = RTR(:,1,1).*RTR(:,2,2) - RTR(:,1,2).*RTR(:,2,1); % (nE*nP)
+              invR = bsxfun(@rdivide, invR, jacR);
+              invR = sum(bsxfun(@times, permute(invR,[1 2 4 3]), permute(R,[1 4 2 3])),4); % (nE*nP)x2x3
+              jacR = sqrt(jacR); % (nE*nP)
+          end
+        case 3 % volume
+          invR(:,1,1) =   R(:,2,2).*R(:,3,3) - R(:,2,3).*R(:,3,2);
+          invR(:,2,1) = -(R(:,2,1).*R(:,3,3) - R(:,3,1).*R(:,2,3));
+          invR(:,3,1) =   R(:,2,1).*R(:,3,2) - R(:,2,2).*R(:,3,1);
+          invR(:,1,2) = -(R(:,1,2).*R(:,3,3) - R(:,1,3).*R(:,3,2));
+          invR(:,2,2) =   R(:,1,1).*R(:,3,3) - R(:,1,3).*R(:,3,1);
+          invR(:,3,2) = -(R(:,1,1).*R(:,3,2) - R(:,1,2).*R(:,3,1));
+          invR(:,1,3) =   R(:,1,2).*R(:,2,3) - R(:,1,3).*R(:,2,2);
+          invR(:,2,3) = -(R(:,1,1).*R(:,2,3) - R(:,1,3).*R(:,2,1));
+          invR(:,3,3) =   R(:,1,1).*R(:,2,2) - R(:,1,2).*R(:,2,1); % (nE*nP)x3x3
+          jacR = (R(:,1,1).*R(:,2,2).*R(:,3,3) + ...
+                  R(:,1,2).*R(:,2,3).*R(:,3,1) + ...
+                  R(:,1,3).*R(:,2,1).*R(:,3,2) - ...
+                  R(:,1,1).*R(:,2,3).*R(:,3,2) - ...
+                  R(:,1,2).*R(:,2,1).*R(:,3,3) - ...
+                  R(:,1,3).*R(:,2,2).*R(:,3,1)); % (nE*nP)
+          invR = bsxfun(@rdivide, invR, jacR);
+      end
+      if nP > 0
+        R = reshape(R,[],nP,nW,nD); % nExnPxnDxnW
+        invR = reshape(invR,[],nP,nD,nW); % nExnPxnDxnW
+        jacR = reshape(jacR,[],nP); % nExnP
+      end
+    end
+    function R = evalInversReferenceMap(obj, points)
+      C = obj.topology.globalSearcher.findCandidates(points);
+      [nP, nC] = size(C);
+      H = zeros(nP,1); L = zeros(size(points));
+      nMax = 1;
+      todo = (1:nP)';
+      for i = 1:nC
+        if isempty(todo), break; end
+        todo(C(todo,i)==0) = [];
+        pLoc = zeros(numel(todo), size(points,2));
+        for n = 1:nMax
+          Phi = obj.evalReferenceMap({pLoc, C(todo,i)}, 0);
+          [~, DPhiInv] = obj.evalTrafoInfo({pLoc, C(todo,i)});
+          delta = sum(bsxfun(@times, DPhiInv, permute(points(todo,:) - Phi,[1 3 2])), 3);
+          pLoc = pLoc + delta;
+        end
+        I = obj.topology.isFeasible(pLoc);
+        H(todo(I)) = C(todo(I),i);
+        L(todo(I),:) = pLoc(I,:);
+        todo = todo(~I);
+      end
+      R = {L,H};
+    end
+  end
+  methods % data eval
+    function R = evalFunction(obj, F, points, U, varargin) % [I]
+      I = ':'; if nargin > 4, I = varargin{1}; end
+      P = obj.evalReferenceMap(points, 0, I); % nExnPxnW
+      [nE, nP, nD] = size(P);
+      P = reshape(P, nE*nP, nD); % (nE*nP)xnW
+      switch nargin(F)
+        case 1 % F(x)
+          R = reshape(F(P), nE, nP, []);
+        case 2 % F(x,U)
+          if ~iscell(U); U = {U}; end
+          for i = 1:numel(U)
+            U{i} = reshape(U{i}(I,:), [], size(U{i},3));
+          end
+          R = reshape(F(P, U), nE, nP, []); % nExnPxnC
+      end
+    end
+    function [R, RVec] = integrate(obj, func, quadRule)
+      if ~isreal(func)
+        func = obj.evalFunction(func, quadRule.points, []);
+      end
+      [~,~,trafo] = abs(obj.evalTrafoInfo(quadRule.points));
+      RVec = (func.*trafo)*quadRule.weights;
+      R =  sum(RVec);
+    end
+  end
+  methods % refinement
+    function uniformRefine(obj, N)
+      for i = 1:N
+        obj.topology.uniformRefine();
+      end
+    end
+  end
+  methods % display
+    function show(obj, type, varargin)
+      obj.topology.show(varargin{:}); axis equal
+      if nargin < 2 || isempty(type)
+        return
+      end
+      hold on;
+      for i = 1:numel(type)
+        obj.topology.showEntity(str2double(type(i)));
+      end
+      hold off
+      axis equal
+    end
+  end
+  methods(Static = true)
+    function [nodes, elem] = getTensorProductMesh(grid, varargin)
+      switch numel(grid)
+        case 1
+          nodes = grid{1};
+          if size(nodes,1) == 1
+            nodes = nodes';
+          end
+          m = numel(nodes);
+          elem = [1:(m-1); 2:m]';
+        case 2
+          m = numel(grid{1});
+          n = numel(grid{2});
+          nodes = [kron(ones(1,n),grid{1}); ...
+                   kron(grid{2}, ones(1,m))]';
+          elem = [1:m*(n-1)-1; 2:m*(n-1)];
+          elem = [elem; elem+m]';
+          elem(m:m:end,:) = [];
+          if nargin > 1 && varargin{1}
+            elem = [elem(:,[1 2 3]); elem(:,[4 3 2])];
+          end
+        case 3
+          m = numel(grid{1});
+          n = numel(grid{2});
+          p = numel(grid{3});
+          nodes = [kron(ones(1,p),kron(ones(1,n),grid{1}))', ...
+                   kron(ones(1,p),kron(grid{2}, ones(1,m)))', ...
+                   kron(grid{3},kron(ones(1,n), ones(1,m)))'];
+          elem = [1:m*n*(p-1)-m-1; 2:m*n*(p-1)-m]';
+          elem = [elem elem+m];
+          elem = [elem, elem+m*n];
+          delete = bsxfun(@(x,y)x+y,m*(n-1)+1:m*n-1,((0:(p-3))*m*n)');
+          elem([m:m:m*n*(p-1)-m-1 delete(:)'],:) = [];
+          if nargin > 1 && varargin{1}
+            elem = [elem(:,[5 6 1 8]); elem(:,[5 1 7 8]); elem(:,[2 1 6 8]); ...
+                    elem(:,[3 7 1 8]); elem(:,[4 2 8 1]); elem(:,[3 1 4 8])];
+          end
+      end
+    end
+  end
+end
