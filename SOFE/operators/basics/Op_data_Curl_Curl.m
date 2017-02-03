@@ -1,12 +1,12 @@
-classdef Op_data_Curl_Curl < Operator % ( c*curl(U), curl(V) )
+classdef Op_data_Curl_Curl < Operator % ( c*Curl(U), Curl(V) )
   methods % constructor
     function obj = Op_data_Curl_Curl(coeff, feSpaceTrial, varargin)
       obj = obj@Operator(coeff, feSpaceTrial, varargin{:});
     end
   end
   methods
-    function R = assembleOp(obj, varargin)
-      dBasisJ = obj.feSpaceTrial.evalGlobalBasis([], 0, 1, varargin{:}); % nExnBxnPxnCxnD
+    function R = assembleOp(obj, k)
+      dBasisJ = obj.feSpaceTrial.evalGlobalBasis([], 0, 1, k); % nExnBxnPxnCxnD
       if obj.feSpaceTrial.element.dimension == 2
         curlBasisJ = dBasisJ(:,:,:,2,1) - dBasisJ(:,:,:,1,2); % nExnBxnP
       else
@@ -17,7 +17,7 @@ classdef Op_data_Curl_Curl < Operator % ( c*curl(U), curl(V) )
       if obj.isGalerkin
         curlBasisI = curlBasisJ;
       else
-        dBasisI = obj.feSpaceTest.evalGlobalBasis([], 0, 1, varargin{:});
+        dBasisI = obj.feSpaceTest.evalGlobalBasis([], 0, 1, k);
         if obj.feSpaceTrial.element.dimension == 2
           curlBasisI = dBasisI(:,:,:,2,1) - dBasisI(:,:,:,1,2); % nExnBxnP
         else
@@ -26,7 +26,7 @@ classdef Op_data_Curl_Curl < Operator % ( c*curl(U), curl(V) )
           curlBasisI(:,:,:,3) = dBasisI(:,:,:,2,1) - dBasisI(:,:,:,1,2); % nExnBxnP
         end
       end
-      R = obj.integrate(true, curlBasisI, curlBasisJ, varargin{:});
+      R = obj.integrate(true, curlBasisI, curlBasisJ, k);
     end
   end
 end

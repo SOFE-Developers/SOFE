@@ -5,7 +5,7 @@ classdef CDR < PDE
       lap = Op_data_GRAD_GRAD(data.a, fesTrial, varargin{:});
       lhs = {lap};
       try
-        lhs = [lhs, {Op_Data_GRAD_Id2(data.b, fesTrial, varargin{:})}];
+        lhs = [lhs, {Op_Data_Grad_id(data.b, fesTrial, varargin{:})}];
       end
       try
         lhs = [lhs, {Op_data_Id_Id(data.c, 0, fesTrial, varargin{:})}];

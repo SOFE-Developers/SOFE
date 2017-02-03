@@ -2,7 +2,7 @@ classdef NavierStokes < PDE
   methods % constructor
     function obj = NavierStokes(data, fesV, fesP)
       lap = Op_data_GRAD_GRAD(data.nu, fesV, fesV);
-      conv = Op_Data_GRAD_Id2(@(x,t,U)U{1}, fesV, fesV);
+      conv = Op_Data_GRAD_Id(@(x,t,U)U{1}, fesV, fesV);
       grad = Op_data_Grad_Id(@(x)1+0*x(:,1), fesP, fesV);
       div = Op_data_div_id(@(x)1+0*x(:,1), fesV, fesP);
       try
