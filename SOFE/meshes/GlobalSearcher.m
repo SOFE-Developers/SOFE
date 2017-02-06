@@ -1,4 +1,4 @@
-classdef GlobalSearcher < SOFEClass
+classdef GlobalSearcher < handle
   properties
     topology
     bgMesh
@@ -8,7 +8,9 @@ classdef GlobalSearcher < SOFEClass
   methods % constructor
     function obj = GlobalSearcher(topology)
       obj.topology = topology;
+      fprintf('Set up GlobalSearcher ... ');
       obj.notify();
+      fprintf('DONE\n');
     end
     function notify(obj)
       dim = obj.topology.dimW;
@@ -42,24 +44,25 @@ classdef GlobalSearcher < SOFEClass
       nW = size(minBins, 2);
       XX = cell(nW, 1); iX = cell(nW, 1);
       for d = 1:nW
-      XX{d} = reshapeTop(1-minBins(:,d)+maxBins(:,d));
-      iX{d} = XX{d}==0;
-      XX{d} = bsxfun(@plus, XX{d}, minBins(:,d)'-1);
-      XX{d}(iX{d}) = 0;
+        XX{d} = reshapeTop(1-minBins(:,d)+maxBins(:,d));
+        iX{d} = XX{d}==0;
+        XX{d} = bsxfun(@plus, XX{d}, minBins(:,d)'-1);
+        XX{d}(iX{d}) = 0;
       end
       %
       if nW == 1
-       IDXE = [reshape(repmat(XX{1},1,1),[],1) ...
-              reshape(kron((1:size(XX{1},2))', ones(size(XX{1},1),1)),[],1)];
+        IDXE = [reshape(repmat(XX{1},1,1),[],1) ...
+                reshape(kron((1:size(XX{1},2))', ones(size(XX{1},1),1)),[],1)];
       elseif nW == 2
-       IDXE = [reshape(repmat(XX{1}, size(XX{2},1),1),[],1) ...
-              reshape(kron(XX{2}, ones(size(XX{1},1),1)),[],1) ...
-              reshape(kron((1:size(XX{1},2))', ones(size(XX{1},1)*size(XX{2},1),1)),[],1)];
+        IDXE = [reshape(repmat(XX{1}, size(XX{2},1),1),[],1) ...
+               reshape(kron(XX{2}, ones(size(XX{1},1),1)),[],1) ...
+               reshape(kron((1:size(XX{1},2))', ones(size(XX{1},1)*size(XX{2},1),1)),[],1)];
       elseif nW == 3
-       IDXE = [reshape(repmat(XX{1}, size(XX{2},1)*size(XX{3},1),1),[],1) ...
-              reshape(repmat(kron(XX{2}, ones(size(XX{1},1),1)), size(XX{3},1), 1),[],1) ...
-              reshape(kron(XX{3}, ones(size(XX{1},1)*size(XX{2},1),1)), [], 1) ...
-              reshape(kron((1:size(XX{1},2))', ones(size(XX{1},1)*size(XX{2},1)*size(XX{3},1),1)),[],1)];
+        IDXE = zeros(prod(size(XX{1}))*size(XX{2},1)*size(XX{3},1),4);
+        IDXE(:,1) = reshape(repmat(XX{1}, size(XX{2},1)*size(XX{3},1),1),[],1);
+        IDXE(:,2) = reshape(repmat(kron(XX{2}, ones(size(XX{1},1),1)), size(XX{3},1), 1),[],1);
+        IDXE(:,3) = reshape(kron(XX{3}, ones(size(XX{1},1)*size(XX{2},1),1)), [], 1);
+        IDXE(:,4) = reshape(kron((1:size(XX{1},2))', ones(size(XX{1},1)*size(XX{2},1)*size(XX{3},1),1)),[],1);
       end
       IDXE = IDXE(prod(IDXE,2)>0,:);
       L = obj.getLinearIndex(IDXE(:,1:nW));
