@@ -1,6 +1,7 @@
 N = 50; nNonLin = 7;
 isTri = 1; order = 2;
 % DATA
+clear data;
 data.nu = @(x) 1e-3 + 0*x(:,1);
 data.ud = @(x)[1.0*(x(:,2)>1-eps), 0.0*x(:,1)];
 data.dLoc = @(x)[x(:,1)<Inf,x(:,1)<Inf];
