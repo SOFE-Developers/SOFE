@@ -1,6 +1,7 @@
 T = 8; M = 50;
 uMax = 1.5;
 % DATA
+clear data;
 data.nu = @(x) 1e-3 + 0*x(:,1);
 % MESH
 m = SalomeMesh('karman');
