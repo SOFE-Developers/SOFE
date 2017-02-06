@@ -48,12 +48,15 @@ classdef Visualizer2D < Visualizer
           value = sum(value.^2,3).^0.5; % nExnP
         end
         value = reshape(value', [], 1); % (nP*nE)
-        vertices = obj.feSpace.mesh.evalReferenceMap([X(:) Y(:)],0); % nExnPx2
-        vertices = reshape(permute(vertices, [2 1 3]), [], 2); % (nP*nE)x2
-        height = value;
-        patch('faces', reshape(elem, [], obj.feSpace.element.nV(end)), 'vertices', [vertices height], ... 
-            'facevertexcdata',value,'facecolor','interp', ...
-            'edgecolor','interp');
+        vertices = obj.feSpace.mesh.evalReferenceMap([X(:) Y(:)],0); % nExnPxnW
+        vertices = reshape(permute(vertices, [2 1 3]), [], size(vertices,3)); % (nP*nE)x2
+        if size(vertices,2)==2
+          vertices = [vertices, value];
+        end
+        patch('faces', reshape(elem, [], obj.feSpace.element.nV(end)), ...
+              'vertices', vertices , ... 
+              'facevertexcdata',value,'facecolor','interp', ...
+              'edgecolor','interp');
         diam = obj.feSpace.mesh.topology.globalSearcher.diam';
         axis(diam(:));
         view(0,90), axis equal;
