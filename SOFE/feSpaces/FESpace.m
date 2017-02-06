@@ -368,50 +368,43 @@ classdef FESpace < SOFEClass
         if obj.mesh.element.dimension == 1
           R = obj.getWeakInterpolation(func, 0); % nDoFx1
         else
-          R = obj.getWeakInterpolation(func, 1); % nDoFx1
+          R = obj.getWeakInterpolation(func, 1, obj.mesh.topology.isBoundary()); % nDoFx1
         end
       end
     end
-    function R = getWeakInterpolation(obj, f, codim)
-      [points, weights] = obj.getQuadData(codim); % nPx1
-      [dMap, nDoF] = obj.getDoFMap(codim); % nBxnE
-      nBlock = obj.mesh.nBlock;
-      sol = zeros(size(dMap));
-      for k = 1:nBlock
-        I = obj.mesh.getBlock(codim, k); I = (I(1):I(2))';
-        basis = obj.evalGlobalBasis(points, [], 0, I); % nExnBxnPxnC
-        F = permute(obj.evalFunction(f, points, [], [], I), [1 4 2 3]); % nEx1xnPxnC
-        [~,~,trafo] = obj.mesh.evalTrafoInfo(points, I); % nExnP
-        dX = bsxfun(@times, abs(trafo), weights'); % nExnP
-        rhs = sum(bsxfun(@times, basis, F), 4); % nExnBxnP
-        rhs = sum(bsxfun(@times, rhs, permute(dX, [1 3 2])),3).'; % nBxnE
-        lhs = sum(bsxfun(@times, permute(basis,[1 2 5 3 4]), ...
-                                 permute(basis,[1 5 2 3 4])), 5); % nExnBxnBxnP
-        lhs = sum(bsxfun(@times, lhs, permute(dX, [1 3 4 2])), 4); % nExnBxnB
-        lhs = blockify(permute(lhs,[3 2 1]));
-        iZ = find(dMap(:,I)~=0);
-        tmp = zeros(size(sol,1), numel(I));
-        tmp(iZ) = reshape(lhs(iZ,iZ)\rhs(iZ), [], numel(I)); % nBxnE
-        sol(:,I) = tmp;
-        fprintf('progress interpolation LHS: %d / %d\r', k, nBlock);
-      end
-      fprintf('\n');
+    function R = getWeakInterpolation(obj, f, codim, varargin)
+      [P, weights] = obj.getQuadData(codim); % nPx1
+      basis = obj.evalGlobalBasis(P, [], 0, varargin{:}); % nExnBxnPxnC
+      F = permute(obj.evalFunction(f, P, [], [], varargin{:}), [1 4 2 3]); % nEx1xnPxnC
+      [~,~,jac] = obj.mesh.evalTrafoInfo(P, varargin{:}); % nExnP
+      dX = bsxfun(@times, abs(jac), weights'); % nExnP
+      lhs = sum(bsxfun(@times, permute(basis,[1 2 5 3 4]), ...
+                               permute(basis,[1 5 2 3 4])), 5); % nExnBxnBxnP
+      lhs = permute(sum(bsxfun(@times, lhs, permute(dX, [1 3 4 2])), 4),[2 3 1]); % nBxnBxnE
+      rhs = sum(bsxfun(@times, basis, F), 4); % nExnBxnP
+      rhs = sum(bsxfun(@times, rhs, permute(dX, [1 3 2])),3).'; % nBxnE
+      %
+      [dMap, nDoF] = obj.getDoFMap(codim, varargin{:}); % nBxnE
+      iZ = (dMap~=0); dMap = abs(dMap(iZ));
+      lhs = reshape(lhs(:,iZ), size(lhs,1),size(lhs,1),[]);
+      lhs = blockify(lhs); % (nB*nE)x(nB*nE)
+      rhs = lhs\rhs(:); % nB*nE
       R = zeros(obj.getNDoF(),1); % nDoFx1
-      iZ = (dMap~=0); dMap = dMap(iZ); dMap = abs(dMap);
-      tmp = accumarray(dMap,sol(iZ), [nDoF 1])./accumarray(dMap,1, [nDoF 1]);
+      rhs = accumarray(dMap,rhs)./accumarray(dMap,1);
       I = unique(dMap);
-      R(I) = tmp(I);
+      R(I) = rhs(I);
     end
     function R = getStrongInterpolation(obj, f, codim, varargin)
       P = obj.getLocalEquiPoints(obj.element.dimension - codim);
       basis = obj.evalGlobalBasis(P, [], 0, varargin{:}); % nExnBxnPxnC
       lhs = permute(reshape(basis,size(basis,1),size(basis,2),[]), [3 2 1]); % (nP*nC)xnBxnE
-      rhs = reshape(permute(obj.evalFunction(f, P, [], [], varargin{:}), [2 3 1]), [], 1); % nP*nC*nE
+      rhs = permute(obj.evalFunction(f, P, [], [], varargin{:}), [2 3 1]); % nP*nC*nE
+      %
       dMap = reshape(abs(obj.getDoFMap(codim, varargin{:})),[],1); % nB*nE
-      iZ = find(dMap~=0); dMap = dMap(iZ);
+      iZ = (dMap~=0); dMap = abs(dMap(iZ));
       lhs = reshape(lhs(:,iZ), size(lhs,1),size(lhs,1),[]);
       lhs = blockify(lhs);
-      rhs = lhs\rhs; % nB*nE
+      rhs = lhs\rhs(:); % nB*nE
       R = zeros(obj.getNDoF(),1); % nDoFx1
       rhs = accumarray(dMap,rhs)./accumarray(dMap,1);
       I = unique(dMap);
