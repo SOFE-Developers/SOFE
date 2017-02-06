@@ -128,17 +128,6 @@ classdef MeshTopologyTet < MeshTopology
     end
   end
   methods % display
-    function show_(obj, varargin) % deprecated
-      expr = [];
-      if nargin > 1
-        expr = varargin{1};
-        expr = func2str(expr);
-        expr = expr(5:end);
-      end
-      c = caxis();
-      simpplot(obj.getEntity(0), obj.getEntity(3), expr);
-      caxis(c);
-    end
     function show(obj, varargin)
       c = caxis();
       fc = obj.getEntity(2);

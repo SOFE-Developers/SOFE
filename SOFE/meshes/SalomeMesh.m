@@ -9,7 +9,6 @@ classdef SalomeMesh < Mesh
     function [nodes, elem] = import(file) % tet
       fprintf('LOAD SALOMEMESH ...');
       fid = fopen(file, 'rt');
-      s = textscan(fid, '%s', 'delimiter', '\n');
       %
       nN = dlmread(file,'',[0 0 0 0]);
       nE = dlmread(file,'',[0 1 0 1]);
