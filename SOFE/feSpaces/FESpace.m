@@ -384,9 +384,17 @@ classdef FESpace < SOFEClass
       rhs = sum(bsxfun(@times, basis, F), 4); % nExnBxnP
       rhs = sum(bsxfun(@times, rhs, permute(dX, [1 3 2])),3).'; % nBxnE
       %
-      [dMap, nDoF] = obj.getDoFMap(codim, varargin{:}); % nBxnE
-      iZ = (dMap~=0); dMap = abs(dMap(iZ));
-      lhs = reshape(lhs(:,iZ), size(lhs,1),size(lhs,1),[]);
+      dMap = reshape(abs(obj.getDoFMap(codim, varargin{:})),[],1); % nB*nE
+      iZ = (dMap~=0); dMap = abs(dMap(:));
+      if any(~iZ(:))
+        dMap = dMap(iZ);
+        rhs = rhs(iZ);
+        [nB,~,nE] = size(lhs);
+        lhs = reshape(reshape(lhs,nB,[])(:,iZ),nB,[],nE);
+        [~,nBNew,~] = size(lhs);
+        lhs = reshape(permute(lhs,[2 1 3]),nBNew,(nB*nE)); % nBNew*(nBxnE)
+        lhs = reshape(lhs(:,iZ),nBNew,nBNew,nE);
+      end
       lhs = blockify(lhs); % (nB*nE)x(nB*nE)
       rhs = lhs\rhs(:); % nB*nE
       R = zeros(obj.getNDoF(),1); % nDoFx1
@@ -401,9 +409,17 @@ classdef FESpace < SOFEClass
       rhs = permute(obj.evalFunction(f, P, [], [], varargin{:}), [2 3 1]); % nP*nC*nE
       %
       dMap = reshape(abs(obj.getDoFMap(codim, varargin{:})),[],1); % nB*nE
-      iZ = (dMap~=0); dMap = abs(dMap(iZ));
-      lhs = reshape(lhs(:,iZ), size(lhs,1),size(lhs,1),[]);
-      lhs = blockify(lhs);
+      iZ = (dMap~=0); dMap = abs(dMap(:));
+      if any(~iZ(:))
+        dMap = dMap(iZ);
+        rhs = rhs(iZ);
+        [nB,~,nE] = size(lhs);
+        lhs = reshape(reshape(lhs,nB,[])(:,iZ),nB,[],nE);
+        [~,nBNew,~] = size(lhs);
+        lhs = reshape(permute(lhs,[2 1 3]),nBNew,(nB*nE)); % nBNew*(nBxnE)
+        lhs = reshape(lhs(:,iZ),nBNew,nBNew,nE);
+      end
+      lhs = blockify(lhs); % (nB*nE)x(nB*nE)
       rhs = lhs\rhs(:); % nB*nE
       R = zeros(obj.getNDoF(),1); % nDoFx1
       rhs = accumarray(dMap,rhs)./accumarray(dMap,1);
