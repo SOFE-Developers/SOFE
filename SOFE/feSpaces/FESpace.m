@@ -389,8 +389,9 @@ classdef FESpace < SOFEClass
       if any(~iZ(:))
         dMap = dMap(iZ);
         rhs = rhs(iZ);
-        [nB,~,nE] = size(lhs);
-        lhs = reshape(reshape(lhs,nB,[])(:,iZ),nB,[],nE);
+        [nB,~, nE] = size(lhs);
+        lhs = reshape(lhs,nB,[]);
+        lhs = reshape(lhs(:,iZ),nB,[],nE);
         [~,nBNew,~] = size(lhs);
         lhs = reshape(permute(lhs,[2 1 3]),nBNew,(nB*nE)); % nBNew*(nBxnE)
         lhs = reshape(lhs(:,iZ),nBNew,nBNew,nE);
@@ -413,8 +414,9 @@ classdef FESpace < SOFEClass
       if any(~iZ(:))
         dMap = dMap(iZ);
         rhs = rhs(iZ);
-        [nB,~,nE] = size(lhs);
-        lhs = reshape(reshape(lhs,nB,[])(:,iZ),nB,[],nE);
+        [nB,~, nE] = size(lhs);
+        lhs = reshape(lhs,nB,[]);
+        lhs = reshape(lhs(:,iZ),nB,[],nE);
         [~,nBNew,~] = size(lhs);
         lhs = reshape(permute(lhs,[2 1 3]),nBNew,(nB*nE)); % nBNew*(nBxnE)
         lhs = reshape(lhs(:,iZ),nBNew,nBNew,nE);
