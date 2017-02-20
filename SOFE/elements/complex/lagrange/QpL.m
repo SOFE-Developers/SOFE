@@ -14,7 +14,7 @@ classdef QpL < LagrangeElement
       obj.conformity = 'H1';
     end
     function R = evalFunctionals(obj, dim)
-      p = obj.order;
+      p = obj.order(1);
       if p == 0
         p1d = 0.5;
       else

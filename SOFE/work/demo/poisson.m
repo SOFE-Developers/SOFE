@@ -1,5 +1,5 @@
 % PARAMETERS
-dim = 2; N = 20; order = 2; isTri = 1;
+dim = 3; N = 20; order = 1; isTri = 0;
 % DATA
 clear data;
 data.a = 1;
@@ -9,9 +9,9 @@ m = RegularMesh(N*ones(dim,1), repmat([0 1],dim,1), isTri);
 m.nBlock = 20;
 % FESPACE
 if isTri
-  e = PpH1(dim, order);
+  e = PpL(dim, order);
 else
-  e = QpH1(dim, order);
+  e = QpL(dim, order);
 end
 fes = FESpace(m, e, @(x) x(:,1) < Inf);
 % PDE
