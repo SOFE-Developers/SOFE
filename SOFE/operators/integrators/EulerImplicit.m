@@ -12,7 +12,7 @@ classdef EulerImplicit < Integrator
         if ~isempty(obj.initCond)
           obj.solution{1}{k} = obj.statOp.fesTrial{k}.getWeakInterpolation(obj.initCond{k}, 0);
         else
-          obj.solution{1}{k} = zeros(obj.statOp.dimTrial(k), 1);
+          obj.solution{1}{k} = zeros(obj.statOp.J{k}(2)-obj.statOp.J{k}(1)+1, 1);
         end
       end
       obj.solution{1} = cell2mat(obj.solution{1});

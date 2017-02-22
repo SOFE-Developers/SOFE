@@ -18,7 +18,9 @@ classdef MeshTopology < SOFEClass
       obj.observers = {};
       try
         obj.globalSearcher = GlobalSearcher(obj);
-      catch, end
+      catch
+        warning('Building GlobalSearcher failed');
+      end
     end
   end
   methods % obj is observed
@@ -27,8 +29,10 @@ classdef MeshTopology < SOFEClass
     end
     function notifyObservers(obj)
       try
-        obj.globalSearcher = GlobalSearcher(obj); 
-      catch, end
+        obj.globalSearcher = GlobalSearcher(obj);
+      catch
+        warning('Building GlobalSearcher failed');
+      end
       for i = 1:numel(obj.observers)
         obj.observers{i}.notify();
       end
