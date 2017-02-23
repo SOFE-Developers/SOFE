@@ -94,7 +94,7 @@ classdef MeshTopology < SOFEClass
     end
     function R = isBoundary(obj, varargin)
       e2F = obj.getElem2Face(); % nExnF
-      R = accumarray(e2F(:),1, [obj.getNumber(obj.dimP-1) 1])==1; % nFx1
+      R = accumarray(e2F(e2F>0),1, [obj.getNumber(obj.dimP-1) 1])==1; % nFx1
       if nargin > 1
         if ~isempty(varargin{1})
           R = find(R); % nBFx1

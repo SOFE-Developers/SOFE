@@ -91,11 +91,11 @@ classdef Operator < SOFEClass
       if nBlock > 1, fprintf('\n'); end
     end
     function [r,c,e] = assembleBlock(obj, k)
-      bIdx = obj.feSpaceTrial.mesh.getBlock(obj.codim, k);
-      if ~isempty(bIdx)
+      I = obj.feSpaceTrial.mesh.getBlock(obj.codim, k);
+      if ~isempty(I)
         e = obj.assembleOp(k); % nExnBxnB
-        c = obj.feSpaceTrial.getDoFMap(obj.codim, (bIdx(1):bIdx(2))'); % nBxnE
-        r = obj.feSpaceTest.getDoFMap(obj.codim, (bIdx(1):bIdx(2))'); % nBxnE
+        c = obj.feSpaceTrial.getDoFMap(obj.codim, (I(1):I(2))'); % nBxnE
+        r = obj.feSpaceTest.getDoFMap(obj.codim, (I(1):I(2))'); % nBxnE
         r = repmat(abs(r)',[1 1 size(c,1)]); % nExnBxnB
         c = permute(repmat(abs(c)',[1 1 size(r,2)]), [1 3 2]); % nExnBxnB
       else

@@ -44,6 +44,9 @@ classdef FESpace < SOFEClass
       end
       obj.cache.dM = [];
     end
+    function R = getBlock(obj, codim, varargin)
+      R = obj.mesh.getBlock(codim, varargin{:});
+    end
     function notify(obj)
       obj.resetCache();
       obj.freeDoFs = ~obj.getBoundaryDoFs(obj.fixB);
@@ -72,7 +75,7 @@ classdef FESpace < SOFEClass
     function R = evalFunction(obj, F, points, codim, U, varargin) % [k or I]
       if isempty(points)
         k = varargin{1};
-        idx = obj.mesh.getBlock(codim, k);
+        idx = obj.getBlock(codim, k);
         varargin{1} = (idx(1):idx(2))';
         points = obj.getQuadData(codim);
       end
@@ -80,12 +83,19 @@ classdef FESpace < SOFEClass
     end
     function R = evalReferenceMap(obj, points, codim, varargin) % [k or I]
       if isempty(points)
+        if nargin < 4
+          R = [];
+          for k = 1:obj.mesh.nBlock
+            R = [R; obj.evalReferenceMap(points, codim, k)];
+          end
+          return
+        end
         k = varargin{1};
         if ~isempty(obj.cache.refMaps{k}{codim+1}) && obj.isCaching
           R = obj.cache.refMaps{k}{codim+1};
           return
         else
-          idx = obj.mesh.getBlock(codim, k);
+          idx = obj.getBlock(codim, k);
           R = obj.mesh.evalReferenceMap(obj.getQuadData(codim), 0, (idx(1):idx(2))');
           if isempty(points) && obj.isCaching
             obj.cache.refMaps{k}{codim+1} = R;
@@ -104,7 +114,7 @@ classdef FESpace < SOFEClass
           jacR = obj.cache.jac{k}{codim+1};
           return
         else
-          idx = obj.mesh.getBlock(codim, k);
+          idx = obj.getBlock(codim, k);
           [R, invR, jacR] = obj.mesh.evalTrafoInfo(obj.getQuadData(codim), (idx(1):idx(2))');
           if obj.isCaching
             obj.cache.DPhi{k}{codim+1} = R;
@@ -137,7 +147,7 @@ classdef FESpace < SOFEClass
           codim = obj.element.dimension - size(points,2);
           if nargin >5, idx = varargin{:}; else idx = ':'; end
         else
-          idx = obj.mesh.getBlock(codim, varargin{1});
+          idx = obj.getBlock(codim, varargin{1});
           idx = (idx(1):idx(2))';
         end
         assert(codim==0 || order==0, '! Derivatives for traces not supported !');
@@ -162,7 +172,7 @@ classdef FESpace < SOFEClass
             end
           end
         else % block evaluation
-          nBlock = size(obj.mesh.getBlock(codim),2);
+          nBlock = size(obj.getBlock(codim),2);
           R = cell(nBlock,1);
           for k = 1:nBlock;
             if ~isempty(obj.cache.basis{k}{codim+1, order+1}) && obj.isCaching
@@ -180,7 +190,7 @@ classdef FESpace < SOFEClass
         if nargin > 4 || iscell(points)
           R = obj.computeGlobalBasis(points, codim, order, varargin{:});
         else % block evaluation
-          idx = obj.mesh.getBlock(obj.element.dimension-size(points,2));
+          idx = obj.getBlock(obj.element.dimension-size(points,2));
           R = cell(size(idx,2),1);
           for k = 1:size(idx,2)
             R{k} = obj.computeGlobalBasis(points, codim, order, (idx(1,k):idx(2,k))');
@@ -199,7 +209,7 @@ classdef FESpace < SOFEClass
         I = points{2}; codim = obj.element.dimension - size(points{1},2);
       else
         if isempty(points)
-          idx = obj.mesh.getBlock(codim, varargin{1}); I = (idx(1):idx(2))';
+          idx = obj.getBlock(codim, varargin{1}); I = (idx(1):idx(2))';
           basis = obj.element.evalBasis(obj.getQuadData(codim), order); % nBxnPxnC[xnD]
         else
           if nargin > 4, I = varargin{1}; else I = ':'; end
@@ -432,6 +442,17 @@ classdef FESpace < SOFEClass
       mass = Op_data_Id_Id(1, 0, obj); mass.assemble();
       l2 = Fc_Data_Id(f, obj,0); l2.assemble();
       R = mass.matrix \ l2.vector;
+    end
+    function R = getLocalEquiPoints(obj, varargin) % [nD]
+      if nargin > 1, nD = varargin{1}; else nD = obj.element.dimension; end
+      points = linspace(0,1,obj.element.order+1)';
+      R = points;
+      for i = 2:nD
+        R = [kron(ones(length(points),1),R), kron(points,ones(length(points)^(i-1),1))];
+      end
+      if obj.element.isSimplex()
+        R = R((sum(R,2)<=1),:);
+      end
     end
   end
 end

@@ -149,8 +149,8 @@ classdef Mesh < SOFEClass
       if ~isreal(func)
         func = obj.evalFunction(func, quadRule.points, []);
       end
-      [~,~,trafo] = abs(obj.evalTrafoInfo(quadRule.points));
-      RVec = (func.*trafo)*quadRule.weights;
+      [~,~,trafo] = obj.evalTrafoInfo(quadRule.points);
+      RVec = (func.*abs(trafo))*quadRule.weights;
       R =  sum(RVec);
     end
   end
