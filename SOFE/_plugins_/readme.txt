@@ -1,0 +1,1 @@
+Save your extensions in the '_plugins_' folder.
