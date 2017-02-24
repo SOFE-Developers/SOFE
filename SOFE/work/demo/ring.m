@@ -2,8 +2,8 @@
 data.a    = @(x) 1+0*x(:,1);
 data.f    = @(x) 1+0*x(:,1);
 %% MESH
-load('./meshes/library/nodesRing.dat');
-load('./meshes/library/elemRing.dat');
+load([SOFEClass.getSOFEPath '/meshes/library/nodesRing.dat']);
+load([SOFEClass.getSOFEPath '/meshes/library/elemRing.dat']);
 m = Mesh(nodesRing, elemRing);
 m.nBlock = 20;
 % FESPACE
