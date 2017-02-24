@@ -27,4 +27,12 @@ classdef SOFEClass < handle
       end
     end
   end
+  methods(Static = true)
+    function R = getWorkPath()
+      R = [pwd '/work'];
+    end
+    function R = getPluginPath()
+      R = '';
+    end
+  end
 end

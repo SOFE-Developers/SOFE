@@ -1,7 +1,7 @@
 function closeCase()
   name = isOpen();
   if ~isempty(name)
-      folder = [pwd,filesep,'work',filesep,isOpen()];
+      folder = [SOFEClass.getWorkPath(),filesep,isOpen()];
       rmpath(genpath(folder));
   end
 end
