@@ -7,10 +7,12 @@ classdef FESpace < SOFEClass
   end
   methods % constructor, observer and caching.
     function obj = FESpace(mesh, element, varargin) % [fixB, shift]
-      if mesh.element.isSimplex ~= element.isSimplex || ...
-         mesh.element.dimension ~= element.dimension
-        warning('! Mesh and Element are not compatible, continue? !');
-        keyboard
+      try
+        if mesh.element.isSimplex ~= element.isSimplex || ...
+           mesh.element.dimension ~= element.dimension
+          warning('! Mesh and Element are not compatible, continue? !');
+          keyboard
+        end
       end
       obj.mesh = mesh;
       obj.element = element;
