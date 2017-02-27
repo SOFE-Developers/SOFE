@@ -16,7 +16,7 @@ classdef SOFEClass < handle
     function R = getPluginPath()
       R = [pwd '/SOFE/_plugins_'];
     end
-    function install()
+    function unlock()
       addpath(genpath(SOFEClass.getPluginPath()));
       addpath(SOFEClass.getWorkPath());
       addpath(genpath([SOFEClass.getSOFEPath(),'/elements']));
@@ -29,7 +29,32 @@ classdef SOFEClass < handle
       addpath(genpath([SOFEClass.getSOFEPath(),'/quadrature']));
       addpath(genpath([SOFEClass.getSOFEPath(),'/solver']));
       more off
-      openCase('demo');
+      SOFEClass.openCase('demo');
+    end
+    function openCase(name)   
+      SOFEClass.closeCase();
+      folder = [SOFEClass.getWorkPath(),filesep,name];
+      addpath(genpath(folder));
+      if isempty(SOFEClass.isOpen())
+        error('Work folder not found ');
+      end
+    end
+    function name = isOpen()
+      x = path();
+      i = strfind(x,'/work/');
+      if ~isempty(i) 
+          j = strfind(x(i(1):end),':');
+          name = x(i(1)+6:i(1)+j(1)-2);
+      else
+          name = [];
+      end
+    end
+    function closeCase()
+      name = SOFEClass.isOpen();
+      if ~isempty(name)
+          folder = [SOFEClass.getWorkPath(),filesep, SOFEClass.isOpen()];
+          rmpath(genpath(folder));
+      end
     end
   end
   methods
