@@ -16,7 +16,7 @@ end
 fes = FESpace(m, e, @(x) x(:,1) < Inf);
 % PDE
 p = Poisson(data, fes);
-if dim == 3, IterativeSolver([], 'bicgstab', 'ilu'); end
+if dim == 3, p.solver = IterativeSolver([], 'bicgstab', 'ilu'); end
 % SOLVE
 p.compute();
 % VISUALIZE
