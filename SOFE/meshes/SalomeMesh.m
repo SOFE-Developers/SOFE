@@ -1,7 +1,8 @@
 classdef SalomeMesh < Mesh
   methods % constructor
     function obj = SalomeMesh(file, varargin) % [dimP]
-      [nodes, elem] = SalomeMesh.import(['./meshes/library/' file '.dat']);
+      [nodes, elem] = SalomeMesh.import( ...
+        [SOFEClass.getSOFEPath() '/meshes/library/' file '.dat']);
       obj = obj@Mesh(nodes, elem, varargin{:});
     end
   end

@@ -1,5 +1,5 @@
 % PARAMETERS
-dim = 3; N = 20; order = 1; isTri = 0;
+dim = 2; N = 20; order = 2; isTri = 0;
 % DATA
 clear data;
 data.a = 1;
@@ -16,7 +16,7 @@ end
 fes = FESpace(m, e, @(x) x(:,1) < Inf);
 % PDE
 p = Poisson(data, fes);
-if dim == 3, p.solver = IterativeSolver([], 'bicgstab', 'ilu'); end
+p.solver = IterativeSolver([], 'bicgstab', 'ilu');
 % SOLVE
 p.compute();
 % VISUALIZE
