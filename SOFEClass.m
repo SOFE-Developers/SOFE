@@ -8,13 +8,13 @@ classdef SOFEClass < handle
   end
   methods(Static = true)
     function R = getSOFEPath()
-      R = [pwd '/SOFE'];
+      R = [pwd '/_SOFE_'];
     end
     function R = getWorkPath()
-      R = [pwd '/SOFE/work'];
+      R = [pwd '/work'];
     end
     function R = getPluginPath()
-      R = [pwd '/SOFE/_plugins_'];
+      R = [pwd '/plugins'];
     end
     function unlock()
       addpath(genpath(SOFEClass.getPluginPath()));
