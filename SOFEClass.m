@@ -29,27 +29,27 @@ classdef SOFEClass < handle
       addpath(genpath([SOFEClass.getSOFEPath(),'/quadrature']));
       addpath(genpath([SOFEClass.getSOFEPath(),'/solver']));
       more off
-      SOFEClass.openCase('demo');
+      SOFEClass.open('demo');
     end
-    function openCase(name)   
-      SOFEClass.closeCase();
+    function open(name)   
+      SOFEClass.close();
       folder = [SOFEClass.getWorkPath(),filesep,name];
       addpath(genpath(folder));
       if isempty(SOFEClass.isOpen())
         error('Work folder not found ');
       end
     end
-    function name = isOpen()
+    function R = isOpen()
       x = path();
       i = strfind(x,'/work/');
       if ~isempty(i) 
           j = strfind(x(i(1):end),':');
-          name = x(i(1)+6:i(1)+j(1)-2);
+          R = x(i(1)+6:i(1)+j(1)-2);
       else
-          name = [];
+          R = [];
       end
     end
-    function closeCase()
+    function close()
       name = SOFEClass.isOpen();
       if ~isempty(name)
           folder = [SOFEClass.getWorkPath(),filesep, SOFEClass.isOpen()];
