@@ -64,8 +64,8 @@ classdef FESpace < SOFEClass
     end
   end
   methods % quadrature.
-    function setQuadRule(obj, quadRule)
-      obj.quadRule = quadRule;
+    function setQuadRule(obj, order)
+      obj.quadRule = obj.mesh.topology.getQuadRule(order);
       obj.resetCache();
     end
     function [Rp, Rw] = getQuadData(obj, codim)
