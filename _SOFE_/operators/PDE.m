@@ -11,7 +11,7 @@ classdef PDE < SOFEClass
     I,J, nDoF
     %
     time, state
-    nonLin
+    nonLin = false;
     stateChanged
     %
     solver = DirectSolver([]);
@@ -22,7 +22,7 @@ classdef PDE < SOFEClass
       obj.rhs = rhs;
       obj.nEq = numel(rhs);
       if nargin > 2
-        try obj.nonLin = varargin{1}.nonLin; catch, obj.nonLin = false; end
+        obj.nonLin = varargin{1}.nonLin;
       end
       obj.fesTrial = cell(obj.nEq, 1);
       obj.fesTest = cell(obj.nEq, 1);
