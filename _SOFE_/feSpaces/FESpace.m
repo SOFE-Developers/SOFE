@@ -212,8 +212,7 @@ classdef FESpace < SOFEClass
         I = points{2}; codim = obj.element.dimension - size(points{1},2);
       else
         if isempty(points)
-          idx = obj.getBlock(codim, varargin{1}); I = (idx(1):idx(2))';
-          if isempty(I), R = []; return; end
+          I = obj.getBlock(codim, varargin{1}); I = (I(1):I(2))';
           basis = obj.element.evalBasis(obj.getQuadData(codim), order); % nBxnPxnC[xnD]
         else
           if nargin > 4, I = varargin{1}; else I = ':'; end
