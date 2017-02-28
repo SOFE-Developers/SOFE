@@ -151,6 +151,7 @@ classdef FESpace < SOFEClass
         else
           idx = obj.getBlock(codim, varargin{1});
           idx = (idx(1):idx(2))';
+          if isempty(idx), R = []; return; end
         end
         assert(codim==0 || order==0, '! Derivatives for traces not supported !');
         basis = obj.evalGlobalBasis(points, codim, order, varargin{:}); % [1/nE]xnB[xnP]xnCx[nD]
@@ -212,6 +213,7 @@ classdef FESpace < SOFEClass
       else
         if isempty(points)
           idx = obj.getBlock(codim, varargin{1}); I = (idx(1):idx(2))';
+          if isempty(I), R = []; return; end
           basis = obj.element.evalBasis(obj.getQuadData(codim), order); % nBxnPxnC[xnD]
         else
           if nargin > 4, I = varargin{1}; else I = ':'; end

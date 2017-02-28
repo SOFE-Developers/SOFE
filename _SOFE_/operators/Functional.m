@@ -78,9 +78,10 @@ classdef Functional < SOFEClass
     end
     function [r,e] = assembleBlock(obj, k)
       I = obj.feSpace.getBlock(obj.codim, k);
+      I = (I(1):I(2))';
       if ~isempty(I)
         e = obj.assembleOp(k);
-        r = abs(obj.feSpace.getDoFMap(obj.codim, (I(1):I(2))'))';
+        r = abs(obj.feSpace.getDoFMap(obj.codim, I))';
       else
         r = []; e = [];
       end
