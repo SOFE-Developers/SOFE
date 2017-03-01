@@ -58,6 +58,9 @@ classdef SOFEClass < handle
     function plugin(name)
       addpath(genpath([SOFEClass.getPluginPath(),'/', name]));
     end
+    function plugout(name)
+      rmpath(genpath([SOFEClass.getPluginPath(),'/', name]));
+    end
   end
   methods
     function output(obj, str, type)
