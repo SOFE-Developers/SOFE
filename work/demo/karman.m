@@ -4,7 +4,7 @@ uMax = 1.5;
 clear data;
 data.nu = @(x) 1e-3 + 0*x(:,1);
 % MESH
-m = SalomeMesh('karman');
+m = CADMesh([SOFEClass.getSOFEPath() '/meshes/library/karman.dat']);
 m.uniformRefine(0);
 m.nBlock = 1;
 % ELEMENT

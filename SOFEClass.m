@@ -1,6 +1,7 @@
 classdef SOFEClass < handle
   properties
     outputFlag = true;
+    nBlockGS = 1;
   end
   methods % constructor
     function obj = SOFEClass()
@@ -17,8 +18,6 @@ classdef SOFEClass < handle
       R = [pwd '/plugins'];
     end
     function unlock()
-      addpath(genpath(SOFEClass.getPluginPath()));
-      addpath(SOFEClass.getWorkPath());
       addpath(genpath([SOFEClass.getSOFEPath(),'/elements']));
       addpath(genpath([SOFEClass.getSOFEPath(),'/feSpaces']));
       addpath(genpath([SOFEClass.getSOFEPath(),'/helpers']));
@@ -28,8 +27,8 @@ classdef SOFEClass < handle
       addpath(genpath([SOFEClass.getSOFEPath(),'/postprocessing']));
       addpath(genpath([SOFEClass.getSOFEPath(),'/quadrature']));
       addpath(genpath([SOFEClass.getSOFEPath(),'/solver']));
-      more off
       SOFEClass.open('demo');
+      more off
     end
     function open(name)   
       SOFEClass.close();
@@ -55,6 +54,9 @@ classdef SOFEClass < handle
           folder = [SOFEClass.getWorkPath(),filesep, SOFEClass.isOpen()];
           rmpath(genpath(folder));
       end
+    end
+    function plugin(name)
+      addpath(genpath([SOFEClass.getPluginPath(),'/', name]));
     end
   end
   methods

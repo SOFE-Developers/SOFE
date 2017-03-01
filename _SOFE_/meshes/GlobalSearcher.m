@@ -1,14 +1,12 @@
-classdef GlobalSearcher < handle
+classdef GlobalSearcher < SOFEClass
   properties
     topology
     bgMesh
     diam
     NVec
-    nBlock
   end
   methods % constructor
-    function obj = GlobalSearcher(topology, nBlock)
-      obj.nBlock = nBlock;
+    function obj = GlobalSearcher(topology)
       obj.topology = topology;
       fprintf('Set up GlobalSearcher ... \n');
       obj.notify();
@@ -16,8 +14,8 @@ classdef GlobalSearcher < handle
     end
     function R = getBlock(obj, varargin) % [I]
       nE = obj.topology.getNumber(obj.topology.dimP);
-      if obj.nBlock>nE, error('!Number of blocks exceeds number of elements!'); end
-      R = unique(floor(linspace(0,nE,obj.nBlock+1)));
+      if obj.nBlockGS>nE, error('!Number of blocks exceeds number of elements!'); end
+      R = unique(floor(linspace(0,nE,obj.nBlockGS+1)));
       R = [R(1:end-1)+1; R(2:end)];
       if nargin > 1
         R = R(:,varargin{1});
@@ -40,8 +38,8 @@ classdef GlobalSearcher < handle
                     obj.NVec*range(3)^2/range(1)/range(2)].^(1/3);
       end
       obj.NVec = ceil(obj.NVec);
-      obj.bgMesh = cell(obj.nBlock,1);
-      for k = 1:obj.nBlock
+      obj.bgMesh = cell(obj.nBlockGS,1);
+      for k = 1:obj.nBlockGS
         idx = obj.getBlock(k);
         obj.bgMesh{k} = obj.buildBackgroundMesh(idx(1):idx(2));
       end
@@ -98,8 +96,8 @@ classdef GlobalSearcher < handle
     function R = findCandidates(obj, points)
       [~,L] = obj.getBin(points);
       I = L>0 & L<=prod(obj.NVec);
-      R = cell(1,obj.nBlock);
-      for k = 1:obj.nBlock
+      R = cell(1,obj.nBlockGS);
+      for k = 1:obj.nBlockGS
         idx = obj.getBlock(k);
         R{k} = zeros(numel(L), size(obj.bgMesh{k},2));
         R{k}(I,:) = obj.bgMesh{k}(L(I),:);

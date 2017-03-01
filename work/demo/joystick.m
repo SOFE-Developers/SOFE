@@ -5,7 +5,7 @@ data.f = @(x) bsxfun(@plus, [0 0 -0.0], 0*x(:,1));
 data.g = @(x) bsxfun(@times, 2*[200+0*x(:,1) 0*x(:,1) 0*x(:,1)], (x(:,3)>450));
 data.dLoc = @(x)x(:,3) == 0;
 % MESH;
-m = SalomeMesh('joystick');
+m = CADMesh([SOFEClass.getSOFEPath() '/meshes/library/joystick.dat']);
 m.nBlock = 50;
 % ELEMENT
 e = PpL(3, 2);

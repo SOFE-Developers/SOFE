@@ -17,7 +17,7 @@ classdef MeshTopology < SOFEClass
       obj.connectivity{obj.dimP+1,1} = elem;
       obj.observers = {};
       try
-        obj.globalSearcher = GlobalSearcher(obj, 10);
+        obj.globalSearcher = GlobalSearcher(obj);
       catch
         warning('Building GlobalSearcher failed');
       end
@@ -29,7 +29,7 @@ classdef MeshTopology < SOFEClass
     end
     function notifyObservers(obj)
       try
-        obj.globalSearcher = GlobalSearcher(obj, 10);
+        obj.globalSearcher = GlobalSearcher(obj);
       catch
         warning('Building GlobalSearcher failed');
       end

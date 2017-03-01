@@ -3,7 +3,7 @@ clear data;
 data.a = @(x)1e5+0*x(:,1);
 data.b = @(x)[50*x(:,2), -1e2*x(:,1), 0*x(:,1)];
 % MESH
-m = SalomeMesh('torus', 2);
+m = CADMesh([SOFEClass.getSOFEPath() '/meshes/library/torus.dat'], 2);
 m.nBlock = 20;
 % FESPACE
 e = PpL(2, 1);

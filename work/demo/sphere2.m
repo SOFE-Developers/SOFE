@@ -3,7 +3,7 @@ clear data;
 data.a = @(x)1e4+0*x(:,1);
 data.b = @(x)[0*x(:,1), 0*x(:,1), 1e3+0*x(:,1)];
 % MESH
-m = SalomeMesh('sphere', 2);
+m = CADMesh([SOFEClass.getSOFEPath() '/meshes/library/sphere.dat'], 2);
 m.nBlock = 20;
 % FESPACE
 e = PpL(2, 2);
