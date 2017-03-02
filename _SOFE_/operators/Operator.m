@@ -71,10 +71,10 @@ classdef Operator < SOFEClass
       for k = 1:nBlock
         [r,c,e] = obj.assembleBlock(k);
         if ~isempty(r) && ~ischar(obj.idx) % numel(obj.idx) > 1
-          I = obj.feSpaceTrial.mesh.getBlock(obj.codim, k);
-          r = r(obj.idx(I(1):I(2)),:,:);
-          c = c(obj.idx(I(1):I(2)),:,:);
-          e = e(obj.idx(I(1):I(2)),:,:);
+          I = obj.feSpaceTrial.getBlock(obj.codim, k);
+          r = r(obj.idx(I),:,:);
+          c = c(obj.idx(I),:,:);
+          e = e(obj.idx(I),:,:);
         end
         I = r.*c==0;
         if any(I(:))
@@ -92,7 +92,6 @@ classdef Operator < SOFEClass
     end
     function [r,c,e] = assembleBlock(obj, k)
       I = obj.feSpaceTrial.getBlock(obj.codim, k);
-      I = (I(1):I(2))';
       if ~isempty(I)
         e = obj.assembleOp(k); % nExnBxnB
         c = obj.feSpaceTrial.getDoFMap(obj.codim, I); % nBxnE

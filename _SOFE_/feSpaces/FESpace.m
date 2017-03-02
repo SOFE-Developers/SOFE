@@ -78,8 +78,7 @@ classdef FESpace < SOFEClass
     function R = evalFunction(obj, F, points, codim, U, varargin) % [k or I]
       if isempty(points)
         k = varargin{1};
-        idx = obj.getBlock(codim, k);
-        varargin{1} = (idx(1):idx(2))';
+        varargin{1} = obj.getBlock(codim, k);
         points = obj.getQuadData(codim);
       end
       R = obj.mesh.evalFunction(F, points, U, varargin{:});
@@ -98,8 +97,8 @@ classdef FESpace < SOFEClass
           R = obj.cache.refMaps{k}{codim+1};
           return
         else
-          idx = obj.getBlock(codim, k);
-          R = obj.mesh.evalReferenceMap(obj.getQuadData(codim), 0, (idx(1):idx(2))');
+          I = obj.getBlock(codim, k);
+          R = obj.mesh.evalReferenceMap(obj.getQuadData(codim), 0, I);
           if isempty(points) && obj.isCaching
             obj.cache.refMaps{k}{codim+1} = R;
           end
@@ -117,8 +116,8 @@ classdef FESpace < SOFEClass
           jacR = obj.cache.jac{k}{codim+1};
           return
         else
-          idx = obj.getBlock(codim, k);
-          [R, invR, jacR] = obj.mesh.evalTrafoInfo(obj.getQuadData(codim), (idx(1):idx(2))');
+          I = obj.getBlock(codim, k);
+          [R, invR, jacR] = obj.mesh.evalTrafoInfo(obj.getQuadData(codim), I);
           if obj.isCaching
             obj.cache.DPhi{k}{codim+1} = R;
             obj.cache.DPhiInv{k}{codim+1} = invR;
@@ -151,7 +150,6 @@ classdef FESpace < SOFEClass
           if nargin >5, idx = varargin{:}; else idx = ':'; end
         else
           idx = obj.getBlock(codim, varargin{1});
-          idx = (idx(1):idx(2))';
           if isempty(idx), R = []; return; end
         end
         assert(codim==0 || order==0, '! Derivatives for traces not supported !');
@@ -176,7 +174,7 @@ classdef FESpace < SOFEClass
             end
           end
         else % block evaluation
-          nBlock = size(obj.getBlock(codim),2);
+          nBlock = obj.mesh.nBlock;
           R = cell(nBlock,1);
           for k = 1:nBlock;
             if ~isempty(obj.cache.basis{k}{codim+1, order+1}) && obj.isCaching
@@ -194,10 +192,10 @@ classdef FESpace < SOFEClass
         if nargin > 4 || iscell(points)
           R = obj.computeGlobalBasis(points, codim, order, varargin{:});
         else % block evaluation
-          idx = obj.getBlock(obj.element.dimension-size(points,2));
-          R = cell(size(idx,2),1);
-          for k = 1:size(idx,2)
-            R{k} = obj.computeGlobalBasis(points, codim, order, (idx(1,k):idx(2,k))');
+          R = cell(obj.mesh.nBlock,1);
+          for k = 1:obj.mesh.nBlock
+            I = obj.getBlock(obj.element.dimension-size(points,2),k);
+            R{k} = obj.computeGlobalBasis(points, codim, order, I);
           end
           R = cell2mat(R);
         end
@@ -213,7 +211,7 @@ classdef FESpace < SOFEClass
         I = points{2}; codim = obj.element.dimension - size(points{1},2);
       else
         if isempty(points)
-          I = obj.getBlock(codim, varargin{1}); I = (I(1):I(2))';
+          I = obj.getBlock(codim, varargin{1});
           basis = obj.element.evalBasis(obj.getQuadData(codim), order); % nBxnPxnC[xnD]
         else
           if nargin > 4, I = varargin{1}; else I = ':'; end

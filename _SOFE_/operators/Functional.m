@@ -58,9 +58,9 @@ classdef Functional < SOFEClass
       for k = 1:nBlock
         [r,e] = obj.assembleBlock(k);
         if ~isempty(r) && numel(obj.idx) > 1
-          I = obj.feSpace.mesh.getBlock(obj.codim, k);
-          r = r(obj.idx(I(1):I(2)),:);
-          e = e(obj.idx(I(1):I(2)),:);
+          I = obj.feSpace.getBlock(obj.codim, k);
+          r = r(obj.idx(I),:);
+          e = e(obj.idx(I),:);
         end
         I = r==0;
         if any(I(:))
@@ -78,7 +78,6 @@ classdef Functional < SOFEClass
     end
     function [r,e] = assembleBlock(obj, k)
       I = obj.feSpace.getBlock(obj.codim, k);
-      I = (I(1):I(2))';
       if ~isempty(I)
         e = obj.assembleOp(k);
         r = abs(obj.feSpace.getDoFMap(obj.codim, I))';

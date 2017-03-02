@@ -10,14 +10,12 @@ classdef Mesh < SOFEClass
       obj.element = MeshTopology.getShapeElement(size(elems,2), dimP);
       obj.topology = MeshTopology.getTopology(nodes, elems, dimP);
     end
-    function R = getBlock(obj, codim, varargin) % [I]
+    function R = getBlock(obj, codim, k)
       nE = obj.topology.getNumber(obj.topology.dimP - codim);
       if obj.nBlock>nE, error('!Number of blocks exceeds number of elements!'); end
       R = unique(floor(linspace(0,nE,obj.nBlock+1)));
       R = [R(1:end-1)+1; R(2:end)];
-      if nargin > 2
-        R = R(:,varargin{1});
-      end
+      R = (R(1,k):R(2,k))';
     end
   end
   methods % reference map
