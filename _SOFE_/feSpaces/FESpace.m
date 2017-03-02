@@ -28,7 +28,6 @@ classdef FESpace < SOFEClass
           obj.shift = varargin{2};
         end
       end
-      obj.freeDoFs = ~obj.getBoundaryDoFs(obj.fixB);
     end
     function resetCache(obj)
       nBlock = obj.mesh.nBlock;
@@ -45,13 +44,13 @@ classdef FESpace < SOFEClass
         obj.cache.basis{k} = cell(obj.element.dimension+1,3);
       end
       obj.cache.dM = [];
+      obj.freeDoFs = [];
     end
     function R = getBlock(obj, codim, varargin)
       R = obj.mesh.getBlock(codim, varargin{:});
     end
     function notify(obj)
       obj.resetCache();
-      obj.freeDoFs = ~obj.getBoundaryDoFs(obj.fixB);
       obj.notifyObservers();
     end
     function register(obj, observer)
@@ -300,9 +299,9 @@ classdef FESpace < SOFEClass
       R = R(end:-1:1); % dim+1 --> codim+1
       fprintf('DONE\n');
     end
-    function R = orient(obj, R, dim, d)
+    function R = orient(obj, R, dim, d, varargin) % [I]
       if dim < 2, return; end
-      orient = permute(obj.mesh.topology.getOrientation(dim, d),[2 1 3]); % nESubxnExnO
+      orient = permute(obj.mesh.topology.getOrientation(dim, d, varargin{:}),[2 1 3]); % nESubxnExnO
       orient = reshape(orient, [], size(orient, 3)); % (nESub*nE)xnO
       tmp = zeros(size(R)); % nDoFLocx(nESub*nE)
       if d == 1 && dim > d % EDGE
@@ -363,6 +362,14 @@ classdef FESpace < SOFEClass
     end
     function R = getBoundaryDoFs(obj, varargin) % [loc]
       R = obj.extractDoFs(1, obj.mesh.topology.isBoundary(varargin{:}));
+    end
+    function R = getFreeDoFs(obj)
+      if ~isempty(obj.freeDoFs)
+        R = obj.freeDoFs;
+      else
+        R = ~obj.getBoundaryDoFs(obj.fixB);
+        obj.freeDoFs = R;
+      end
     end
   end
   methods % interpolation.

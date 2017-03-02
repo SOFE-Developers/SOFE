@@ -153,8 +153,8 @@ classdef PDE < SOFEClass
         obj.shift = zeros(obj.J{obj.nEq}(2), 1);      
         for j = 1:obj.nEq
           obj.shift(obj.J{j}(1):obj.J{j}(2),1) = obj.fesTrial{j}.getShiftVector(obj.time);
-          obj.fDoFsTest(obj.I{j}(1):obj.I{j}(2),1) = obj.fesTest{j}.freeDoFs;
-          obj.fDoFsTrial(obj.J{j}(1):obj.J{j}(2),1) = obj.fesTrial{j}.freeDoFs;
+          obj.fDoFsTest(obj.I{j}(1):obj.I{j}(2),1) = obj.fesTest{j}.getFreeDoFs();
+          obj.fDoFsTrial(obj.J{j}(1):obj.J{j}(2),1) = obj.fesTrial{j}.getFreeDoFs();
         end
       end
     end
