@@ -29,7 +29,7 @@ classdef FESpace < SOFEClass
         end
       end
     end
-    function resetCache(obj)
+    function resetCache(obj, varargin)
       nBlock = obj.mesh.nBlock;
       obj.cache.refMaps = cell(nBlock, 1);
       obj.cache.DPhi = cell(nBlock, 1);
@@ -43,8 +43,10 @@ classdef FESpace < SOFEClass
         obj.cache.jac{k} = cell(obj.element.dimension+1,1);
         obj.cache.basis{k} = cell(obj.element.dimension+1,3);
       end
-      obj.cache.dM = [];
-      obj.freeDoFs = [];
+      if nargin < 2
+        obj.cache.dM = [];
+        obj.freeDoFs = [];
+      end
     end
     function R = getBlock(obj, codim, varargin)
       R = obj.mesh.getBlock(codim, varargin{:});
@@ -65,7 +67,7 @@ classdef FESpace < SOFEClass
   methods % quadrature.
     function setQuadRule(obj, quadRule)
       obj.quadRule = quadRule;
-      obj.resetCache();
+      obj.resetCache('Do not reset DoFMaps');
     end
     function [Rp, Rw] = getQuadData(obj, codim)
       Rp = obj.quadRule{codim+1}.points;
