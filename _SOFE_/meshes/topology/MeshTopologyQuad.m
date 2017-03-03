@@ -44,6 +44,9 @@ classdef MeshTopologyQuad < MeshTopology
       R(e(:,3)>e(:,4),2) = -1;
       R(e(:,1)>e(:,3),3) = -1;
       R(e(:,2)>e(:,4),4) = -1;
+      if nargin > 3
+        R = R(varargin{3},:);
+      end
     end
     function R = getNormalOrientation(obj, varargin)
       R = obj.getOrientation();
