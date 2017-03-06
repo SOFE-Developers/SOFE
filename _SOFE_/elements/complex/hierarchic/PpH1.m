@@ -437,69 +437,6 @@ classdef PpH1 < HierarchicElement
       end
       B = permute(B, [1 2 4 3]);
     end
-    function B = evalD2Basis(obj, points)
-      %       error('! TODO !');
-      nP = size(points, 2);
-      B = zeros(obj.nB(nP), size(points,1), nP, nP);
-      Btmp = zeros(obj.nB(nP), size(points,1), 3);
-      p = obj.order;
-      switch nP
-          case 1
-              for i = 1:p+1
-                  B(i,:) =  4*obj.getShapeFunctions(2*points-1, i-1, 2);
-              end
-          case 2
-            L1 = 1 - sum(points,2);
-            L2 = points(:,1);
-            L3 = points(:,2);
-            % Kernel functions
-            [kernel2m1,dKernel2m1,d2Kernel2m1] = obj.getKernel(L2-L1);
-            [kernel3m2,dKernel3m2,d2Kernel3m2] = obj.getKernel(L3-L2);
-            [kernel3m1,dKernel3m1,d2Kernel3m1] = obj.getKernel(L3-L1);
-            [kernel1m3,dKernel1m3,d2Kernel1m3] = obj.getKernel(L1-L3);
-            % face
-            for i = 1:p-1
-              Btmp(4+3*(i-1),:,:) =  [-2*kernel2m1(:,i) + 4*(L1-L2).*dKernel2m1(:,i) + 4*L1.*L2.*d2Kernel2m1(:,i), ...
-                             -2*L2.*dKernel2m1(:,i)+L1.*L2.*d2Kernel2m1(:,i), ...
-                             -kernel2m1(:,i) + (L1-3.*L2).*dKernel2m1(:,i)+2*L1.*L2.*d2Kernel2m1(:,i)];
-              Btmp(5+3*(i-1),:,:) =  [-2*L3.*dKernel3m2(:,i) + L2.*L3.*d2Kernel3m2(:,i), ...
-                               2*L2.*dKernel3m2(:,i) + L2.*L3.*d2Kernel3m2(:,i), ...
-                               kernel3m2(:,i) + (L3-L2).*dKernel3m2(:,i) - L2.*L3.*d2Kernel3m2(:,i)];
-              Btmp(6+3*(i-1),:,:) =  [+2*L3.*dKernel1m3(:,i) + L3.*L1.*d2Kernel1m3(:,i), ...
-                                -2*kernel1m3(:,i) - 4*(L1-L3).*dKernel1m3(:,i) + 4*L3.*L1.*d2Kernel1m3(:,i), ...
-                                -kernel1m3(:,i) + (3*L3-L1).*dKernel1m3(:,i) + 2*L3.*L1.*d2Kernel1m3(:,i)];
-            end
-            % inner
-            a = L1-L2-L3;
-            b = L1.*L2.*L3;
-            c = (L1-L2).*L3;
-            d = (L1-L3).*L2;
-            for dg = 3:p
-              offset = 3*p+0.5*(dg-3)*(dg-2);
-              for i = 1:dg-2
-                j = dg-1-i;
-                K1K2 = kernel2m1(:,i).*kernel3m1(:,j);
-                dK1K2 = dKernel2m1(:,i).*kernel3m1(:,j);
-                K1dK2 = kernel2m1(:,i).*dKernel3m1(:,j);
-                d2K1K2 = d2Kernel2m1(:,i).*kernel3m1(:,j);
-                dK1dK2 = dKernel2m1(:,i).*dKernel3m1(:,j);
-                K1d2K2 = kernel2m1(:,i).*d2Kernel3m1(:,j);
-                Btmp(offset+i,:,:) = ...
-                    [-2*L3.*K1K2+c.*(4*dK1K2+2*K1dK2)+b.*(4*d2K1K2+4*dK1dK2+K1d2K2), ...
-                     -2*L2.*K1K2+d.*(2*dK1K2+4*K1dK2)+b.*(d2K1K2+4*dK1dK2+4*K1d2K2), ...
-                     a.*K1K2+(c+2*d).*dK1K2+(2*c+d).*K1dK2+b.*(2*d2K1K2+5*dK1dK2+2*K1d2K2)];
-              end
-            end
-            B(:,:,1,1) = Btmp(:,:,1);
-            B(:,:,2,2) = Btmp(:,:,2);
-            B(:,:,1,2) = Btmp(:,:,3);
-            B(:,:,2,1) = Btmp(:,:,3);
-          case 3
-            error('! TODO !');
-            % TODO
-      end
-      B = permute(B, [1 2 5 3 4]);
-    end
   end
   methods % kernel functions
     function [N,dN,d2N,d3N] = getKernel(obj, x)

@@ -358,7 +358,8 @@ classdef FESpace < SOFEClass
       end
       doFs = cell2mat(doFs);
       %
-      R = accumarray(setdiff(unique(doFs(:)), 0), 1, [nDoF 1])>0;
+      tmp = setdiff(unique(doFs(:)), 0);
+      R = accumarray(tmp(:), 1, [nDoF 1])>0;
     end
     function R = getBoundaryDoFs(obj, varargin) % [loc]
       R = obj.extractDoFs(1, obj.mesh.topology.isBoundary(varargin{:}));

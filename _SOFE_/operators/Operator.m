@@ -10,7 +10,7 @@ classdef Operator < SOFEClass
   end
   methods % constructor
     function obj = Operator(data, feSpaceTrial, varargin) % [feSpaceTest loc]
-      if isreal(data), data = @(x)data+0*x(:,1); end
+      if isreal(data), data = @(x)data+zeros(size(x,1),numel(data)); end
       obj.dataCache = data;
       obj.data = data;
       obj.feSpaceTrial = feSpaceTrial;
