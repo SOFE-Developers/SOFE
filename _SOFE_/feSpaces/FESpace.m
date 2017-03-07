@@ -187,17 +187,22 @@ classdef FESpace < SOFEClass
             end
           end
           R = cell2mat(R);
+          [~,I] = sort(obj.getBlock(codim));
+          R = R(I,:,:);
         end
       else
         if nargin > 4 || iscell(points)
           R = obj.computeGlobalBasis(points, codim, order, varargin{:});
         else % block evaluation
           R = cell(obj.mesh.nBlock,1);
+          codim = obj.element.dimension-size(points,2);
           for k = 1:obj.mesh.nBlock
-            I = obj.getBlock(obj.element.dimension-size(points,2),k);
+            I = obj.getBlock(codim,k);
             R{k} = obj.computeGlobalBasis(points, codim, order, I);
           end
           R = cell2mat(R);
+          [~,I] = sort(obj.getBlock(codim));
+          R = R(I,:,:);
         end
       end
     end
