@@ -1,6 +1,7 @@
 classdef MeshTopologyTri < MeshTopology
   methods % constructor
     function obj = MeshTopologyTri(nodes, elem, dimP)
+      elem = MeshTopologyTri.renumber(nodes, elem);
       obj = obj@MeshTopology(nodes, elem, dimP);
       obj.updateConnectivity();
     end
@@ -28,8 +29,7 @@ classdef MeshTopologyTri < MeshTopology
     end
     function R = getFaceType(obj)
       nE = obj.getNumber(2); nF = obj.getNumber(1);
-      orient = obj.getOrientation();
-      orient(:,3) = -orient(:,3);
+      orient = obj.getNormalOrientation();
       R = full(sparse(obj.getElem2Face(), 0.5*(3-orient), ones(nE,1)*[1 2 3],nF,2));
     end
     function R = getOrientation(obj, varargin)
@@ -107,6 +107,17 @@ classdef MeshTopologyTri < MeshTopology
     end
   end
   methods(Static = true)
+    function R = renumber(nodes, elem)
+      v1 = nodes(elem(:,2),:) - nodes(elem(:,1),:);
+      v2 = nodes(elem(:,3),:) - nodes(elem(:,1),:);
+      I = abs(v1(:,1).*v2(:,2) - v1(:,2).*v2(:,1))/2;
+      I = I<0;
+      if any(I)
+        fprintf('Elements renumbered!\n');
+        elem(I,:) = elem(I, [2 1 3]);
+      end
+      R = elem;
+    end
     function R = isFeasible(points)
       tol = 1e-12;
       R = (all(points>-tol, 2) & 1-sum(points,2)>-tol);

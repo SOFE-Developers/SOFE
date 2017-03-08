@@ -1,6 +1,7 @@
 classdef MeshTopologyTet < MeshTopology
   methods % constructor
     function obj = MeshTopologyTet(nodes, elem, dimP)
+      elem = MeshTopologyTet.renumber(nodes, elem);
       obj = obj@MeshTopology(nodes, elem, dimP);
       obj.updateConnectivity();
     end
@@ -54,9 +55,7 @@ classdef MeshTopologyTet < MeshTopology
     end
     function R = getFace2Elem(obj)
       nE = obj.getNumber(3); nF = obj.getNumber(2);
-      orient = obj.getOrientation(3,2);
-      orient = orient(:,:,2);
-      orient(:,[1 4]) = -orient(:,[1 4]);
+      orient = obj.getNormalOrientation();
       R = full(sparse(obj.getElem2Face(), 0.5*(3-orient), repmat((1:nE)',1,4),nF,2));
     end
     function R = getOrientation(obj, dim1, dim2)
@@ -81,14 +80,14 @@ classdef MeshTopologyTet < MeshTopology
           R = ones(2, size(e,1), 4); % ! two orient flags
           face = [1 2 3; 1 2 4; 2 3 4; 1 3 4];
           for i = 1:4
-              [dmy,R(1,:,i)] = min(e(:,face(i,:)),[],2);
-              [dmy,P] = sort(e(:,face(i,:)),2);
+              [~, R(1,:,i)] = min(e(:,face(i,:)),[],2);
+              [~, P] = sort(e(:,face(i,:)),2);
               even = (P(:,1)<P(:,2) & P(:,2)<P(:,3)) | ...
                      (P(:,2)<P(:,3) & P(:,3)<P(:,1)) | ...
                      (P(:,3)<P(:,1) & P(:,1)<P(:,2));
               R(2,~even,i) = -1;
           end
-          R = permute(R,[2 3 1]);
+          R = permute(R,[2 3 1]); % nExnFx2
       end
     end
     function R = getNormalOrientation(obj)
@@ -220,6 +219,19 @@ classdef MeshTopologyTet < MeshTopology
       [X, Y, Z] = meshgrid(ls, ls, ls);
       R = [X(:) Y(:) Z(:)];
       R = R(sum(R,2)<=1,:);
+    end
+    function R = renumber(nodes, elem)
+      v1 = nodes(elem(:,2),:) - nodes(elem(:,1),:);
+      v2 = nodes(elem(:,3),:) - nodes(elem(:,1),:);
+      v3 = nodes(elem(:,4),:) - nodes(elem(:,1),:);
+      I = ((v1(:,1).*v2(:,2).*v3(:,3) + v1(:,2).*v2(:,3).*v3(:,1)+v1(:,3).*v2(:,1).*v3(:,2)) ...
+      - (v1(:,3).*v2(:,2).*v3(:,1)+v1(:,2).*v2(:,1).*v3(:,3)+v1(:,1).*v2(:,3).*v3(:,2)))/6;
+      I = I<0;
+      if any(I)
+        fprintf('Elements renumbered!\n');
+        elem(I,:) = elem(I, [2 1 3 4]);
+      end
+      R = elem;
     end
   end
 end
