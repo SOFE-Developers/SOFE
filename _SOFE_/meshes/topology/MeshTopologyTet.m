@@ -52,6 +52,13 @@ classdef MeshTopologyTet < MeshTopology
       I = (orient2 == -1);
       R(I,:) = R(I, [3 2 1]);
     end
+    function R = getFace2Elem(obj)
+      nE = obj.getNumber(3); nF = obj.getNumber(2);
+      orient = obj.getOrientation(3,2);
+      orient = orient(:,:,2);
+      orient(:,[1 4]) = -orient(:,[1 4]);
+      R = full(sparse(obj.getElem2Face(), 0.5*(3-orient), repmat((1:nE)',1,4),nF,2));
+    end
     function R = getOrientation(obj, dim1, dim2)
       R = [];
       switch dim2
