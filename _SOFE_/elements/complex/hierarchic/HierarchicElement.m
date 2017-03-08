@@ -16,8 +16,7 @@ classdef HierarchicElement < Element
           if nargin < 3, varargin = {1,1}; end
           if obj.dimension > 2
             if obj.isSimplex()
-              nCol = floor(sqrt(2*nDoF)):-1:1;
-              R = reshapeTop(nCol:-1:1, R);
+              R = reshapeTop(floor(sqrt(2*nDoF)):-1:1, R);
               if varargin{2}<0, R = R'; end
               R = R(R>0);
               R = 3*(R-1) + varargin{1};
