@@ -23,8 +23,7 @@ classdef MeshTopologyTri < MeshTopology
     end
     function R = getFace2Elem(obj)
       nE = obj.getNumber(2); nF = obj.getNumber(1);
-      orient = obj.getOrientation();
-      orient(:,3) = -orient(:,3);
+      orient = obj.getNormalOrientation();
       R = full(sparse(obj.getElem2Face(), 0.5*(3-orient), repmat((1:nE)',1,3),nF,2));
     end
     function R = getFaceType(obj)

@@ -58,7 +58,7 @@ classdef MeshTopologyTet < MeshTopology
       orient = obj.getNormalOrientation();
       R = full(sparse(obj.getElem2Face(), 0.5*(3-orient), repmat((1:nE)',1,4),nF,2));
     end
-    function R = getOrientation(obj, dim1, dim2)
+    function R = getOrientation(obj, dim1, dim2, varargin)
       R = [];
       switch dim2
         case 1
@@ -74,20 +74,32 @@ classdef MeshTopologyTet < MeshTopology
               R(e(:,3)>e(:,4),6) = -1;
             case 2
               R = ones(obj.getNumber(2), 3);
+            otherwise
+              return
           end
         case 2
-          e = obj.getEntity(3);
-          R = ones(2, size(e,1), 4); % ! two orient flags
-          face = [1 2 3; 1 2 4; 2 3 4; 1 3 4];
-          for i = 1:4
-              [~, R(1,:,i)] = min(e(:,face(i,:)),[],2);
-              [~, P] = sort(e(:,face(i,:)),2);
-              even = (P(:,1)<P(:,2) & P(:,2)<P(:,3)) | ...
-                     (P(:,2)<P(:,3) & P(:,3)<P(:,1)) | ...
-                     (P(:,3)<P(:,1) & P(:,1)<P(:,2));
-              R(2,~even,i) = -1;
+          switch dim1
+            case 3
+              e = obj.getEntity(3);
+              R = ones(2, size(e,1), 4); % ! two orient flags
+              face = [1 2 3; 1 2 4; 2 3 4; 1 3 4];
+              for i = 1:4
+                  [~, R(1,:,i)] = min(e(:,face(i,:)),[],2);
+                  [~, P] = sort(e(:,face(i,:)),2);
+                  even = (P(:,1)<P(:,2) & P(:,2)<P(:,3)) | ...
+                         (P(:,2)<P(:,3) & P(:,3)<P(:,1)) | ...
+                         (P(:,3)<P(:,1) & P(:,1)<P(:,2));
+                  R(2,~even,i) = -1;
+              end
+              R = permute(R,[2 3 1]); % nExnFx2
+            otherwise
+              return
           end
-          R = permute(R,[2 3 1]); % nExnFx2
+        otherwise
+          return
+      end
+      if nargin > 3
+        R = R(varargin{1},:,:);
       end
     end
     function R = getNormalOrientation(obj)
