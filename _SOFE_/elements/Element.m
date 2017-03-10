@@ -21,8 +21,8 @@ classdef Element < SOFEClass
     end
   end
   methods % evaluation local
-    function B = evalBasis(obj, points, order) %#ok<STOUT,INUSL>
-      eval(['B = obj.evalD' num2str(order) 'Basis(points);']);
+    function R = evalBasis(obj, points, order) %#ok<STOUT,INUSL>
+      eval(['R = obj.evalD' num2str(order) 'Basis(points);']);
     end
   end
   methods % get

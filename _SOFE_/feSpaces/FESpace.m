@@ -398,7 +398,7 @@ classdef FESpace < SOFEClass
         end
       end
     end
-    function R = getWeakInterpolation(obj, f, codim, varargin)
+    function R = getWeakInterpolation(obj, f, codim, varargin) % [I]
       [P, weights] = obj.getQuadData(codim); % nPx1
       basis = obj.evalGlobalBasis(P, [], 0, varargin{:}); % nExnBxnPxnC
       F = permute(obj.evalFunction(f, P, [], [], varargin{:}), [1 4 2 3]); % nEx1xnPxnC
@@ -429,7 +429,7 @@ classdef FESpace < SOFEClass
       I = unique(dMap);
       R(I) = rhs(I);
     end
-    function R = getStrongInterpolation(obj, f, codim, varargin)
+    function R = getStrongInterpolation(obj, f, codim, varargin) % [I]
       P = obj.getLocalEquiPoints(obj.element.dimension - codim);
       basis = obj.evalGlobalBasis(P, [], 0, varargin{:}); % nExnBxnPxnC
       lhs = permute(reshape(basis,size(basis,1),size(basis,2),[]), [3 2 1]); % (nP*nC)xnBxnE
