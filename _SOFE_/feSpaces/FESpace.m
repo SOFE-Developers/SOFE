@@ -147,7 +147,7 @@ classdef FESpace < SOFEClass
       else % local evaluation
         if ~isempty(points)
           codim = obj.element.dimension - size(points,2);
-          if nargin >5, idx = varargin{:}; else idx = ':'; end
+          if nargin>5, idx = varargin{:}; else idx = ':'; end
         else
           idx = obj.getBlock(codim, varargin{1});
           if isempty(idx), R = []; return; end
@@ -198,7 +198,7 @@ classdef FESpace < SOFEClass
           codim = obj.element.dimension-size(points,2);
           for k = 1:obj.mesh.nBlock
             I = obj.getBlock(codim,k);
-            R{k} = obj.computeGlobalBasis(points, codim, order, I);
+            R{k} = obj.computeGlobalBasis(points, codim, order, I); % nExnBxnP
           end
           R = cell2mat(R);
           [~,I] = sort(obj.getBlock(codim));
