@@ -17,6 +17,7 @@ classdef FESpace < SOFEClass
       obj.mesh = mesh;
       obj.element = element;
       obj.quadRule = obj.mesh.topology.getQuadRule(max(2*(obj.element.order),1));
+      obj.setBlocking();
       obj.mesh.topology.register(obj);
       obj.observers = {};
       obj.resetCache();
@@ -48,11 +49,18 @@ classdef FESpace < SOFEClass
         obj.freeDoFs = [];
       end
     end
+    function setBlocking(obj)
+      nB = obj.element.nB(end); nQ = numel(obj.quadRule{1}.weights);
+      nC = obj.element.getNC(); nD = obj.element.dimension;
+      elPerBlock = SOFEClass.getElementsPerBlock(nB, nQ, nC, nD);
+      obj.mesh.nBlock = ceil(obj.mesh.topology.getNumber(nD)/elPerBlock);
+    end
     function R = getBlock(obj, codim, varargin)
       R = obj.mesh.getBlock(codim, varargin{:});
     end
     function notify(obj)
       obj.resetCache();
+      obj.setBlocking();
       obj.notifyObservers();
     end
     function register(obj, observer)

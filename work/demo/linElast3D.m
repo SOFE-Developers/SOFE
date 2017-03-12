@@ -5,7 +5,6 @@ data.nu = 1/3; data.E = 1e3;
 data.f = @(x) bsxfun(@plus, [0 0 -1], 0*x(:,1));
 % MESH;
 m = RegularMesh(M'*(N+1), [zeros(1,3);M]', isTri);
-m.nBlock = min(20, m.topology.getNumber(3));
 % ELEMENT
 if isTri, e = PpL(3, order); else  e = QpS(3, order); end
 % FESPACE

@@ -1,13 +1,14 @@
 classdef SOFEClass < handle
-  properties
+  properties(Constant)
     outputFlag = true;
     nBlockGS = 1;
+    mem = 4; % [GBy]
   end
   methods % constructor
     function obj = SOFEClass()
     end
   end
-  methods(Static = true)
+  methods(Static = true) % path
     function R = getSOFEPath()
       R = [pwd '/_SOFE_'];
     end
@@ -60,6 +61,11 @@ classdef SOFEClass < handle
     end
     function plugout(name)
       rmpath(genpath([SOFEClass.getPluginPath(),'/', name]));
+    end
+  end
+  methods(Static = true)
+    function R = getElementsPerBlock(nB, nQ, nC, nD)
+      R = floor(1/3*10^9*SOFEClass.mem/8/nB^2/nQ/nC/nD);
     end
   end
   methods

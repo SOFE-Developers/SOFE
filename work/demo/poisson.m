@@ -6,7 +6,6 @@ data.a = 1;
 data.f = @(x)sin(16*pi*prod(x,2));
 % MESH
 m = RegularMesh(N*ones(dim,1), repmat([0 1],dim,1), isTri);
-m.nBlock = 20;
 % FESPACE
 if isTri
   e = PpL(dim, order);

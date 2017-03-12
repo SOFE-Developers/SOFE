@@ -7,7 +7,6 @@ data.ud = @(x)[1.0*(x(:,2)>1-eps), 0.0*x(:,1)];
 data.dLoc = @(x)[x(:,1)<Inf,x(:,1)<Inf];
 % MESH
 m = RegularMesh([N N], [0 1; 0 1], isTri);
-m.nBlock = 1;
 % ELEMENT
 if isTri
   e = PpL(2,order); eP = PpL(2,order-1);

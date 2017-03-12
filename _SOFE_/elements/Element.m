@@ -30,6 +30,9 @@ classdef Element < SOFEClass
       nD = obj.dimension;
       R = (obj.nV(nD)==3 && nD==2) || (obj.nV(nD)==4 && nD==3);
     end
+    function R = getNC(obj)
+      R = size(obj.evalBasis(zeros(1,obj.dimension),0),3);
+    end
   end
   methods % display
     function show(obj, dim, i)

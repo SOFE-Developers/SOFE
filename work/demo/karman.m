@@ -6,7 +6,6 @@ data.nu = @(x) 1e-3 + 0*x(:,1);
 % MESH
 m = CADMesh([SOFEClass.getSOFEPath() '/meshes/library/karman.dat']);
 m.uniformRefine(0);
-m.nBlock = 1;
 % ELEMENT
 e = PpL(2,2); eP = PpL(2,1);
 % FESPACE2

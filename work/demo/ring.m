@@ -5,7 +5,6 @@ data.f    = @(x) 1+0*x(:,1);
 load([SOFEClass.getSOFEPath '/meshes/library/nodesRing.dat']);
 load([SOFEClass.getSOFEPath '/meshes/library/elemRing.dat']);
 m = Mesh(nodesRing, elemRing);
-m.nBlock = 20;
 % FESPACE
 fes = FESpace(m, PpL(2,5), @(x)sum(x.^2,2).^0.5<10.5, @(x)0*x(:,1));
 %% PDE

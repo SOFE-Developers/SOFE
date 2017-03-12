@@ -5,9 +5,8 @@ data.f    = @(x) 1+0*x(:,1);
 load([SOFEClass.getSOFEPath '/meshes/library/nodesBall.dat']);
 load([SOFEClass.getSOFEPath '/meshes/library/elemBall.dat']);
 m = Mesh(nodesBall, elemBall);
-m.nBlock = 20;
 % FESPACE
-fes = FESpace(m, PpL(3,3), @(x)x(:,1)<Inf, @(x)0*x(:,1));
+fes = FESpace(m, PpL(3,4), @(x)x(:,1)<Inf, @(x)0*x(:,1));
 %% PDE
 p = Poisson(data, fes);
 p.solver = IterativeSolver([], 'bicgstab', 'ilu');

@@ -115,7 +115,7 @@ classdef Operator < SOFEClass
       basisI = reshape(basisI, nE, nBI, nP, []);
       basisJ = reshape(basisJ, nE, nBJ, nP, []);
       R = sum(bsxfun(@times, permute(basisI, [1 2 5 3 4]), ...
-                             permute(basisJ, [1 5 2 3 4])), 5); % nExnBIxnBJxnP
+                             permute(basisJ, [1 5 2 3 4])), 5); % nExnBIxnBJxnPx(nC*nD)
       R = sum(bsxfun(@times, R, permute(dX, [1 3 4 2])), 4); % nExnBIxnBJ
     end
   end
