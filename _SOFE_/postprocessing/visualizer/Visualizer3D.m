@@ -159,5 +159,17 @@ classdef Visualizer3D < Visualizer
       end
       axis equal; axis tight;
     end
+    function surfFH(obj, F, varargin)      
+      try N = varargin{1}.N; catch, N = 200; end
+      try map = varargin{1}.map; catch, map = @(u,v)[u,v,0*u]; end
+      if numel(N) == 1, N = N*ones(2,1); end
+      [A,B] = meshgrid(linspace(0,1,N(1)), linspace(0,1,N(2)));
+      P = map(A(:),B(:)); % nPx3
+      W = reshape(F(P), size(A)); % nPxnC
+      P = reshape(P, [size(A) 3]);
+      surf(P(:,:,1), P(:,:,2), P(:,:,3), W); shading interp;
+      diam = obj.feSpace.mesh.topology.globalSearcher.diam';
+      axis(diam(:)); axis equal;
+    end
   end
 end

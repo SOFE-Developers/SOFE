@@ -154,5 +154,16 @@ classdef Visualizer2D < Visualizer
       diam = obj.feSpace.mesh.topology.globalSearcher.diam';
       axis(diam(:)); view(0,90), axis equal; axis tight
     end
+    function surfFH(obj, F, varargin)
+      try N = varargin{1}.N; catch, N = 200; end
+      if numel(N) == 1, N = N*ones(2,1); end
+      box = obj.feSpace.mesh.topology.globalSearcher.diam';
+      [X,Y] = meshgrid(linspace(box(1), box(2), N(1)), ...
+                       linspace(box(3), box(4), N(2)));
+      Z = F([X(:) Y(:)]); % nPx1
+      surf(X,Y,reshape(Z,size(X))); shading interp
+      diam = obj.feSpace.mesh.topology.globalSearcher.diam';
+      axis(diam(:)); view(0,90), axis equal; axis tight
+    end
   end
 end

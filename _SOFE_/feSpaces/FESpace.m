@@ -59,8 +59,8 @@ classdef FESpace < SOFEClass
       R = obj.mesh.getBlock(codim, varargin{:});
     end
     function notify(obj)
-      obj.resetCache();
       obj.setBlocking();
+      obj.resetCache();
       obj.notifyObservers();
     end
     function register(obj, observer)
