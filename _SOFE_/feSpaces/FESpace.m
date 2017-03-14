@@ -157,6 +157,7 @@ classdef FESpace < SOFEClass
           codim = obj.element.dimension - size(points,2);
           if nargin>5, idx = varargin{:}; else idx = ':'; end
         else
+          keyboard % never happens: change to global blocking
           idx = obj.getBlock(codim, varargin{1});
           if isempty(idx), R = []; return; end
         end

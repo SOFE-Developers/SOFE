@@ -1,14 +1,10 @@
-% DATA
-data.a    = @(x) 1+0*x(:,1);
-data.f    = @(x) 1+0*x(:,1);
-%% MESH
+% MESH
 load([SOFEClass.getSOFEPath '/meshes/library/nodesBall.dat']);
 load([SOFEClass.getSOFEPath '/meshes/library/elemBall.dat']);
-m = Mesh(nodesBall, elemBall);
 % FESPACE
-fes = FESpace(m, PpL(3,4), @(x)x(:,1)<Inf, @(x)0*x(:,1));
+fes = FESpace(Mesh(nodesBall, elemBall), PpL(3,3), @(x)x(:,1)<Inf);
 %% PDE
-p = Poisson(data, fes);
+p = Poisson(struct('a',1,'f',1), fes);
 p.solver = IterativeSolver([], 'bicgstab', 'ilu');
 % SOLVE
 p.compute();
@@ -17,5 +13,5 @@ v = Visualizer.create(fes); clf
 opt = struct('map', @(u,v)0.5*[sin(pi*v).*sin(2*pi*u), ...
                                -0.5+sin(pi*v).*cos(2*pi*u), ...
                                cos(pi*v)]);
-clf; v.show(p.solution, 'g', opt);
+v.show(p.solution, 'g', opt);
 v.show(p.solution, 'p', struct('loc', @(x)x(:,2)>0));
