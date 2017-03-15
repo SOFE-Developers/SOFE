@@ -157,7 +157,6 @@ classdef FESpace < SOFEClass
           codim = obj.element.dimension - size(points,2);
           if nargin>5, idx = varargin{:}; else idx = ':'; end
         else
-          keyboard % never happens: change to global blocking
           idx = obj.getBlock(codim, varargin{1});
           if isempty(idx), R = []; return; end
         end
@@ -280,7 +279,7 @@ classdef FESpace < SOFEClass
     end
   end
   methods % DoFManager.
-    function [R, nDoF] = getDoFMap(obj, codim, varargin) % [I]
+    function [R, nDoF] = getDoFMap(obj, codim, varargin) % [I or -k]
       if ~isempty(obj.cache.dM)
         R = obj.cache.dM.doFArrays;
         nDoF = obj.cache.dM.nDoF;
@@ -291,7 +290,11 @@ classdef FESpace < SOFEClass
       end
       R = R{codim+1}; % nBxnE
       if nargin > 2
-        R = R(:,varargin{1});
+        I = varargin{1};
+        if numel(I==1) && I<0
+          I = obj.getBlock(codim, -I);
+        end
+        R = R(:,I);
       end
     end
     function [R, nDoF] = computeDoFMaps(obj)
