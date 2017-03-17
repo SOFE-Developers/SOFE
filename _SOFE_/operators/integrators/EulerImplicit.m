@@ -10,7 +10,8 @@ classdef EulerImplicit < Integrator
       obj.solution{1} = cell(obj.statOp.nEq,1);
       for k = 1:obj.statOp.nEq
         if ~isempty(obj.initCond)
-          obj.solution{1}{k} = obj.statOp.fesTrial{k}.getWeakInterpolation(obj.initCond{k}, 0);
+%          obj.solution{1}{k} = obj.statOp.fesTrial{k}.getWeakInterpolation(obj.initCond{k}, 0);
+          obj.solution{1}{k} = obj.statOp.fesTrial{k}.getStrongInterpolation(obj.initCond{k}, 0);
         else
           obj.solution{1}{k} = zeros(obj.statOp.J{k}(2)-obj.statOp.J{k}(1)+1, 1);
         end

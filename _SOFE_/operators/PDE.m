@@ -89,10 +89,7 @@ classdef PDE < SOFEClass
         obj.state{j} = zeros(obj.mesh.topology.getNumber(obj.mesh.topology.dimP), numel(w), nC);
         if nargin < 2, continue; end
         U = varargin{1}(obj.J{j}(1):obj.J{j}(2));
-        for k = 1:nBlock
-          idxI = obj.fesTrial{j}.mesh.getBlock(0, k);
-          obj.state{j}(idxI(1):idxI(2),:,:) = obj.fesTrial{j}.evalDoFVector(U, [], 0, 0, k);
-        end
+        obj.state{j} = obj.fesTrial{j}.evalDoFVector(U, [], 0, 0);
       end
       obj.stateChanged = true;
     end

@@ -6,16 +6,16 @@ classdef Op_DATA_GRAD_GRAD < Operator % ( CC*GRAD(U), GRAD(V) )
   end
   methods
     function R = assembleOp(obj, k)
-      gradBasisJ = obj.feSpaceTrial.evalGlobalBasis([], 0, 1, k); % nExnBxnPxnCxnD
+      gradBasisJ = obj.feSpaceTrial.evalGlobalBasis([], 0, 1, {k}); % nExnBxnPxnCxnD
       if obj.isGalerkin
         gradBasisI = gradBasisJ;
       else
-        gradBasisI = obj.feSpaceTest.evalGlobalBasis([], 0, 1, k); % nExnBxnPxnCxnD
+        gradBasisI = obj.feSpaceTest.evalGlobalBasis([], 0, 1, {k}); % nExnBxnPxnCxnD
       end
       %
       [~, weights] = obj.feSpaceTrial.getQuadData(obj.codim);
-      [~,~,jac] = obj.feSpaceTrial.evalTrafoInfo([], obj.codim, k);
-      coeff = obj.feSpaceTrial.evalFunction(obj.data, [], obj.codim, obj.state, k);
+      [~,~,jac] = obj.feSpaceTrial.evalTrafoInfo([], obj.codim, {k});
+      coeff = obj.feSpaceTrial.evalFunction(obj.data, [], obj.codim, obj.state, {k});
       nD = obj.feSpaceTrial.element.dimension;
       coeff = reshape(coeff, size(coeff,1), size(coeff,2), nD, nD); % nExnPxnDxnD
       dX = bsxfun(@times, abs(jac), weights'); % nExnP

@@ -1,4 +1,4 @@
-T = 8; M = 50;
+T = 2; M = 50;
 uMax = 1.5;
 % DATA
 clear data;

@@ -12,9 +12,9 @@ classdef Op_data_d_d < Operator % ( c*dx_k(u), dx_l(v) )
   end
   methods
     function R = assembleOp(obj, k)
-      dBasisJ = obj.feSpaceTrial.evalGlobalBasis([], 0, 1, k); % nExnBxnPxnD
+      dBasisJ = obj.feSpaceTrial.evalGlobalBasis([], 0, 1, {k}); % nExnBxnPxnD
       dBasisJ = dBasisJ(:,:,:,obj.kIdx); % nExnBxnP
-      dBasisI = obj.feSpaceTest.evalGlobalBasis([], 0, 1, k); % nExnBxnPxnD
+      dBasisI = obj.feSpaceTest.evalGlobalBasis([], 0, 1, {k}); % nExnBxnPxnD
       dBasisI = dBasisI(:,:,:,obj.lIdx); % nExnBxnP
       R = obj.integrate(false, basisI, dBasisJ, k);
     end

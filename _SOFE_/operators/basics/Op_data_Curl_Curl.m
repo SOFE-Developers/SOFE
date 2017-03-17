@@ -6,7 +6,7 @@ classdef Op_data_Curl_Curl < Operator % ( c*Curl(U), Curl(V) )
   end
   methods
     function R = assembleOp(obj, k)
-      dBasisJ = obj.feSpaceTrial.evalGlobalBasis([], 0, 1, k); % nExnBxnPxnCxnD
+      dBasisJ = obj.feSpaceTrial.evalGlobalBasis([], 0, 1, {k}); % nExnBxnPxnCxnD
       if obj.feSpaceTrial.element.dimension == 2
         curlBasisJ = dBasisJ(:,:,:,2,1) - dBasisJ(:,:,:,1,2); % nExnBxnP
       else
@@ -17,7 +17,7 @@ classdef Op_data_Curl_Curl < Operator % ( c*Curl(U), Curl(V) )
       if obj.isGalerkin
         curlBasisI = curlBasisJ;
       else
-        dBasisI = obj.feSpaceTest.evalGlobalBasis([], 0, 1, k);
+        dBasisI = obj.feSpaceTest.evalGlobalBasis([], 0, 1, {k});
         if obj.feSpaceTrial.element.dimension == 2
           curlBasisI = dBasisI(:,:,:,2,1) - dBasisI(:,:,:,1,2); % nExnBxnP
         else

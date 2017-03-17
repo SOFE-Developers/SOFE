@@ -6,11 +6,11 @@ classdef Op_data_GRAD_GRAD < Operator % ( c*GRAD(U), GRAD(V) )
   end
   methods
     function R = assembleOp(obj, k)
-      gradBasisJ = obj.feSpaceTrial.evalGlobalBasis([], 0, 1, k); % nExnBxnPxnCxnD
+      gradBasisJ = obj.feSpaceTrial.evalGlobalBasis([], 0, 1, {k}); % nExnBxnPxnCxnD
       if obj.isGalerkin
         gradBasisI = gradBasisJ;
       else
-        gradBasisI = obj.feSpaceTest.evalGlobalBasis([], 0, 1, k);
+        gradBasisI = obj.feSpaceTest.evalGlobalBasis([], 0, 1, {k});
       end
       R = obj.integrate(true, gradBasisI, gradBasisJ, k);
     end

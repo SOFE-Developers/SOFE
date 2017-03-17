@@ -6,7 +6,7 @@ classdef Op_data_div_div < Operator % ( c*div(U), div(V) )
   end
   methods
     function R = assembleOp(obj, k)
-      dBasisJ = obj.feSpaceTrial.evalGlobalBasis([], 0, 1, k); % nExnBxnPxnCxnD
+      dBasisJ = obj.feSpaceTrial.evalGlobalBasis([], 0, 1, {k}); % nExnBxnPxnCxnD
       nC = size(dBasisJ,4);
       divBasisJ = dBasisJ(:,:,:,1,1); % nExnBxnP
       for d = 2:nC
@@ -15,7 +15,7 @@ classdef Op_data_div_div < Operator % ( c*div(U), div(V) )
       if obj.isGalerkin
         divBasisI = divBasisJ;
       else
-        dBasisI = obj.feSpaceTest.evalGlobalBasis([], 0, 1, k); % nExnBxnPxnCxnD
+        dBasisI = obj.feSpaceTest.evalGlobalBasis([], 0, 1, {k}); % nExnBxnPxnCxnD
         divBasisI = dBasisI(:,:,:,1,1); % nExnBxnP
         for d = 2:nC
           divBasisI = divBasisI + dBasisI(:,:,:,d,d); % nExnBxnP

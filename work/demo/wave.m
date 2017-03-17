@@ -8,7 +8,7 @@ data.f = @(x) 0*x(:,1);
 % MESH
 m = RegularMesh(N*ones(dim,1), repmat([0 1],dim,1), 0);
 % FESPACES
-fes = FESpace(m, QpL(dim,1));
+fes = FESpace(m, QpL(dim,1),@(x)x(:,1)<0.5);
 % TIME
 u0 = @(x)0.1*exp(-sum(bsxfun(@minus, x, center).^2,2)/0.005);
 meshT = RegularMesh(T*M, [0 1], 0); meshT.topology.scale(T);

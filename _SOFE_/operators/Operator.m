@@ -104,9 +104,9 @@ classdef Operator < SOFEClass
     end
     function R = integrate(obj, hasCoeff, basisI, basisJ, k)
       [~, weights] = obj.feSpaceTrial.getQuadData(obj.codim);
-      [~,~,jac] = obj.feSpaceTrial.evalTrafoInfo([], obj.codim, k); % nExnP
+      [~,~,jac] = obj.feSpaceTrial.evalTrafoInfo([], obj.codim, {k}); % nExnP
       if hasCoeff
-        coeff = obj.feSpaceTrial.evalFunction(obj.data, [], obj.codim, obj.state, k); % nExnP
+        coeff = obj.feSpaceTrial.evalFunction(obj.data, [], obj.codim, obj.state, {k}); % nExnP
         dX = bsxfun(@times, coeff.*abs(jac), weights'); % nExnP
       else
         dX = bsxfun(@times, abs(jac), weights'); % nExnP

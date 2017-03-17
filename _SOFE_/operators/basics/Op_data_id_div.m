@@ -5,15 +5,15 @@ classdef Op_data_id_div < Operator % (c*u, div(V) )
     end
   end
   methods
-    function R = assembleOp(obj, varargin)
-      basisJ = obj.feSpaceTrial.evalGlobalBasis([], 0, 0, varargin{:}); % nExnBxnP
-      dBasisI = obj.feSpaceTest.evalGlobalBasis([], 0, 1, varargin{:}); % nExnBxnPxnCxnD
+    function R = assembleOp(obj, k)
+      basisJ = obj.feSpaceTrial.evalGlobalBasis([], 0, 0, {k}); % nExnBxnP
+      dBasisI = obj.feSpaceTest.evalGlobalBasis([], 0, 1, {k}); % nExnBxnPxnCxnD
       nD = size(dBasisI,5);
       divBasisI = dBasisI(:,:,:,1,1); % nExnBxnP
       for d = 2:nD
         divBasisI = divBasisI + dBasisI(:,:,:,d,d); % nExnBxnP
       end
-      R = obj.integrate(true, divBasisI, basisJ, varargin{:});
+      R = obj.integrate(true, divBasisI, basisJ, k);
     end
   end
 end
