@@ -83,14 +83,6 @@ classdef FESpace < SOFEClass
     end
   end
   methods % evaluation.
-    function R = evalFunction_(obj, F, points, codim, U, varargin) % [k or I]
-      if isempty(points)
-        k = varargin{1};
-        varargin{1} = obj.getBlock(codim, k);
-        points = obj.getQuadData(codim);
-      end
-      R = obj.mesh.evalFunction(F, points, U, varargin{:});
-    end
     function R = evalFunction(obj, F, points, codim, U, varargin) % [{k} or I]
       block = false;
       if nargin > 5 && iscell(varargin{1})
@@ -105,30 +97,6 @@ classdef FESpace < SOFEClass
         varargin{1} = obj.getBlock(codim, k{1});
       end
       R = obj.mesh.evalFunction(F, points, U, varargin{:});
-    end
-    function R = evalReferenceMap_(obj, points, codim, varargin) % [k or I]
-      if isempty(points)
-        if nargin < 4
-          R = [];
-          for k = 1:obj.mesh.nBlock
-            R = [R; obj.evalReferenceMap(points, codim, k)];
-          end
-          return
-        end
-        k = varargin{1};
-        if ~isempty(obj.cache.refMaps{k}{codim+1}) && obj.isCaching
-          R = obj.cache.refMaps{k}{codim+1};
-          return
-        else
-          I = obj.getBlock(codim, k);
-          R = obj.mesh.evalReferenceMap(obj.getQuadData(codim), 0, I);
-          if isempty(points) && obj.isCaching
-            obj.cache.refMaps{k}{codim+1} = R;
-          end
-        end
-      else
-        R = obj.mesh.evalReferenceMap(points, 0, varargin{:});
-      end
     end
     function R = evalReferenceMap(obj, points, codim, varargin) % [{k} or I]
       block = false;
@@ -154,27 +122,6 @@ classdef FESpace < SOFEClass
         if cache
           obj.cache.refMaps{k{1}}{codim+1} = R;
         end
-      end
-    end
-    function [R, invR, jacR] = evalTrafoInfo_(obj, points, codim, varargin) % [k or I]
-      if isempty(points)
-        k = varargin{1};
-        if ~isempty(obj.cache.DPhi{k}{codim+1}) && obj.isCaching
-          R = obj.cache.DPhi{k}{codim+1};
-          invR = obj.cache.DPhiInv{k}{codim+1};
-          jacR = obj.cache.jac{k}{codim+1};
-          return
-        else
-          I = obj.getBlock(codim, k);
-          [R, invR, jacR] = obj.mesh.evalTrafoInfo(obj.getQuadData(codim), I);
-          if obj.isCaching
-            obj.cache.DPhi{k}{codim+1} = R;
-            obj.cache.DPhiInv{k}{codim+1} = invR;
-            obj.cache.jac{k}{codim+1} = jacR;
-          end
-        end
-      else
-        [R, invR, jacR] = obj.mesh.evalTrafoInfo(points, varargin{:});
       end
     end
     function [R, invR, jacR] = evalTrafoInfo(obj, points, codim, varargin) % [{k} or I]
@@ -203,69 +150,6 @@ classdef FESpace < SOFEClass
           obj.cache.jac{k{1}}{codim+1} = jacR;
         end
       end
-    end
-    function R = computeGlobalBasis_(obj, points, codim, order, varargin) % [k or I]
-      [trafo{1},trafo{2},trafo{3}] = obj.evalTrafoInfo(points, codim, varargin{:}); % nExnP[xnWxnD]
-      if iscell(points)
-        basis = obj.element.evalBasis(points{1}, order); % nBxnPxnC[xnD]
-        trafo{1} = permute(trafo{1}, [4 5 1 2 3]); % 1x1xnPxnWxnD
-        trafo{2} = permute(trafo{2}, [4 5 1 2 3]); % 1x1xnPxnDxnW
-        trafo{3} = permute(trafo{3}, [2 3 1]); % 1x1xnP
-        I = points{2}; codim = obj.element.dimension - size(points{1},2);
-      else
-        if isempty(points)
-          I = obj.getBlock(codim, varargin{1});
-          basis = obj.element.evalBasis(obj.getQuadData(codim), order); % nBxnPxnC[xnD]
-        else
-          if nargin > 4, I = varargin{1}; else I = ':'; end
-          basis = obj.element.evalBasis(points, order); % nBxnPxnC[xnD]
-          codim = obj.element.dimension - size(points,2);
-        end
-        trafo{1} = permute(trafo{1}, [1 5 2 3 4]); % nEx1xnPxnWxnD
-        trafo{2} = permute(trafo{2}, [1 5 2 3 4]); % nEx1xnPxnDxnW
-        trafo{3} = permute(trafo{3}, [1 3 2]); % nEx1xnP
-      end
-      basis = permute(basis, [5 1 2 3 4]); % 1xnBxnPxnC[xnD]
-      switch obj.element.conformity
-        case 'L2'
-          R = basis; % 1xnBxnPxnC[xnD]
-        case 'H1'
-          switch order
-            case 0
-              R = basis; % 1xnBxnPxnC[xnD]
-            case 1
-              R = sum(bsxfun(@times, permute(basis,    [1 2 3 4 6 5]), ...
-                                     permute(trafo{2}, [1 2 3 6 5 4])), 6); % nExnBxnPxnCxnW
-          end
-        case 'HDiv'
-          switch order
-            case 0
-              R = sum(bsxfun(@times, trafo{1}, permute(basis, [1 2 3 5 4])),5); % nExnBxnPxnW
-              R = bsxfun(@ldivide, trafo{3}, R); % nExnBxnPxnW
-            case 1
-              R = sum(bsxfun(@times, permute(basis, [1 2 3 4 6 5]), ...
-                                     permute(trafo{2}, [1 2 3 6 5 4])), 6); % nExnBxnPxnCxnW
-              R = sum(bsxfun(@times, permute(trafo{1}, [1 2 3 4 6 5]), ...
-                                     permute(R, [1 2 3 6 5 4])), 6); % nExnBxnPxnWxnW
-              R = bsxfun(@ldivide, trafo{3}, R); % nExnBxnPxnWxnW
-          end
-        case 'HRot'
-          switch order
-            case 0
-              R = sum(bsxfun(@times, permute(trafo{2}, [1 2 3 5 4]), ...
-                                     permute(basis, [1 2 3 5 4])), 5); % nExnBxnPxnW
-            case 1
-              R = sum(bsxfun(@times, permute(basis, [1 2 3 4 6 5]), ...
-                                     permute(trafo{2}, [1 2 3 6 5 4])), 6); % nExnBxnPxnCxnW
-              R = sum(bsxfun(@times, permute(trafo{2}, [1 2 3 5 6 4]), ...
-                                     permute(R, [1 2 3 6 5 4])), 6); % nExnBxnPxnWxnW
-          end
-      end
-      if iscell(points)
-        R = permute(R,[3 2 4 5 1]); % nExnBx[...]
-      end
-      dMap = obj.getDoFMap(codim, I).'; % nExnB
-      R = bsxfun(@times, sign(dMap), R); % nExnBxnPxnC[xnD]
     end
     function R = computeGlobalBasis(obj, points, codim, order, varargin) % [{k} or I]
       block = false;
@@ -335,51 +219,6 @@ classdef FESpace < SOFEClass
       dMap = obj.getDoFMap(codim, varargin{:}).'; % nExnB
       R = bsxfun(@times, sign(dMap), R); % nExnBxnPxnC[xnD]
     end
-    function R = evalGlobalBasis_(obj, points, codim, order, varargin) % [k or I]
-      if isempty(points)
-        if nargin > 4 && isnumeric(varargin{1}) % not ':'
-          k = varargin{1};
-          if ~isempty(obj.cache.basis{k}{codim+1, order+1}) && obj.isCaching
-            R = obj.cache.basis{k}{codim+1, order+1};
-          else
-            R = obj.computeGlobalBasis(points, codim, order, k);
-            if obj.isCaching
-              obj.cache.basis{k}{codim+1, order+1} = R;
-            end
-          end
-        else % block evaluation
-          nBlock = obj.mesh.nBlock;
-          R = cell(nBlock,1);
-          for k = 1:nBlock;
-            if ~isempty(obj.cache.basis{k}{codim+1, order+1}) && obj.isCaching
-              R{k} = obj.cache.basis{k}{codim+1, order+1};
-            else
-              R{k} = obj.computeGlobalBasis(points, codim, order, k);
-              if obj.isCaching
-                obj.cache.basis{k}{codim+1, order+1} = R{k};
-              end
-            end
-          end
-          R = cell2mat(R);
-          [~,I] = sort(obj.getBlock(codim));
-          R = R(I,:,:);
-        end
-      else
-        if nargin > 4 || iscell(points)
-          R = obj.computeGlobalBasis(points, codim, order, varargin{:});
-        else % block evaluation
-          R = cell(obj.mesh.nBlock,1);
-          codim = obj.element.dimension-size(points,2);
-          for k = 1:obj.mesh.nBlock
-            I = obj.getBlock(codim,k);
-            R{k} = obj.computeGlobalBasis(points, codim, order, I); % nExnBxnP
-          end
-          R = cell2mat(R);
-          [~,I] = sort(obj.getBlock(codim));
-          R = R(I,:,:);
-        end
-      end
-    end
     function R = evalGlobalBasis(obj, points, codim, order, varargin) % [{k} or I]
       block = false;
       if nargin > 4 && iscell(varargin{1})
@@ -406,7 +245,7 @@ classdef FESpace < SOFEClass
           end
           R = cell2mat(R);
           [~,I] = sort(obj.getBlock(codim));
-          R = R(I,:,:);
+          R = R(I,:,:,:);
         else
           R = obj.computeGlobalBasis(points, [], order, varargin{:});
         end
@@ -414,39 +253,6 @@ classdef FESpace < SOFEClass
         if cache
           obj.cache.basis{k{1}}{codim+1, order+1} = R;
         end
-      end
-    end
-    function R = evalDoFVector_(obj, U, points, codim, order, varargin) % [k or I]
-      assert(numel(U)==obj.getNDoF(), 'First argument must be DoFVector!');
-      if iscell(points) % global evaluation
-        if numel(points) == 1
-          points = obj.mesh.evalInversReferenceMap(points{1});
-        end
-        isValid = points{2}>0;
-        points{1} = points{1}(isValid,:); points{2} = points{2}(isValid);
-        basis = obj.evalGlobalBasis(points, 0, order, points{2}); % [1/nE]xnB[xnP]xnCx[nD]       
-        dMap = abs(obj.getDoFMap(0, points{2})).'; % nExnB
-        value = zeros(size(dMap)); % nExnB
-        I = dMap > 0; value(I) = U(dMap(I));
-        value = sum(bsxfun(@times, permute(value,[1 3:4 2]), ...
-                                   permute(basis,[1 3:4 2])), 4); % nExnCx[nD]
-        R = nan(numel(isValid), size(basis, 3), size(basis, 4)); % nExnC[xnD]
-        R(isValid,:,:) = value; % nExnC[xnD]
-      else % local evaluation
-        if ~isempty(points)
-          codim = obj.element.dimension - size(points,2);
-          if nargin>5, idx = varargin{:}; else idx = ':'; end
-        else
-          idx = obj.getBlock(codim, varargin{1});
-          if isempty(idx), R = []; return; end
-        end
-        assert(codim==0 || order==0, '! Derivatives for traces not supported !');
-        basis = obj.evalGlobalBasis(points, codim, order, varargin{:}); % [1/nE]xnB[xnP]xnCx[nD]
-        dMap = abs(obj.getDoFMap(codim, idx)).'; % nExnB
-        R = zeros(size(dMap)); % nExnB
-        I = dMap > 0; R(I) = U(dMap(I));
-        R = sum(bsxfun(@times, permute(R,[1 3:5 2]), ...
-                               permute(basis,[1 3:5 2])), 5); % nExnPxnCx[nD]
       end
     end
     function R = evalDoFVector(obj, U, points, codim, order, varargin) % [{k} or I]
@@ -490,7 +296,7 @@ classdef FESpace < SOFEClass
           fprintf('\n');
           R = cell2mat(R);
           [~,I] = sort(obj.getBlock(codim));
-          R = R(I,:,:);
+          R = R(I,:,:,:);
         else
           basis = obj.evalGlobalBasis(points, [], order, varargin{:}); % [1/nE]xnB[xnP]xnCx[nD]
           dMap = abs(obj.getDoFMap(codim, varargin{:})).'; % nExnB
@@ -626,82 +432,60 @@ classdef FESpace < SOFEClass
           func = obj.shift;
         end
         if obj.mesh.element.dimension == 1
-          R = obj.getWeakInterpolation(func, 0); % nDoFx1
+          R = obj.getInterpolation(func, 0); % nDoFx1
         else
-          R = obj.getWeakInterpolation(func, 1, obj.mesh.topology.isBoundary()); % nDoFx1
+          R = obj.getInterpolation(func, 1, obj.mesh.topology.isBoundary()); % nDoFx1
         end
       end
     end
-    function R = getWeakInterpolation(obj, f, codim, varargin) % [I]
-      [P, weights] = obj.getQuadData(codim); % nPx1
-      basis = obj.evalGlobalBasis(P, [], 0, varargin{:}); % nExnBxnPxnC
-      F = permute(obj.evalFunction(f, P, [], [], varargin{:}), [1 4 2 3]); % nEx1xnPxnC
-      [~,~,jac] = obj.mesh.evalTrafoInfo(P, varargin{:}); % nExnP
-      dX = bsxfun(@times, abs(jac), weights'); % nExnP
-      lhs = sum(bsxfun(@times, permute(basis,[1 2 5 3 4]), ...
-                               permute(basis,[1 5 2 3 4])), 5); % nExnBxnBxnP
-      lhs = permute(sum(bsxfun(@times, lhs, permute(dX, [1 3 4 2])), 4),[2 3 1]); % nBxnBxnE
-      rhs = sum(bsxfun(@times, basis, F), 4); % nExnBxnP
-      rhs = sum(bsxfun(@times, rhs, permute(dX, [1 3 2])),3).'; % nBxnE
-      %
-      dMap = reshape(abs(obj.getDoFMap(codim, varargin{:})),[],1); % nB*nE
-      iZ = (dMap~=0); dMap = abs(dMap(:));
-      if any(~iZ(:))
-        dMap = dMap(iZ);
-        rhs = rhs(iZ);
-        [nB,~, nE] = size(lhs);
-        lhs = reshape(lhs,nB,[]);
-        lhs = reshape(lhs(:,iZ),nB,[],nE);
-        [~,nBNew,~] = size(lhs);
-        lhs = reshape(permute(lhs,[2 1 3]),nBNew,(nB*nE)); % nBNew*(nBxnE)
-        lhs = reshape(lhs(:,iZ),nBNew,nBNew,nE);
-      end
-      lhs = blockify(lhs); % (nB*nE)x(nB*nE)
-      rhs = lhs\rhs(:); % nB*nE
-      R = zeros(obj.getNDoF(),1); % nDoFx1
-      rhs = accumarray(dMap,rhs)./accumarray(dMap,1);
-      I = unique(dMap);
-      R(I) = rhs(I);
-    end
-    function R = getStrongInterpolation(obj, f, codim, varargin) % [I]
-      P = obj.getLocalEquiPoints(obj.element.dimension - codim);
-      basis = obj.evalGlobalBasis(P, [], 0, varargin{:}); % nExnBxnPxnC
-      lhs = permute(reshape(basis,size(basis,1),size(basis,2),[]), [3 2 1]); % (nP*nC)xnBxnE
-      rhs = permute(obj.evalFunction(f, P, [], [], varargin{:}), [2 3 1]); % nP*nC*nE
-      %
-      dMap = reshape(abs(obj.getDoFMap(codim, varargin{:})),[],1); % nB*nE
-      iZ = (dMap~=0); dMap = abs(dMap(:));
-      if any(~iZ(:))
-        dMap = dMap(iZ);
-        rhs = rhs(iZ);
-        [nB,~, nE] = size(lhs);
-        lhs = reshape(lhs,nB,[]);
-        lhs = reshape(lhs(:,iZ),nB,[],nE);
-        [~,nBNew,~] = size(lhs);
-        lhs = reshape(permute(lhs,[2 1 3]),nBNew,(nB*nE)); % nBNew*(nBxnE)
-        lhs = reshape(lhs(:,iZ),nBNew,nBNew,nE);
-      end
-      lhs = blockify(lhs); % (nB*nE)x(nB*nE)
-      rhs = lhs\rhs(:); % nB*nE
-      R = zeros(obj.getNDoF(),1); % nDoFx1
-      rhs = accumarray(dMap,rhs)./accumarray(dMap,1);
-      I = unique(dMap);
-      R(I) = rhs(I);
-    end
-    function R = getGlobalInterpolation(obj, f)
+    function R = getL2Projection(obj, f)
       mass = Op_data_Id_Id(1, 0, obj); mass.assemble();
       l2 = Fc_Data_Id(f, obj,0); l2.assemble();
       R = mass.matrix \ l2.vector;
     end
-    function R = getLocalEquiPoints(obj, varargin) % [nD]
-      if nargin > 1, nD = varargin{1}; else nD = obj.element.dimension; end
-      points = linspace(0,1,obj.element.order+1)';
-      R = points;
-      for i = 2:nD
-        R = [kron(ones(length(points),1),R), kron(points,ones(length(points)^(i-1),1))];
-      end
-      if obj.element.isSimplex()
-        R = R((sum(R,2)<=1),:);
+    function R = getInterpolation(obj, f, codim, varargin) % [{k} or I]
+      if nargin < 4 || (nargin == 6 && ischar(varargin{1}) && strcmp(varargin,':'))
+        nBlock = obj.mesh.nBlock; R = cell(1,nBlock); s = 0;
+        for k = 1:nBlock
+          R{k} = obj.getInterpolation(f, codim, {k});
+          fprintf(repmat('\b',1,length(s)));
+          s = sprintf('progress evalInterpolation: %d / %d', k, nBlock); fprintf(s);
+        end
+        fprintf('\n');
+        R = cell2mat(R);
+        val = sum(abs(R)>0,2);
+        val(val==0) = 1;
+        R = sum(R,2)./val;
+      else
+        basis = obj.evalGlobalBasis([], codim, 0, varargin{:}); % nExnBxnPxnC
+        F = permute(obj.evalFunction(f, [], codim, [], varargin{:}), [1 4 2 3]); % nEx1xnPxnC
+        [~,~,jac] = obj.evalTrafoInfo([], codim, varargin{:}); % nExnP
+        [~, weights] = obj.getQuadData(codim); % nPx1
+        dX = bsxfun(@times, abs(jac), weights'); % nExnP
+        lhs = sum(bsxfun(@times, permute(basis,[1 2 5 3 4]), ...
+                                 permute(basis,[1 5 2 3 4])), 5); % nExnBxnBxnP
+        lhs = permute(sum(bsxfun(@times, lhs, permute(dX, [1 3 4 2])), 4),[2 3 1]); % nBxnBxnE
+        rhs = sum(bsxfun(@times, F, basis), 4); % nExnBxnP
+        rhs = sum(bsxfun(@times, rhs, permute(dX, [1 3 2])),3).'; % nBxnE
+        %
+        dMap = reshape(obj.getDoFMap(codim, varargin{:}),[],1); % nB*nE
+        iZ = (dMap~=0); dMap = abs(dMap(:));
+        if any(~iZ(:))
+          dMap = dMap(iZ);
+          rhs = rhs(iZ);
+          [nB,~,nE] = size(lhs);
+          lhs = reshape(lhs,nB,[]); % nBx(nB*nE)
+          lhs = reshape(lhs(:,iZ),nB,[],nE); % nBxnBNewxnE
+          [~,nBNew,~] = size(lhs);
+          lhs = reshape(permute(lhs,[2 1 3]),nBNew,(nB*nE)); % nBNew*(nBxnE)
+          lhs = reshape(lhs(:,iZ),nBNew,nBNew,nE); % nBNewxnBNewxnE
+        end
+        lhs = blockify(lhs); % (nB*nE)x(nB*nE)
+        rhs = lhs\rhs(:); % nB*nE
+        rhs = accumarray(dMap,rhs)./accumarray(dMap,1);
+        I = unique(dMap);
+        R = zeros(obj.getNDoF(),1); % nDoFx1
+        R(I) = rhs(I);
       end
     end
   end

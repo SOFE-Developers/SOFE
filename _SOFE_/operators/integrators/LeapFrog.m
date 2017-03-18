@@ -10,7 +10,7 @@ classdef LeapFrog < Integrator
       obj.solution{1} = cell(obj.statOp.nEq,1);
       for k = 1:obj.statOp.nEq
         if ~isempty(obj.initCond)
-          obj.solution{1}{k} = obj.statOp.fesTrial{k}.getWeakInterpolation(obj.initCond{k}, 0);
+          obj.solution{1}{k} = obj.statOp.fesTrial{k}.getInterpolation(obj.initCond{k}, 0);
         else
           obj.solution{1}{k} = zeros(obj.statOp.dimTrial(k), 1);
         end
