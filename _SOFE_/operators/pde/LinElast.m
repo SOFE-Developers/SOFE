@@ -3,7 +3,7 @@ classdef LinElast < PDE
     function obj = LinElast(data, fes)
       mu = data.E/2/(1+data.nu);
       lambda = data.E*data.nu/(1+data.nu)/(1-2*data.nu);
-      sLap = Op_data_SYMGRAD_SYMGRAD(2*mu, fes);
+      sLap = Op_data_SGRAD_SGRAD(2*mu, fes);
       divDiv = Op_data_div_div(lambda, fes);
       try
         f = Fc_Data_Id(data.f, fes, 0);
