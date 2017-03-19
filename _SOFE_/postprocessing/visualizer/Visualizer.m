@@ -20,6 +20,8 @@ classdef Visualizer < SOFEClass
             obj.surf(U, opt{:});
           case {'l', 'L', 'local', 'scatter', 0}
             obj.scatter(U, opt{:});
+          case {'fh', 'FH'}
+            obj.surfFH(U, opt{:});
           otherwise
             obj.patch(U, opt{:});
         end

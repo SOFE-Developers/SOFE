@@ -257,53 +257,58 @@ classdef FESpace < SOFEClass
     end
     function R = evalDoFVector(obj, U, points, codim, order, varargin) % [{k} or I]
       assert(numel(U)==obj.getNDoF(), 'First argument must be DoFVector!');
+      if iscell(points)
+        R = obj.evalDoFVectorGlobal(U, points, codim, order);
+      else
+        R = obj.evalDoFVectorLocal(U, points, codim, order, varargin{:});
+      end
+    end
+    function R = evalDoFVectorGlobal(obj, U, points, codim, order)
+      if numel(points) == 1
+        points = obj.mesh.evalInversReferenceMap(points{1});
+      end
+      isValid = points{2}>0;
+      points{1} = points{1}(isValid,:); points{2} = points{2}(isValid);
+      basis = obj.evalGlobalBasis(points, 0, order, []); % [1/nE]xnB[xnP]xnCx[nD]       
+      dMap = abs(obj.getDoFMap(0, points{2})).'; % nExnB
+      value = zeros(size(dMap)); % nExnB
+      iZ = dMap > 0; value(iZ) = U(dMap(iZ));
+      value = sum(bsxfun(@times, permute(value,[1 3:4 2]), ...
+                                 permute(basis,[1 3:4 2])), 4); % nExnCx[nD]
+      R = nan(numel(isValid), size(basis, 3), size(basis, 4)); % nExnC[xnD]
+      R(isValid,:,:) = value; % nExnC[xnD]
+    end
+    function R = evalDoFVectorLocal(obj, U, points, codim, order, varargin) % [{k} or I]
       block = false;
       if nargin > 5 && iscell(varargin{1})
         block = true; k = varargin{1};
       end
-      %      
-      if iscell(points) % global evaluation
-        if numel(points) == 1
-          points = obj.mesh.evalInversReferenceMap(points{1});
-        end
-        isValid = points{2}>0;
-        points{1} = points{1}(isValid,:); points{2} = points{2}(isValid);
-        basis = obj.evalGlobalBasis(points, 0, order, points{2}); % [1/nE]xnB[xnP]xnCx[nD]       
-        dMap = abs(obj.getDoFMap(0, points{2})).'; % nExnB
-        value = zeros(size(dMap)); % nExnB
-        I = dMap > 0; value(I) = U(dMap(I));
-        value = sum(bsxfun(@times, permute(value,[1 3:4 2]), ...
-                                   permute(basis,[1 3:4 2])), 4); % nExnCx[nD]
-        R = nan(numel(isValid), size(basis, 3), size(basis, 4)); % nExnC[xnD]
-        R(isValid,:,:) = value; % nExnC[xnD]
-      else % local evaluation
-        if isempty(points)
-          points = obj.getQuadData(codim);
-        else
-          codim = obj.element.dimension-size(points,2);
-        end
-        if block
-          varargin{1} = obj.getBlock(codim, k{1});
-        end
-        assert(codim==0 || order==0, '! Derivatives for traces not supported !');
-        if nargin < 6 || (nargin == 6 && ischar(varargin{1}) && strcmp(varargin,':'))
-          nBlock = obj.mesh.nBlock; R = cell(nBlock,1); s = 0;
-          for k = 1:nBlock
-            R{k} = obj.evalDoFVector(U, points, [], order, {k});
-            fprintf(repmat('\b',1,length(s)));
-            s = sprintf('progress evalDoFVector: %d / %d', k, nBlock); fprintf(s);
-          end
-          fprintf('\n');
-          R = cell2mat(R);
-          [~,I] = sort(obj.getBlock(codim));
-          R = R(I,:,:,:);
-        else
-          basis = obj.evalGlobalBasis(points, [], order, varargin{:}); % [1/nE]xnB[xnP]xnCx[nD]
-          dMap = abs(obj.getDoFMap(codim, varargin{:})).'; % nExnB
-          R = zeros(size(dMap)); I = dMap > 0; R(I) = U(dMap(I)); % nExnB
-          R = sum(bsxfun(@times,permute(R,[1 3:5 2]),permute(basis,[1 3:5 2])),5); % nExnPxnCx[nD]
-        end
+      if isempty(points)
+        points = obj.getQuadData(codim);
+      else
+        codim = obj.element.dimension-size(points,2);
       end
+      if block
+        varargin{1} = obj.getBlock(codim, k{1});
+      end
+      assert(codim==0 || order==0, '! Derivatives for traces not supported !');
+      if nargin < 6 || (nargin == 6 && ischar(varargin{1}) && strcmp(varargin,':'))
+        nBlock = obj.mesh.nBlock; R = cell(nBlock,1); s = 0;
+        for k = 1:nBlock
+          R{k} = obj.evalDoFVector(U, points, [], order, {k});
+          fprintf(repmat('\b',1,length(s)));
+          s = sprintf('progress evalDoFVector: %d / %d', k, nBlock); fprintf(s);
+        end
+        fprintf('\n');
+        R = cell2mat(R);
+        [~,I] = sort(obj.getBlock(codim));
+        R = R(I,:,:,:);
+      else
+        basis = obj.evalGlobalBasis(points, [], order, varargin{:}); % [1/nE]xnB[xnP]xnCx[nD]
+        dMap = abs(obj.getDoFMap(codim, varargin{:})).'; % nExnB
+        R = zeros(size(dMap)); I = dMap > 0; R(I) = U(dMap(I)); % nExnB
+        R = sum(bsxfun(@times,permute(R,[1 3:5 2]),permute(basis,[1 3:5 2])),5); % nExnPxnCx[nD]
+        end
     end
   end
   methods % DoFManager.
