@@ -8,7 +8,7 @@ data.f{2} = @(x, t, U) -U{2}.*(gamma - delta*U{1});
 % MESH
 m = RegularMesh([N; N], [0 1;0 1], 0);
 % FESPACES
-fes = FESpace(m, QpH1(2,1), @(x)x(:,1)<-Inf);
+fes = FESpace(m, QpL(2,1), @(x)x(:,1)<-Inf);
 % time
 meshT = RegularMesh(T*M, [0 T], 0);
 u0 = {@(x)5*exp(-((x(:,1)-0.4).^2+(x(:,2)-0.4).^2)/0.01), ...

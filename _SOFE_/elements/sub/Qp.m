@@ -1,8 +1,8 @@
-classdef Qp < HierarchicElement
+classdef Qp < Element
   methods % constructor
     function obj = Qp(dim, order)
       if numel(order)==1, order = repmat(order,dim,1); end
-      obj = obj@HierarchicElement(dim, 2.^(1:dim), cumprod(order+1), order);
+      obj = obj@Element(dim, 2.^(1:dim), cumprod(order+1), order);
       obj.doFTuple(dim+1) = prod(obj.order+1);
       obj.conformity = 'L2';
     end

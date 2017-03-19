@@ -6,7 +6,7 @@ data.f = @(x) bsxfun(@plus, [0 0 -1], 0*x(:,1));
 % MESH;
 m = RegularMesh(M'*(N+1), [zeros(1,3);M]', isTri);
 % ELEMENT
-if isTri, e = PpL(3, order); else  e = QpS(3, order); end
+if isTri, e = PpL(3, order); else  e = QpL(3, order); end
 % FESPACE
 fes = FESpace(m, TPElem(e), @(x)x(:,1)==0);
 % PDE

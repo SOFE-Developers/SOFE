@@ -7,7 +7,7 @@ data.ud   = @(x) 0*x(:,1);
 % MESH
 m = RegularMesh([N; N], [0 1; 0 1], 0);
 % FESPACES
-fes = FESpace(m, QpH1(2,1), data.dLoc);
+fes = FESpace(m, QpL(2,1), data.dLoc);
 % TIME
 u0 = {@(x)0.1+0.2*1i*exp(-((x(:,1)-0.3).^2+(x(:,2)-0.3).^2)/0.01)};
 meshT = RegularMesh(T*M, [0 T], 0);

@@ -296,10 +296,12 @@ classdef FESpace < SOFEClass
         nBlock = obj.mesh.nBlock; R = cell(nBlock,1); s = 0;
         for k = 1:nBlock
           R{k} = obj.evalDoFVector(U, points, [], order, {k});
-          fprintf(repmat('\b',1,length(s)));
-          s = sprintf('progress evalDoFVector: %d / %d', k, nBlock); fprintf(s);
+          if nBlock>1 
+            fprintf(repmat('\b',1,length(s)));
+            s = sprintf('progress evalDoFVector: %d / %d', k, nBlock); fprintf(s);
+          end
         end
-        fprintf('\n');
+        if nBlock>1, fprintf('\n'); end
         R = cell2mat(R);
         [~,I] = sort(obj.getBlock(codim));
         R = R(I,:,:,:);

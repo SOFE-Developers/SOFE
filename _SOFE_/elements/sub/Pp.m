@@ -1,13 +1,12 @@
-classdef Pp < HierarchicElement
+classdef Pp < Element
   methods % constructor
     function obj = Pp(dim, order)
       nB = [order+1, ...
            (order+1)*(order+2)/2, ...
            (order+1)*(order+2)*(order+3)/6];
-      obj = obj@HierarchicElement(dim, 2:(dim+1), nB(1:dim), order);
+      obj = obj@Element(dim, 2:(dim+1), nB(1:dim), order);
       obj.doFTuple(dim+1) = obj.nB(dim);
       obj.conformity = 'L2';
-      obj.isLagrange = false;
     end
   end
   methods % evaluation

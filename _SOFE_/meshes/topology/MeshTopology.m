@@ -161,17 +161,17 @@ classdef MeshTopology < SOFEClass
     function R = getShapeElement(N, dimP)
       switch N
         case 2
-          R = P1(1);
+          R = PpL(1,1);
         case 3
-          R = P1(2);
+          R = PpL(2,1);
         case 4
           if dimP == 2
-            R = Q1(2);
+            R = QpL(2,1);
           else
-            R = P1(3);
+            R = PpL(3,1);
           end
         case 8
-          R = Q1(3);
+          R = QpL(3,1);
       end
     end
   end
