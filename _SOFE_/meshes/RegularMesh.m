@@ -1,13 +1,13 @@
 classdef RegularMesh < Mesh
   methods % constructor
-    function obj = RegularMesh(NVec, diam, isTri)
+    function obj = RegularMesh(NVec, diam, varargin)
       fprintf('Generate mesh ... \n');
       dim = numel(NVec);
       GRID = cell(1,dim);
       for d = 1:dim
         GRID{d} = linspace(diam(d,1),diam(d,2),NVec(d)+1);
       end
-      [nodes, elems] = Mesh.getTensorProductMesh(GRID, isTri);
+      [nodes, elems] = Mesh.getTensorProductMesh(GRID, varargin{:});
       obj = obj@Mesh(nodes, elems);
       fprintf('DONE\n');
     end

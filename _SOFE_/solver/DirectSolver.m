@@ -12,7 +12,7 @@ classdef DirectSolver < Solver
       obj.matDecomp = [];
     end
   end
-  methods
+  methods % solve
     function R = solve(obj, A, b)
       if obj.isLU
         if isempty(obj.matDecomp)

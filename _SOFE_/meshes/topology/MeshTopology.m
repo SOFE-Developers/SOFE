@@ -39,7 +39,7 @@ classdef MeshTopology < SOFEClass
     end
   end
   methods % mesh information
-    function R = getEntity(obj, dim, varargin)
+    function R = getEntity(obj, dim, varargin) % [I]
       I = ':'; if nargin > 2, I = varargin{1}; end
       if dim == 0
         R = obj.nodes(I,:);
@@ -64,23 +64,10 @@ classdef MeshTopology < SOFEClass
         R = true(obj.getNumber(dim), 1);
       end
     end
-    function R = getNumber(obj, dim)
-      R = size(obj.getEntity(dim), 1);
+    function R = getNumber(obj, dim, varargin) % [I]
+      R = size(obj.getEntity(dim), 1, varargin{:});
     end
-    function R = getNode2Elem(obj)
-      nE = obj.getNumber(obj.dimP);
-      elem = obj.getEntity(obj.dimP);
-      elemIndex = repmat((1:nE)', 1, size(elem,2));
-      elem = elem(:);
-      [dmy,I] = sort(elem);
-      count = accumarray(elem,1);
-      maxCount = max(count);
-      upperTri = triu(repmat((1:maxCount)',1,maxCount));
-      count = upperTri(:,count); count = count(:);
-      count(count==0) = [];
-      R = accumarray([elem(I), count], elemIndex(I));
-    end
-    function R = getCenter(obj, dim, varargin)
+    function R = getCenter(obj, dim, varargin) % [I]
       I = ':'; if nargin > 2, I = varargin{1}; end
       if dim == 0
         vertices = obj.getEntity(0);
@@ -92,7 +79,10 @@ classdef MeshTopology < SOFEClass
       vertices = obj.getEntity(0);
       R = permute(sum(reshape(vertices(R,:), nE, nV, []),2)/nV,[1 3 2]);
     end
-    function R = isBoundary(obj, varargin)
+    function R = getMeasure(obj, dim, varargin) % [I]
+      R = [];
+    end
+    function R = isBoundary(obj, varargin) % [loc]
       e2F = obj.getElem2Face(); % nExnF
       R = accumarray(e2F(e2F>0),1, [obj.getNumber(obj.dimP-1) 1])==1; % nFx1
       if nargin > 1
@@ -108,7 +98,7 @@ classdef MeshTopology < SOFEClass
         end
       end
     end
-    function R = isSurface(obj, varargin)
+    function R = isSurface(obj, varargin) % [loc]
       if nargin > 1 && ~ischar(varargin{1})
         idx = find(varargin{:}(obj.getEntity(0)));
       else
@@ -120,6 +110,21 @@ classdef MeshTopology < SOFEClass
       uE2F = unique(E2F(:));
       I = hist(E2F(:),uE2F)==1;
       R = full(sparse(uE2F(I), 1, true, obj.getNumber(obj.dimP-1), 1));
+    end
+  end
+  methods % connectivity information
+    function R = getNodePatch(obj, dim)
+      nE = obj.getNumber(dim);
+      entity = obj.getEntity(dim);
+      idx = repmat((1:nE)', 1, size(entity,2));
+      entity = entity(:);
+      [~,I] = sort(entity);
+      count = accumarray(entity,1);
+      maxCount = max(count);
+      upperTri = triu(repmat((1:maxCount)',1,maxCount));
+      count = upperTri(:,count); count = count(:);
+      count(count==0) = [];
+      R = accumarray([entity(I), count], idx(I));
     end
   end
   methods % mesh operations

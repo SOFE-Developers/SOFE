@@ -130,7 +130,7 @@ classdef Mesh < SOFEClass
       R = {L,H};
     end
   end
-  methods % data eval
+  methods % evaluation
     function R = evalFunction(obj, F, points, U, varargin) % [I]
       I = ':'; if nargin > 4, I = varargin{1}; end
       P = obj.evalReferenceMap(points, 0, I); % nExnPxnW
@@ -164,7 +164,7 @@ classdef Mesh < SOFEClass
     end
   end
   methods % display
-    function show(obj, type, varargin)
+    function show(obj, type, varargin) % [type]
       obj.topology.show(varargin{:}); axis equal
       if nargin < 2 || isempty(type)
         return
@@ -178,7 +178,7 @@ classdef Mesh < SOFEClass
     end
   end
   methods(Static = true)
-    function [nodes, elem] = getTensorProductMesh(grid, varargin)
+    function [nodes, elem] = getTensorProductMesh(grid, varargin) % [isTri]
       switch numel(grid)
         case 1
           nodes = grid{1};

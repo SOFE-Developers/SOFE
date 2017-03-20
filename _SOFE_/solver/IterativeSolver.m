@@ -12,7 +12,7 @@ classdef IterativeSolver < Solver
       obj.precon = precon;
     end
   end
-  methods
+  methods % solve
     function R = solve(obj, A, b)
       switch obj.precon
         case 'diag'

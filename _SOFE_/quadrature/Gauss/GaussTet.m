@@ -2,7 +2,7 @@ classdef GaussTet < QuadRule
   properties
   end
   methods % constructor
-    function obj = GaussTet(n,varargin)
+    function obj = GaussTet(n)
         obj = obj@QuadRule(n);
     end
   end

@@ -2,12 +2,12 @@ classdef Integrator < SOFEClass
   properties
     massOp, statOp
     mesh
+    solver
     initCond, nT, dt
     solution
-    solver
   end
   methods % constructor
-    function obj = Integrator(massOp, statOp, mesh, varargin)
+    function obj = Integrator(massOp, statOp, mesh, varargin) % [initCond]
       obj.solver = statOp.solver;
       obj.massOp = massOp;
       obj.statOp = statOp;
@@ -19,6 +19,10 @@ classdef Integrator < SOFEClass
         if ~iscell(obj.initCond), obj.initCond = {obj.initCond}; end
       end
       obj.solution = cell(obj.nT,1);
+    end
+  end
+  methods % integrate
+    function integrate(obj)
     end
   end
 end

@@ -11,7 +11,9 @@ classdef Visualizer < SOFEClass
         error('w is no DoFVector!');
       end
     end
-    function show(obj, U, varargin)
+  end
+  methods % visualisation
+    function show(obj, U, varargin) % [type]
       if nargin > 2
         type = varargin{1};
         if nargin > 3, opt = varargin(2); else opt = {}; end

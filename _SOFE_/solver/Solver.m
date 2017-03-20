@@ -10,7 +10,7 @@ classdef Solver < SOFEClass
   methods
     function reset(obj)
     end
-    function solve(obj)
+    function solve(obj, A, b)
     end
   end
 end

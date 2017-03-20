@@ -1,10 +1,10 @@
 classdef EulerImplicit < Integrator
   methods % constructor
-    function obj = EulerImplicit(massOp, statOp, mesh, varargin)
+    function obj = EulerImplicit(massOp, statOp, mesh, varargin) % [initCond]
       obj = obj@Integrator(massOp, statOp, mesh, varargin{:});
     end
   end
-  methods
+  methods % integrate
     function integrate(obj, varargin)
       % initial condition
       obj.solution{1} = cell(obj.statOp.nEq,1);

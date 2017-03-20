@@ -2,7 +2,7 @@ classdef GaussQuad < QuadRule
   properties
   end
   methods % constructor
-    function obj = GaussQuad(n,varargin)
+    function obj = GaussQuad(n)
         obj = obj@QuadRule(n);
     end
   end
