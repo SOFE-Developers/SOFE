@@ -175,23 +175,8 @@ classdef PDE < SOFEClass
     function R = getTestSpace(obj, i)
       R = obj.lhs{i,1}{1}.feSpaceTest;
     end
-    function R = getFreeDoFsTest(obj, idx)
-      R = obj.fDoFsTest(obj.I{idx}(1):obj.I{idx}(2));
-    end
-    function R = getFreeDoFsTrial(obj, idx)
-      R = obj.fDoFsTrial(obj.J{idx}(1):obj.J{idx}(2));
-    end
-    function R = getShift(obj, idx)
-      R = obj.shift(obj.J{idx}(1):obj.J{idx}(2));
-    end
     function R = getSolution(obj, idx)
       R = obj.solution(obj.J{idx}(1):obj.J{idx}(2));
-    end
-    function setSolution(obj, sol, idx)
-      if size(obj.solution,1)<obj.J{idx}(2)
-        obj.solution = [obj.solution;zeros(diff(obj.J{idx})+1,1)];
-      end
-      obj.solution(obj.J{idx}(1):obj.J{idx}(2)) = sol;
     end
     function R = getStiffnessBlock(obj, idxI, idxJ)
       R = obj.stiffMat(obj.I{idxI},obj.J{idxJ});
