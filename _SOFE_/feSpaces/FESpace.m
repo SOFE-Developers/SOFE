@@ -114,7 +114,11 @@ classdef FESpace < SOFEClass
           for k = 1:nBlock
             R{k} = obj.evalReferenceMap(points, codim, {k});
           end
-          R = padcell2mat(R);
+          try
+            R = cell2mat(R);
+          catch
+            R = padcell2mat(R);
+          end
           if ~isempty(points)
             codim = obj.element.dimension-size(points,2);
           end
@@ -248,7 +252,11 @@ classdef FESpace < SOFEClass
           for k = 1:nBlock
             R{k} = obj.evalGlobalBasis(points, codim, order, {k});
           end
-          R = padcell2mat(R);
+          try
+            R = cell2mat(R);
+          catch
+            R = padcell2mat(R);
+          end
           if ~isempty(points)
             codim = obj.element.dimension-size(points,2);
           end
@@ -305,7 +313,11 @@ classdef FESpace < SOFEClass
           end
         end
         if nBlock>1, fprintf('\n'); end
-        R = padcell2mat(R); % nExnPxnCxnD
+        try
+          R = cell2mat(R);
+        catch
+          R = padcell2mat(R);
+        end
         if ~isempty(points)
           codim = obj.element.dimension-size(points,2);
         end

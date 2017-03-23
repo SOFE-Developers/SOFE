@@ -16,4 +16,5 @@ p = LinElast(data, fes);
 p.compute();
 % VISUALIZE
 v = Visualizer.create(fes); clf
-v.show(p.solution, 'p', struct('deform', true, 'n', 1)); view(30,40);
+opt = struct('deform', true, 'n', 1);
+v.show(p.solution, 'p', opt); view(30,40);
