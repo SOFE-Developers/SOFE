@@ -41,7 +41,7 @@ classdef Visualizer2D < Visualizer
         patch('faces', reshape(elem, [], size(elem,3)), 'vertices', [vertices height], ... 
             'facevertexcdata',value,'facecolor','interp', ...
             'edgecolor','interp');
-        view(0,90), axis equal;
+        view(0,90), axis normal;
       else
         value = obj.feSpace.evalDoFVector(U,[X(:) Y(:)],[],0); % nExnPxnC
         if size(value,3)>1
@@ -59,7 +59,7 @@ classdef Visualizer2D < Visualizer
               'edgecolor','interp');
         diam = obj.feSpace.mesh.topology.globalSearcher.diam';
         axis(diam(:));
-        view(0,90), axis equal;
+        view(0,90), axis normal;
       end
     end
     function surf(obj, U, varargin)
@@ -83,7 +83,7 @@ classdef Visualizer2D < Visualizer
         if deform
           absZ = reshape(sum(Z.^2, 2).^0.5, size(X));
           surf(X+reshape(Z(:,1),size(X)), Y+reshape(Z(:,2),size(X)), absZ); shading interp;
-          view(0,90), axis equal; return
+          view(0,90), axis normal; return
         else
           try scale = varargin{1}.scale; catch, scale = 1.0; end
           try width = varargin{1}.width; catch, width = 4; end
@@ -105,7 +105,7 @@ classdef Visualizer2D < Visualizer
         end
       end
       diam = obj.feSpace.mesh.topology.globalSearcher.diam';
-      axis(diam(:)); view(0,90), axis equal; axis tight
+      axis(diam(:)); view(0,90), axis normal; axis tight
     end
     function scatter(obj, U, varargin)
       obj.test(U);
@@ -137,7 +137,7 @@ classdef Visualizer2D < Visualizer
           P = reshape(P + Z, [], size(P,3)); % (nE*nP)xnW
           Z = sum(Z.^2,3).^0.5;
           plot3k([P(:,1), P(:,2), Z(:)]);
-          view(0,90), axis equal; return
+          view(0,90), axis normal; return
         else
           try scale = varargin{1}.scale; catch, scale = 1.0; end
           try width = varargin{1}.width; catch, width = 4; end
@@ -152,7 +152,7 @@ classdef Visualizer2D < Visualizer
         end
       end
       diam = obj.feSpace.mesh.topology.globalSearcher.diam';
-      axis(diam(:)); view(0,90), axis equal; axis tight
+      axis(diam(:)); view(0,90), axis normal; axis tight
     end
     function surfFH(obj, F, varargin)
       try N = varargin{1}.N; catch, N = 200; end
@@ -163,7 +163,7 @@ classdef Visualizer2D < Visualizer
       Z = F([X(:) Y(:)]); % nPx1
       surf(X,Y,reshape(Z,size(X))); shading interp
       diam = obj.feSpace.mesh.topology.globalSearcher.diam';
-      axis(diam(:)); view(0,90), axis equal; axis tight
+      axis(diam(:)); view(0,90), axis normal; axis tight
     end
   end
 end
