@@ -1,25 +1,21 @@
 classdef Op_data_Id_Id < Operator % ( c*U, V )
   methods % constructor
-    function obj = Op_data_Id_Id(coeff, codim, feSpaceTrial, varargin) % [feSpaceTest loc]
-      obj = obj@Operator(coeff, feSpaceTrial, varargin{:});
+    function obj = Op_data_Id_Id(coeff, codim, fesTrial, varargin) % [fesTest loc]
+      obj = obj@Operator(coeff, fesTrial, varargin{:});
       obj.codim = codim;
       if codim == 1 && nargin < 6
-        obj.loc = @(x)~obj.feSpaceTest.fixB(x);
+        obj.loc = @(x)~obj.fesTest.fixB(x);
       end
     end
   end
   methods
     function R = assembleOp(obj, k)
-      points = obj.feSpaceTrial.getQuadData(obj.codim);
+      points = obj.fesTrial.getQuadData(obj.codim);
       if isempty(points)
-        R = obj.feSpaceTrial.mesh.evalFunction(obj.data, points, obj.state, {k}); % nExnP
+        R = obj.fesTrial.mesh.evalFunction(obj.data, points, obj.state, {k}); % nExnP
       else
-        basisJ = obj.feSpaceTrial.evalGlobalBasis([], obj.codim, 0, {k}); % nExnBxnPxnC
-        if obj.isGalerkin
-          basisI = basisJ;
-        else
-          basisI = obj.feSpaceTest.evalGlobalBasis([], obj.codim, 0, {k});
-        end
+        basisJ = obj.fesTrial.evalGlobalBasis([], obj.codim, 0, {k}); % nExnBxnPxnC
+        basisI = obj.fesTest.evalGlobalBasis([], obj.codim, 0, {k});
         R = obj.integrate(true, basisI, basisJ, k);
       end
     end

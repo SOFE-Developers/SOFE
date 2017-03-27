@@ -11,16 +11,16 @@ classdef CDR < PDE
         lhs = [lhs, {Op_data_Id_Id(data.c, 0, fesTrial, varargin{:})}];
       end
       try
-        lhs = [lhs, {Op_data_Id_Id(data.h, 1, lap.feSpaceTrial, lap.feSpaceTest)}];
+        lhs = [lhs, {Op_data_Id_Id(data.h, 1, lap.fesTrial, lap.fesTest)}];
       end
       %
       try
-        rhs = {Fc_Data_Id(data.f, lap.feSpaceTest, 0)};
+        rhs = {Fc_Data_Id(data.f, lap.fesTest, 0)};
       catch
-        rhs = {Fc_Data_Id(@(x)0*x(:,1), lap.feSpaceTest, 0)};
+        rhs = {Fc_Data_Id(@(x)0*x(:,1), lap.fesTest, 0)};
       end
       try
-        rhs = [rhs,{Fc_Data_Id(data.g, lap.feSpaceTest, 1)}];
+        rhs = [rhs,{Fc_Data_Id(data.g, lap.fesTest, 1)}];
       end
       obj = obj@PDE({lhs}, {rhs});
     end

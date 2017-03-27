@@ -1,15 +1,15 @@
 classdef Op_NULL < Operator % ( 0*U, V )
   methods 
-    function obj = Op_NULL(feSpaceTrial, feSpaceTest)
-      obj = obj@Operator([], feSpaceTrial, feSpaceTest);
+    function obj = Op_NULL(fesTrial, fesTest)
+      obj = obj@Operator([], fesTrial, fesTest);
     end
   end
   methods
     function R = assembleOp(obj, k)
-      nE = obj.feSpaceTest.mesh.getBlock(0, k);
-      nD = obj.feSpaceTest.element.dimension;
-      nBI = obj.feSpaceTest.element.nB(nD);
-      nBJ = obj.feSpaceTrial.element.nB(nD);
+      nE = obj.fesTest.mesh.getBlock(0, k);
+      nD = obj.fesTest.element.dimension;
+      nBI = obj.fesTest.element.nB(nD);
+      nBJ = obj.fesTrial.element.nB(nD);
       R = zeros(nE(2)-nE(1)+1, nBI, nBJ);
     end
   end

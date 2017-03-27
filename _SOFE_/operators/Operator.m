@@ -2,32 +2,29 @@ classdef Operator < SOFEClass
   properties
     codim = 0;
     data, dataCache
-    feSpaceTrial, feSpaceTest
-    isGalerkin
+    fesTrial, fesTest
     matrix
     state
     loc, idx
   end
   methods % constructor
-    function obj = Operator(data, feSpaceTrial, varargin) % [feSpaceTest loc]
+    function obj = Operator(data, fesTrial, varargin) % [fesTest loc]
       if isreal(data), data = @(x)data+zeros(size(x,1),numel(data)); end
       obj.dataCache = data;
       obj.data = data;
-      obj.feSpaceTrial = feSpaceTrial;
-      obj.feSpaceTrial.register(obj);
+      obj.fesTrial = fesTrial;
+      obj.fesTrial.register(obj);
       if nargin > 2 && ~isempty(varargin{1})
-        obj.feSpaceTest = varargin{1};
-        obj.feSpaceTest.register(obj);
-        obj.isGalerkin = false;
+        obj.fesTest = varargin{1};
+        obj.fesTest.register(obj);
         % sync quadRules
-        if obj.feSpaceTrial.quadRule{1}.order > obj.feSpaceTest.quadRule{1}.order
-          obj.feSpaceTest.setQuadRule(obj.feSpaceTrial.quadRule);
+        if obj.fesTrial.quadRule{1}.order > obj.fesTest.quadRule{1}.order
+          obj.fesTest.setQuadRule(obj.fesTrial.quadRule);
         else
-          obj.feSpaceTrial.setQuadRule(obj.feSpaceTest.quadRule);
+          obj.fesTrial.setQuadRule(obj.fesTest.quadRule);
         end
       else
-        obj.feSpaceTest = feSpaceTrial;
-        obj.isGalerkin = true;
+        obj.fesTest = fesTrial;
       end
       obj.idx = ':';
       if nargin > 3
@@ -40,20 +37,20 @@ classdef Operator < SOFEClass
         obj.idx = ':';
       else
         if nargin(obj.dataCache) == 2 % f(x,t)
-          obj.data = @(x)obj.dataCache(x, varargin{1});
           obj.matrix = [];
+          obj.data = @(x)obj.dataCache(x, varargin{1});
         elseif nargin(obj.dataCache) == 3 % f(x,t,U)
+          obj.matrix = [];
           obj.data = @(x, U)obj.dataCache(x, varargin{1}, U);
           obj.state = varargin{2};
-          obj.matrix = [];
         end
         if ~isempty(obj.loc)
           if nargin(obj.loc) > 1 % loc(x,t)
             obj.matrix = [];
-            obj.idx = obj.feSpaceTrial.mesh.topology.isBoundary(@(x)obj.loc(x, varargin{1}));
+            obj.idx = obj.fesTrial.mesh.topology.isBoundary(@(x)obj.loc(x, varargin{1}));
           else
             if strcmp(obj.idx, ':')
-              obj.idx = obj.feSpaceTrial.mesh.topology.isBoundary(@(x)obj.loc(x));
+              obj.idx = obj.fesTrial.mesh.topology.isBoundary(@(x)obj.loc(x));
             end
           end
         end
@@ -63,23 +60,24 @@ classdef Operator < SOFEClass
   methods % assemble
     function assemble(obj)
       if ~isempty(obj.matrix), return, end
-      M = obj.feSpaceTest.getNDoF();
-      N = obj.feSpaceTrial.getNDoF();
+      M = obj.fesTest.getNDoF(); N = obj.fesTrial.getNDoF();
       obj.matrix = sparse(M, N);
       if ~any(obj.idx), return, end
-      nBlock = obj.feSpaceTrial.mesh.nBlock;
+      nBlock = obj.fesTrial.mesh.nBlock;
       for k = 1:nBlock
-        [r,c,e] = obj.assembleBlock(k);
-        if ~isempty(r) && ~ischar(obj.idx) % numel(obj.idx) > 1
-          I = obj.feSpaceTrial.getBlock(obj.codim, k);
-          r = r(obj.idx(I),:,:);
-          c = c(obj.idx(I),:,:);
-          e = e(obj.idx(I),:,:);
+        e = []; r = []; c = [];
+        I = obj.fesTrial.getBlock(obj.codim, k);
+        if ~isempty(I)
+          e = obj.assembleOp(k); % nExnBxnB
+          r = obj.fesTest.getDoFMap(obj.codim, I); % nBxnE
+          c = obj.fesTrial.getDoFMap(obj.codim, I); % nBxnE
+          r = repmat(abs(r)',[1 1 size(c,1)]); % nExnBxnB
+          c = permute(repmat(abs(c)',[1 1 size(r,2)]), [1 3 2]); % nExnBxnB
+          if ~ischar(obj.idx)
+            e=e(obj.idx(I),:,:); r=r(obj.idx(I),:,:); c=c(obj.idx(I),:,:);
+          end
         end
-        I = r.*c==0;
-        if any(I(:))
-          r(I) = []; c(I) = []; e(I) = [];
-        end
+        I = (r.*c==0); if any(I(:)), r(I) = []; c(I) = []; e(I) = []; end
         obj.matrix = obj.matrix + sparse(r(:), c(:), e(:), M, N);
         if nBlock > 1
           if k>1
@@ -90,23 +88,11 @@ classdef Operator < SOFEClass
       end
       if nBlock > 1, fprintf('\n'); end
     end
-    function [r,c,e] = assembleBlock(obj, k)
-      I = obj.feSpaceTrial.getBlock(obj.codim, k);
-      if ~isempty(I)
-        e = obj.assembleOp(k); % nExnBxnB
-        c = obj.feSpaceTrial.getDoFMap(obj.codim, I); % nBxnE
-        r = obj.feSpaceTest.getDoFMap(obj.codim, I); % nBxnE
-        r = repmat(abs(r)',[1 1 size(c,1)]); % nExnBxnB
-        c = permute(repmat(abs(c)',[1 1 size(r,2)]), [1 3 2]); % nExnBxnB
-      else
-        r = []; c = []; e = [];
-      end
-    end
     function R = integrate(obj, hasCoeff, basisI, basisJ, k)
-      [~, weights] = obj.feSpaceTrial.getQuadData(obj.codim);
-      [~,~,jac] = obj.feSpaceTrial.evalTrafoInfo([], obj.codim, {k}); % nExnP
+      [~, weights] = obj.fesTrial.getQuadData(obj.codim);
+      [~,~,jac] = obj.fesTrial.evalTrafoInfo([], obj.codim, {k}); % nExnP
       if hasCoeff
-        coeff = obj.feSpaceTrial.evalFunction(obj.data, [], obj.codim, obj.state, {k}); % nExnP
+        coeff = obj.fesTrial.evalFunction(obj.data, [], obj.codim, obj.state, {k}); % nExnP
         dX = bsxfun(@times, coeff.*abs(jac), weights'); % nExnP
       else
         dX = bsxfun(@times, abs(jac), weights'); % nExnP

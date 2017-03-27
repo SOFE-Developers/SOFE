@@ -30,11 +30,11 @@ classdef PDE < SOFEClass
         for j = 1:obj.nEq
           if ~isempty(obj.lhs{i,j})
             if isempty(obj.fesTrial{j})
-              obj.fesTrial{j} = obj.lhs{i,j}{1}.feSpaceTrial;
+              obj.fesTrial{j} = obj.lhs{i,j}{1}.fesTrial;
               obj.fesTrial{j}.register(obj);
             end
             if isempty(obj.fesTest{i})
-              obj.fesTest{i} = obj.lhs{i,j}{1}.feSpaceTest;
+              obj.fesTest{i} = obj.lhs{i,j}{1}.fesTest;
               obj.fesTest{i}.register(obj);
             end
           end
@@ -170,10 +170,10 @@ classdef PDE < SOFEClass
   end
   methods % access
     function R = getTrialSpace(obj, j)
-      R = obj.lhs{1,j}{1}.feSpaceTrial;
+      R = obj.lhs{1,j}{1}.fesTrial;
     end
     function R = getTestSpace(obj, i)
-      R = obj.lhs{i,1}{1}.feSpaceTest;
+      R = obj.lhs{i,1}{1}.fesTest;
     end
     function R = getSolution(obj, idx)
       R = obj.solution(obj.J{idx}(1):obj.J{idx}(2));

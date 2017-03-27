@@ -1,22 +1,18 @@
 classdef Op_DATA_GRAD_GRAD < Operator % ( CC*GRAD(U), GRAD(V) )
   methods % constructor
-    function obj = Op_DATA_GRAD_GRAD(coeff, feSpaceTrial, varargin)
-      obj = obj@Operator(coeff, feSpaceTrial, varargin{:});
+    function obj = Op_DATA_GRAD_GRAD(coeff, fesTrial, varargin)
+      obj = obj@Operator(coeff, fesTrial, varargin{:});
     end
   end
   methods
     function R = assembleOp(obj, k)
-      gradBasisJ = obj.feSpaceTrial.evalGlobalBasis([], 0, 1, {k}); % nExnBxnPxnCxnD
-      if obj.isGalerkin
-        gradBasisI = gradBasisJ;
-      else
-        gradBasisI = obj.feSpaceTest.evalGlobalBasis([], 0, 1, {k}); % nExnBxnPxnCxnD
-      end
+      gradBasisJ = obj.fesTrial.evalGlobalBasis([], 0, 1, {k}); % nExnBxnPxnCxnD
+      gradBasisI = obj.fesTest.evalGlobalBasis([], 0, 1, {k}); % nExnBxnPxnCxnD
       %
-      [~, weights] = obj.feSpaceTrial.getQuadData(obj.codim);
-      [~,~,jac] = obj.feSpaceTrial.evalTrafoInfo([], obj.codim, {k});
-      coeff = obj.feSpaceTrial.evalFunction(obj.data, [], obj.codim, obj.state, {k});
-      nD = obj.feSpaceTrial.element.dimension;
+      [~, weights] = obj.fesTrial.getQuadData(obj.codim);
+      [~,~,jac] = obj.fesTrial.evalTrafoInfo([], obj.codim, {k});
+      coeff = obj.fesTrial.evalFunction(obj.data, [], obj.codim, obj.state, {k});
+      nD = obj.fesTrial.element.dimension;
       coeff = reshape(coeff, size(coeff,1), size(coeff,2), nD, nD); % nExnPxnDxnD
       dX = bsxfun(@times, abs(jac), weights'); % nExnP
       nE = size(gradBasisI, 1); nBI = size(gradBasisI, 2);
