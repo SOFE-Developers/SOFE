@@ -487,10 +487,12 @@ classdef FESpace < SOFEClass
         nBlock = obj.mesh.nBlock; R = cell(1,nBlock); s = 0;
         for k = 1:nBlock
           R{k} = obj.getInterpolation(f, codim, {k});
-          fprintf(repmat('\b',1,length(s)));
-          s = sprintf('progress evalInterpolation: %d / %d', k, nBlock); fprintf(s);
+          if nBlock>1
+            fprintf(repmat('\b',1,length(s)));
+            s = sprintf('progress evalInterpolation: %d / %d', k, nBlock); fprintf(s);
+          end
         end
-        fprintf('\n');
+        if nBlock>1, fprintf('\n'); end
         R = cell2mat(R);
         val = sum(abs(R)>0,2);
         val(val==0) = 1;
@@ -506,22 +508,10 @@ classdef FESpace < SOFEClass
         lhs = permute(sum(bsxfun(@times, lhs, permute(dX, [1 3 4 2])), 4),[2 3 1]); % nBxnBxnE
         rhs = sum(bsxfun(@times, F, basis), 4); % nExnBxnP
         rhs = sum(bsxfun(@times, rhs, permute(dX, [1 3 2])),3).'; % nBxnE
-        %
         dMap = reshape(obj.getDoFMap(codim, varargin{:}),[],1); % nB*nE
-        iZ = (dMap~=0); dMap = abs(dMap(:));
-        if any(~iZ(:))
-          dMap = dMap(iZ);
-          rhs = rhs(iZ);
-          [nB,~,nE] = size(lhs);
-          lhs = reshape(lhs,nB,[]); % nBx(nB*nE)
-          lhs = reshape(lhs(:,iZ),nB,[],nE); % nBxnBNewxnE
-          [~,nBNew,~] = size(lhs);
-          lhs = reshape(permute(lhs,[2 1 3]),nBNew,(nB*nE)); % nBNew*(nBxnE)
-          lhs = reshape(lhs(:,iZ),nBNew,nBNew,nE); % nBNewxnBNewxnE
-        end
+        iZ = (dMap~=0); dMap = abs(dMap(iZ)); % 'nB*nE'
         lhs = blockify(lhs); % (nB*nE)x(nB*nE)
-        rhs = lhs\rhs(:); % nB*nE
-        rhs = accumarray(dMap,rhs)./accumarray(dMap,1);
+        rhs = accumarray(dMap,lhs(iZ,iZ)\rhs(iZ))./accumarray(dMap,1);
         I = unique(dMap);
         R = zeros(obj.getNDoF(),1); % nDoFx1
         R(I) = rhs(I);
