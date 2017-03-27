@@ -404,7 +404,7 @@ classdef FESpace < SOFEClass
             for k = -1:2:1
               I = obj.element.getDoFEnum(2,s,k); % nDoFLoc
               if ~isempty(I)
-                iO = all(bsxfun(@eq, orient, [s k]),2); % nESub*nE
+                iO = orient==(k*s); % nESub*nE
                 tmp(abs(I),iO) = bsxfun(@times, sign(I), R(:, iO)); % nDoFLocx(nESub*nE)
               end
             end

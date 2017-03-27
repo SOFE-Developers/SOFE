@@ -38,19 +38,16 @@ classdef MeshTopologyTet < MeshTopology
       e2F = obj.getElem2Face();
       e2E = obj.getElem2Edge();
       orientF = obj.getOrientation(3,2);
-      orient1 = orientF(:,:,1);
-      orient2 = orientF(:,:,2);
-      [dmy, ind] = unique(e2F);
-      orient1 = orient1(ind); orient2 = orient2(ind);
+      [~, ind] = unique(e2F);
       [elems, type] = ind2sub([obj.getNumber(3), 4], ind);
       nodeIxAtFace = [1 2 3; 1 5 4; 2 6 5; 3 6 4];
       for t = 1:4
         for k = 0:2
-          I = (type == t) & (orient1 == k+1);
+          I = (type == t) & (abs(orientF(ind)) == k+1);
           R(I,:) = e2E(elems(I), circshift(nodeIxAtFace(t,:)',-k));
         end
       end
-      I = (orient2 == -1);
+      I = orientF(ind)<0;
       R(I,:) = R(I, [3 2 1]);
     end
     function R = getFace2Elem(obj)
@@ -81,17 +78,15 @@ classdef MeshTopologyTet < MeshTopology
           switch dim1
             case 3
               e = obj.getEntity(3);
-              R = ones(2, size(e,1), 4); % ! two orient flags
               face = [1 2 3; 1 2 4; 2 3 4; 1 3 4];
               for i = 1:4
-                  [~, R(1,:,i)] = min(e(:,face(i,:)),[],2);
+                  [~, R(:,i)] = min(e(:,face(i,:)),[],2);
                   [~, P] = sort(e(:,face(i,:)),2);
                   even = (P(:,1)<P(:,2) & P(:,2)<P(:,3)) | ...
                          (P(:,2)<P(:,3) & P(:,3)<P(:,1)) | ...
                          (P(:,3)<P(:,1) & P(:,1)<P(:,2));
-                  R(2,~even,i) = -1;
+                  R(~even, i) = -R(~even, i);
               end
-              R = permute(R,[2 3 1]); % nExnFx2
             otherwise
               return
           end
@@ -103,10 +98,10 @@ classdef MeshTopologyTet < MeshTopology
       end
     end
     function R = getNormalOrientation(obj)
-      orient = obj.getOrientation([], 2); % nEx4x2
+      orient = sign(obj.getOrientation([], 2)); % nEx4
       R = ones(obj.getNumber(3), 4); % nExnF
-      R(:,[2 3]) =  orient(:,[2 3],2);
-      R(:,[1 4]) = -orient(:,[1 4],2);
+      R(:,[2 3]) =  orient(:,[2 3]);
+      R(:,[1 4]) = -orient(:,[1 4]);
     end
   end
   methods % mesh information
