@@ -45,6 +45,20 @@ classdef MeshTopologyTri < MeshTopology
       R = obj.getOrientation();
       R(:,3) = -R(:,3);
     end
+    function R = upliftPoints(obj, points, fLoc, orient)
+      zz = zeros(size(points));
+      if orient<0
+        points = 1-points;
+      end
+      switch fLoc
+        case 1
+          R = [points, zz];
+        case 2
+          R = [1-points, points];
+        case 3
+          R = [zz, points];
+      end
+    end
   end
   methods % mesh information
     function R = getMeasure(obj, dim, varargin)

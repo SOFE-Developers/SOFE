@@ -52,6 +52,22 @@ classdef MeshTopologyQuad < MeshTopology
       R = obj.getOrientation();
       R(:,[2 3]) = -R(:,[2 3]);
     end
+    function R = upliftPoints(obj, points, fLoc, orient)
+      zz = zeros(size(points)); oo = ones(size(points));
+      if orient<0
+        points = 1-points;
+      end
+      switch fLoc
+        case 1
+          R = [points, zz];
+        case 2
+          R = [points, oo];
+        case 3
+          R = [zz, points];
+        case 4
+          R = [oo, points];
+      end
+    end
   end
   methods % mesh information
     function R = getQuadRule(obj, order)
