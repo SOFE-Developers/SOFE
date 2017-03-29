@@ -174,8 +174,6 @@ classdef FESpace < SOFEClass
       if nargin > 4 && iscell(varargin{1})
         block = true; k = varargin{1};
       end
-      %
-      [trafo{1},trafo{2},trafo{3}] = obj.evalTrafoInfo(points, codim, varargin{:}); % nExnP[xnWxnD]
       if iscell(points)
         varargin{1} = points{2}; codim = obj.element.dimension - size(points{1},2);
         basis = obj.element.evalBasis(points{1}, order); % nBxnPxnC[xnD]
@@ -189,13 +187,16 @@ classdef FESpace < SOFEClass
         end
         if isempty(points)
           points = obj.getQuadData(codim);
-      end
+        end
         basis = obj.element.evalBasis(points, order); % nBxnPxnC[xnD]
         pVec{2} = [1 3 2]; pVec{1} = [1 5 2 3 4];
       end
-      trafo{1} = permute(trafo{1}, pVec{1}); % nEx1xnPxnWxnD
-      trafo{2} = permute(trafo{2}, pVec{1}); % nEx1xnPxnDxnW
-      trafo{3} = permute(trafo{3}, pVec{2}); % nEx1xnP
+      if ~(order==0 && (strcmp(obj.element.conformity, 'H1') || strcmp(obj.element.conformity, 'L2')))
+        [trafo{1},trafo{2},trafo{3}] = obj.evalTrafoInfo(points, codim, varargin{:}); % nExnP[xnWxnD]
+        trafo{1} = permute(trafo{1}, pVec{1}); % nEx1xnPxnWxnD
+        trafo{2} = permute(trafo{2}, pVec{1}); % nEx1xnPxnDxnW
+        trafo{3} = permute(trafo{3}, pVec{2}); % nEx1xnP
+      end
       basis = permute(basis, [5 1 2 3 4]); % 1xnBxnPxnC[xnD]
       switch obj.element.conformity
         case 'L2'
