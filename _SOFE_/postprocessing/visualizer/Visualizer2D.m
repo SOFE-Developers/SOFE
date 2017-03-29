@@ -68,7 +68,7 @@ classdef Visualizer2D < Visualizer
       if numel(N) == 1, N = N*ones(2,1); end
       try deform = varargin{1}.deform; catch, deform = false; end
       try curl = varargin{1}.curl; catch, curl = 0; end
-      box = obj.feSpace.mesh.topology.globalSearcher.diam';
+      try box = varargin{1}.box; catch box = obj.feSpace.mesh.topology.globalSearcher.diam'; end
       [X,Y] = meshgrid(linspace(box(1), box(2), N(1)), ...
                        linspace(box(3), box(4), N(2)));
       if curl 

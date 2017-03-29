@@ -1,6 +1,7 @@
 function R = padcell2mat(C)
   % concatenates (Nx1)-cellarray of [...]xnPx[...]x[...] along 1st dimension
-  % by filling with NaN along 2nd dimension, 3rd & 4th dimension must match
+  % by filling with NaN along 2nd dimension
+  % 3rd & 4th dimension must match!
   N = numel(C);
   sizeVec = cellfun(@(x)size(x,2),C); 
   mx = max(sizeVec);
