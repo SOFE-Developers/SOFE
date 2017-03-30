@@ -27,9 +27,6 @@ classdef MeshTopologyTet < MeshTopology
     end
   end
   methods % connectivity information
-    function R = getElem2Face(obj)
-      R = obj.connectivity{4,3};
-    end
     function R = getElem2Edge(obj)
       R = obj.connectivity{4,2};
     end

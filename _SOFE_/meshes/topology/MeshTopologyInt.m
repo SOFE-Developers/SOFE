@@ -1,7 +1,4 @@
 classdef MeshTopologyInt < MeshTopology
-  properties
-    e2F
-  end
   methods % constructor
     function obj = MeshTopologyInt(nodes, elem, dimP)
       obj = obj@MeshTopology(nodes, elem, dimP);
@@ -10,11 +7,6 @@ classdef MeshTopologyInt < MeshTopology
     function updateConnectivity(obj)
       obj.connectivity{1,1} = (1:size(obj.nodes,1))';
       obj.connectivity{2,2} = (1:size(obj.connectivity{2,1},1))';
-    end
-  end
-  methods % connectivity information
-    function R = getElem2Face(obj)
-      R = obj.connectivity{2,1};
     end
   end
   methods % mesh information

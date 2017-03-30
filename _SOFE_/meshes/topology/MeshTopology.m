@@ -113,6 +113,13 @@ classdef MeshTopology < SOFEClass
     end
   end
   methods % connectivity information
+    function R = getElem2Face(obj, varargin)
+      if nargin > 2
+        R = obj.connectivity{obj.dimP+1,obj.dimP}(varargin{1},:);
+      else
+        R = obj.connectivity{obj.dimP+1,obj.dimP};
+      end
+    end
     function R = getNodePatch(obj, dim)
       nE = obj.getNumber(dim);
       entity = obj.getEntity(dim);

@@ -18,9 +18,6 @@ classdef MeshTopologyQuad < MeshTopology
     end
   end
   methods % connectivity information   
-    function R = getElem2Face(obj)
-      R = obj.connectivity{3,2}; 
-    end
     function R = getFace2Elem(obj)
       orient = obj.getOrientation();
       nE = obj.getNumber(2);
