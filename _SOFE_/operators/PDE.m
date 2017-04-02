@@ -79,6 +79,7 @@ classdef PDE < SOFEClass
       obj.stateChanged = true;
     end
     function setState(obj, varargin)
+      obj.stateChanged = true;
       if ~obj.nonLin, return; end
       obj.state = cell(obj.nEq, 1); % {nEq}xnExnP
       for j = 1:obj.nEq
@@ -91,7 +92,6 @@ classdef PDE < SOFEClass
         U = varargin{1}(obj.J{j}(1):obj.J{j}(2));
         obj.state{j} = obj.fesTrial{j}.evalDoFVector(U, [], 0, 0);
       end
-      obj.stateChanged = true;
     end
   end
   methods % assemble & solve
