@@ -59,8 +59,13 @@ classdef SOFEClass < handle
     function plugin(name)
       addpath(genpath([SOFEClass.getPluginPath(),'/', name]));
     end
-    function plugout(name)
-      rmpath(genpath([SOFEClass.getPluginPath(),'/', name]));
+    function plugout(varargin)
+      if nargin > 0
+        rmpath(genpath([SOFEClass.getPluginPath(),'/', varargin{:}]));
+      else
+        addpath(genpath(SOFEClass.getPluginPath()));
+        rmpath(genpath(SOFEClass.getPluginPath()));
+      end
     end
   end
   methods(Static = true)
