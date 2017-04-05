@@ -83,7 +83,7 @@ classdef PDE < SOFEClass
       if ~obj.nonLin, return; end
       obj.state = cell(obj.nEq, 1); % {nEq}xnExnP
       for j = 1:obj.nEq
-        nBlock = obj.fesTrial{j}.nBlock;
+        nBlock = obj.fesTrial{j}.nBlock(1);
         [~, w] = obj.fesTrial{j}.getQuadData(0);
         nD = obj.fesTrial{j}.element.dimension;
         nC = size(obj.fesTrial{j}.element.evalBasis(zeros(1,nD),0),3);

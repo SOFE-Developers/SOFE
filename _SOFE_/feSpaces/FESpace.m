@@ -32,7 +32,7 @@ classdef FESpace < SOFEClass
       end
     end
     function resetCache(obj, varargin)
-      nBlock = obj.nBlock;
+      nBlock = max(obj.nBlock);
       obj.cache.refMaps = cell(nBlock, 1);
       obj.cache.DPhi = cell(nBlock, 1);
       obj.cache.DPhiInv = cell(nBlock, 1);
@@ -51,18 +51,21 @@ classdef FESpace < SOFEClass
       end
     end
     function setBlocking(obj)
-      nB = obj.element.nB(end); nQ = numel(obj.quadRule{1}.weights);
       nC = obj.element.getNC(); nD = obj.element.dimension;
+      nB = obj.element.nB(end); nQ = numel(obj.quadRule{1}.weights);
       elPerBlock = SOFEClass.getElementsPerBlock(nB, nQ, nC, nD);
       obj.nBlock = ceil(obj.mesh.topology.getNumber(nD)/elPerBlock);
+      nB = obj.element.nB(end-1); nQ = numel(obj.quadRule{2}.weights);
+      elPerBlock = SOFEClass.getElementsPerBlock(nB, nQ, nC, nD);
+      obj.nBlock(2) = ceil(obj.mesh.topology.getNumber(nD-1)/elPerBlock);
     end
     function R = getBlock_(obj, codim, varargin)
       R = obj.mesh.getBlock(codim, varargin{:});
     end
     function R = getBlock(obj, codim, varargin) % [k]
       nE = obj.mesh.topology.getNumber(obj.mesh.topology.dimP - codim);
-      if obj.nBlock>nE, error('!Number of blocks exceeds number of elements!'); end
-      R = unique(floor(linspace(0,nE,obj.nBlock+1)));
+      if obj.nBlock(codim+1)>nE, error('!Number of blocks exceeds number of elements!'); end
+      R = unique(floor(linspace(0,nE,obj.nBlock(codim+1)+1)));
       R = [R(1:end-1)+1; R(2:end)];
       if nargin > 2
         R = (R(1,varargin{:}):R(2,varargin{:}))';
@@ -121,8 +124,11 @@ classdef FESpace < SOFEClass
       if cache && ~isempty(obj.cache.refMaps{k{1}}{codim+1})
         R = obj.cache.refMaps{k{1}}{codim+1};
       else
+        if ~isempty(points)
+          codim = obj.element.dimension-size(points,2);
+        end
         if nargin < 4 || (nargin == 4 && ischar(varargin{1}) && strcmp(varargin,':'))
-          nBlock = obj.nBlock; R = cell(nBlock,1);
+          nBlock = obj.nBlock(codim+1); R = cell(nBlock,1);
           for k = 1:nBlock
             R{k} = obj.evalReferenceMap(points, codim, {k});
           end
@@ -131,15 +137,9 @@ classdef FESpace < SOFEClass
           catch
             R = padcell2mat(R);
           end
-          if ~isempty(points)
-            codim = obj.element.dimension-size(points,2);
-          end
           [~,I] = sort(obj.getBlock(codim));
           R = R(I,:,:,:);
         else
-          if ~isempty(points)
-            codim = obj.element.dimension-size(points,2);
-          end
           if block
             varargin{1} = obj.getBlock(codim, k{1});
           end
@@ -260,8 +260,11 @@ classdef FESpace < SOFEClass
       if cache && ~isempty(obj.cache.basis{k{1}}{codim+1, order+1})
         R = obj.cache.basis{k{1}}{codim+1, order+1};
       else
+        if ~isempty(points)
+          codim = obj.element.dimension-size(points,2);
+        end
         if nargin < 5 || (nargin == 5 && ischar(varargin{1}) && strcmp(varargin,':'))
-          nBlock = obj.nBlock; R = cell(nBlock,1);
+          nBlock = obj.nBlock(codim+1); R = cell(nBlock,1);
           for k = 1:nBlock
             R{k} = obj.evalGlobalBasis(points, codim, order, {k});
           end
@@ -270,15 +273,9 @@ classdef FESpace < SOFEClass
           catch
             R = padcell2mat(R);
           end
-          if ~isempty(points)
-            codim = obj.element.dimension-size(points,2);
-          end
           [~,I] = sort(obj.getBlock(codim));
           R = R(I,:,:,:);
         else
-          if ~isempty(points)
-            codim = obj.element.dimension-size(points,2);
-          end
           if block
             varargin{1} = obj.getBlock(codim, k{1});
           end
@@ -316,8 +313,11 @@ classdef FESpace < SOFEClass
       R(isValid,:,:) = value; % nExnC[xnD]
     end
     function R = evalDoFVectorLocal(obj, U, points, codim, order, varargin) % [{k} or I]
-      if nargin < 6 || (nargin == 6 && ischar(varargin{1}) && strcmp(varargin,':'))
-        nBlock = obj.nBlock; R = cell(nBlock,1); s = 0;
+        if ~isempty(points)
+          codim = obj.element.dimension-size(points,2);
+        end
+        if nargin < 6 || (nargin == 6 && ischar(varargin{1}) && strcmp(varargin,':'))
+        nBlock = obj.nBlock(codim+1); R = cell(nBlock,1); s = 0;
         for k = 1:nBlock
           R{k} = obj.evalDoFVector(U, points, codim, order, {k}); % nExnPxnCxnD
           if nBlock>1 
@@ -340,9 +340,6 @@ classdef FESpace < SOFEClass
         block = false;
         if nargin > 5 && iscell(varargin{1})
           block = true; k = varargin{1};
-        end
-        if ~isempty(points)
-          codim = obj.element.dimension-size(points,2);
         end
         if block
           varargin{1} = obj.getBlock(codim, k{1});
@@ -497,7 +494,7 @@ classdef FESpace < SOFEClass
     end
     function R = getInterpolation(obj, f, codim, varargin) % [{k} or I]
       if nargin < 4 || (nargin == 6 && ischar(varargin{1}) && strcmp(varargin,':'))
-        nBlock = obj.nBlock; R = cell(1,nBlock); s = 0;
+        nBlock = obj.nBlock(codim+1); R = cell(1,nBlock); s = 0;
         for k = 1:nBlock
           R{k} = obj.getInterpolation(f, codim, {k});
           if nBlock>1

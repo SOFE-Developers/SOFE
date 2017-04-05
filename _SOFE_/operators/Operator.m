@@ -63,7 +63,7 @@ classdef Operator < SOFEClass
       M = obj.fesTest.getNDoF(); N = obj.fesTrial.getNDoF();
       obj.matrix = sparse(M, N);
       if ~any(obj.idx), return, end
-      nBlock = obj.fesTrial.nBlock;
+      nBlock = obj.fesTrial.nBlock(obj.codim+1);
       for k = 1:nBlock
         e = []; r = []; c = [];
         I = obj.fesTrial.getBlock(obj.codim, k);
