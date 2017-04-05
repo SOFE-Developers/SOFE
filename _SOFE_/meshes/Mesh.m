@@ -2,24 +2,12 @@ classdef Mesh < SOFEClass
   properties
     element
     topology
-    nBlock = 1;
   end
   methods % constructor & more
     function obj = Mesh(nodes, elems, varargin) % [dimP]
       if nargin > 2, dimP = varargin{:}; else dimP = size(nodes, 2); end
       obj.element = MeshTopology.getShapeElement(size(elems,2), dimP);
       obj.topology = MeshTopology.getTopology(nodes, elems, dimP);
-    end
-    function R = getBlock(obj, codim, varargin) % [k]
-      nE = obj.topology.getNumber(obj.topology.dimP - codim);
-      if obj.nBlock>nE, error('!Number of blocks exceeds number of elements!'); end
-      R = unique(floor(linspace(0,nE,obj.nBlock+1)));
-      R = [R(1:end-1)+1; R(2:end)];
-      if nargin > 2
-        R = (R(1,varargin{:}):R(2,varargin{:}))';
-      else
-        R = (1:R(end))';
-      end
     end
   end
   methods % reference map

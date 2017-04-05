@@ -53,7 +53,7 @@ classdef Functional < SOFEClass
       if ~isempty(obj.vector), return, end
       obj.vector = zeros(obj.fes.getNDoF(), 1);
       if ~any(obj.idx), return, end
-      nBlock = obj.fes.mesh.nBlock;
+      nBlock = obj.fes.nBlock;
       for k = 1:nBlock
         I = obj.fes.getBlock(obj.codim, k);
         e = []; r = [];
