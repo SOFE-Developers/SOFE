@@ -66,14 +66,12 @@ classdef Functional < SOFEClass
         end
         I = (r==0); if any(I(:)), r(I) = []; e(I) = []; end
         obj.vector = obj.vector + accumarray(r(:), e(:), size(obj.vector));
-        if nBlock > 1
           if k>1
             fprintf(repmat('\b',1,length(s)));
           end
           s = sprintf('progress assembly RHS: %d / %d', k, nBlock);fprintf(s);          
-        end
       end
-      if nBlock > 1, fprintf('\n'); end
+      nBlock > 1, fprintf('\n');
     end
   end
 end

@@ -79,14 +79,12 @@ classdef Operator < SOFEClass
         end
         I = (r.*c==0); if any(I(:)), r(I) = []; c(I) = []; e(I) = []; end
         obj.matrix = obj.matrix + sparse(r(:), c(:), e(:), M, N);
-        if nBlock > 1
-          if k>1
-            fprintf(repmat('\b',1,length(s)));
-          end
-          s = sprintf('progress assembly LHS: %d / %d', k, nBlock); fprintf(s);          
+        if k>1
+          fprintf(repmat('\b',1,length(s)));
         end
+        s = sprintf('progress assembly LHS: %d / %d', k, nBlock); fprintf(s);          
       end
-      if nBlock > 1, fprintf('\n'); end
+      fprintf('\n');
     end
     function R = integrate(obj, hasCoeff, basisI, basisJ, k)
       [~, weights] = obj.fesTrial.getQuadData(obj.codim);
