@@ -71,7 +71,7 @@ classdef Functional < SOFEClass
           end
           s = sprintf('progress assembly RHS: %d / %d', k, nBlock);fprintf(s);          
       end
-      nBlock > 1, fprintf('\n');
+      fprintf('\n');
     end
   end
 end

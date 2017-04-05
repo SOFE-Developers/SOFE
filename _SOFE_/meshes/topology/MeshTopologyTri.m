@@ -18,16 +18,6 @@ classdef MeshTopologyTri < MeshTopology
     end
   end
   methods % connectivity information
-    function R = getFace2Elem(obj)
-      nE = obj.getNumber(2); nF = obj.getNumber(1);
-      orient = obj.getNormalOrientation();
-      R = full(sparse(obj.getElem2Face(), 0.5*(3-orient), repmat((1:nE)',1,3),nF,2));
-    end
-    function R = getFaceType(obj)
-      nE = obj.getNumber(2); nF = obj.getNumber(1);
-      orient = obj.getNormalOrientation();
-      R = full(sparse(obj.getElem2Face(), 0.5*(3-orient), ones(nE,1)*[1 2 3],nF,2));
-    end
     function R = getOrientation(obj, varargin)
       e = obj.getEntity(obj.dimP);
       R = ones(size(e));

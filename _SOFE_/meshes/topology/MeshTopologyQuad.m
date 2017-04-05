@@ -18,22 +18,6 @@ classdef MeshTopologyQuad < MeshTopology
     end
   end
   methods % connectivity information   
-    function R = getFace2Elem(obj)
-      orient = obj.getOrientation();
-      nE = obj.getNumber(2);
-      nF = obj.getNumber(1);
-      col = repmat([1 2 2 1], nE, 1);
-      col(orient<0) = -col(orient<0)+3;
-      R = full(sparse(obj.getElem2Face(), col, repmat((1:nE)',1,4),nF,2));
-    end
-    function R = getFaceType(obj)
-      orient = obj.getOrientation();
-      nE = obj.getNumber(2);
-      nF = obj.getNumber(1);
-      col = repmat([1 2 2 1], nE, 1);
-      col(orient<0) = -col(orient<0)+3;
-      R = full(sparse(obj.getElem2Face(), col, ones(nE,1)*[1 2 3 4],nF,2));
-    end
     function R = getOrientation(obj, varargin)
       e = obj.getEntity(2);
       R = ones(size(e));

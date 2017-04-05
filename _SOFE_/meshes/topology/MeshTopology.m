@@ -120,6 +120,12 @@ classdef MeshTopology < SOFEClass
         R = obj.connectivity{obj.dimP+1,obj.dimP};
       end
     end
+    function [R, type] = getFace2Elem(obj)
+      nE = obj.getNumber(obj.dimP); nF = obj.getNumber(obj.dimP-1);
+      orient = 0.5*(3-obj.getNormalOrientation());
+      R = full(sparse(obj.getElem2Face(), orient, repmat((1:nE)',1,size(orient,2)),nF,2));
+      type = full(sparse(obj.getElem2Face(), orient, ones(nE,1)*(1:size(orient,2)),nF,2));
+    end
     function R = getNodePatch(obj, dim)
       nE = obj.getNumber(dim);
       entity = obj.getEntity(dim);
