@@ -68,7 +68,11 @@ classdef FESpace < SOFEClass
       R = unique(floor(linspace(0,nE,obj.nBlock(codim+1)+1)));
       R = [R(1:end-1)+1; R(2:end)];
       if nargin > 2
-        R = (R(1,varargin{:}):R(2,varargin{:}))';
+        if varargin{1}>obj.nBlock(codim+1)
+          R = [];
+        else
+          R = (R(1,varargin{:}):R(2,varargin{:}))';
+        end
       else
         R = (1:R(end))';
       end

@@ -17,7 +17,7 @@ p.integrate();
 v = Visualizer.create(fes);
 N = numel(p.solution);
 for k = 1:1:N
-  clf, v.show(p.solution{k}, 'p', struct('n', 2)); view(-40,20)
+  clf, v.show(p.solution{k}, 'p', struct('n', 2)); view(-40,20), axis equal
   fprintf('timestep: %d / %d\n', k, N);
   pause(0.01);
 end
