@@ -114,7 +114,7 @@ classdef Visualizer2D < Visualizer
       try
         N = varargin{1}.N/sqrt(nN*0.5^isT);
       catch
-        N = 300/sqrt(nN*0.5^isT);
+        N = max(2,ceil(300/sqrt(nN*0.5^isT)));
       end
       try deform = varargin{1}.deform; catch, deform = false; end
       LS = linspace(0,1,N)';

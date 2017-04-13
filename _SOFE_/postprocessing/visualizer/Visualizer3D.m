@@ -125,7 +125,7 @@ classdef Visualizer3D < Visualizer
       try
         N = varargin{1}.N/sqrt(sum(I)*0.5^isT);
       catch
-        N = 300/sqrt(sum(I)*0.5^isT);
+        N = max(2,ceil(300/sqrt(sum(I)*0.5^isT)));
       end
       try deform = varargin{1}.deform; catch, deform = false; end
       LS = linspace(0,1,N)';

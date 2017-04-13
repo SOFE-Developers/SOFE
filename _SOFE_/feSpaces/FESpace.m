@@ -335,9 +335,6 @@ classdef FESpace < SOFEClass
         catch
           R = padcell2mat(R);
         end
-        if ~isempty(points)
-          codim = obj.element.dimension-size(points,2);
-        end
         [~,I] = sort(obj.getBlock(codim));
         R = R(I,:,:,:);
       else
