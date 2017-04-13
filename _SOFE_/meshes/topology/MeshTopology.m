@@ -159,38 +159,4 @@ classdef MeshTopology < SOFEClass
       obj.notifyObservers();
     end
   end
-  methods(Static = true)
-    function R = getTopology(nodes, elem, dimP)
-      switch size(elem, 2)
-        case 2
-          R = MeshTopologyInt(nodes, elem, dimP);
-        case 3
-          R = MeshTopologyTri(nodes, elem, dimP);
-        case 4
-          if dimP == 2
-            R = MeshTopologyQuad(nodes, elem, dimP);
-          else
-            R = MeshTopologyTet(nodes, elem, dimP);
-          end
-        case 8
-          R = MeshTopologyHex(nodes, elem, dimP);
-      end
-    end
-    function R = getShapeElement(N, dimP)
-      switch N
-        case 2
-          R = PpL(1,1);
-        case 3
-          R = PpL(2,1);
-        case 4
-          if dimP == 2
-            R = QpL(2,1);
-          else
-            R = PpL(3,1);
-          end
-        case 8
-          R = QpL(3,1);
-      end
-    end
-  end
 end
