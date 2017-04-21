@@ -5,7 +5,6 @@ classdef MeshTopology < SOFEClass
     nodes
     connectivity
     globalSearcher
-    %
     observers
   end
   methods % constructor
@@ -57,9 +56,8 @@ classdef MeshTopology < SOFEClass
     end
     function R = findEntityC(obj, dim, varargin) % [loc]
       if nargin > 2
-        loc = varargin{1};
-        R = reshape(obj.nodes(obj.getEntity(dim),:), obj.getNumber(dim), [], size(obj.nodes,2)); % nExnVxnW
-        R = loc(permute(mean(R,2), [1 3 2])); % nE
+        loc = varargin{1};        
+        R = loc(obj.getCenter(dim)); % nE
       else
         R = true(obj.getNumber(dim), 1);
       end
@@ -70,17 +68,45 @@ classdef MeshTopology < SOFEClass
     function R = getCenter(obj, dim, varargin) % [I]
       I = ':'; if nargin > 2, I = varargin{1}; end
       if dim == 0
-        vertices = obj.getEntity(0);
-        R = vertices(I,:);
+        R = obj.nodes(I,:);
         return;
       end
       R = obj.getEntity(dim); R = R(I,:);
       [nE, nV] = size(R);
-      vertices = obj.getEntity(0);
-      R = permute(sum(reshape(vertices(R,:), nE, nV, []),2)/nV,[1 3 2]);
+      R = permute(mean(reshape(obj.nodes(R,:), nE, nV, []),2),[1 3 2]);
     end
-    function R = getMeasure(obj, dim, varargin) % [I]
-      R = [];
+    function R = getMeasure(obj, dim, varargin)
+      I = ':'; if nargin > 2, I = varargin{1}; end
+      ee = obj.getEntity(dim); ee = ee(I,:);
+      switch dim
+        case 3
+          v1 = obj.nodes(ee(:,2),:) - obj.nodes(ee(:,1),:);
+          v2 = obj.nodes(ee(:,3),:) - obj.nodes(ee(:,1),:);
+          v3 = obj.nodes(ee(:,4+(size(ee,2)==8)),:) - obj.nodes(ee(:,1),:);
+          R = ((v1(:,1).*v2(:,2).*v3(:,3) + v1(:,2).*v2(:,3).*v3(:,1)+v1(:,3).*v2(:,1).*v3(:,2)) ...
+          - (v1(:,3).*v2(:,2).*v3(:,1)+v1(:,2).*v2(:,1).*v3(:,3)+v1(:,1).*v2(:,3).*v3(:,2)));
+          if size(ee,2)==4
+            R = R/6;  
+          else
+            if all(all(obj.nodes(ee(:,1),:) + v1+v2+v3 - obj.nodes(ee(:,8),:)>1e-12))
+              warning('! Volume only valid for parallelepiped !');
+            end
+          end
+        case 2
+          v1 = obj.nodes(ee(:,2),:) - obj.nodes(ee(:,1),:);
+          v2 = obj.nodes(ee(:,3),:) - obj.nodes(ee(:,1),:);
+          R = abs(v1(:,1).*v2(:,2) - v1(:,2).*v2(:,1));
+          if size(ee,2)==3
+            R = R/2;
+          else
+            if all(all(obj.nodes(ee(:,1),:) + v1+v2 - obj.nodes(ee(:,4),:)>1e-12))
+              warning('! Area only valid for parallelograms !');
+            end
+          end
+        case 1
+          v = obj.nodes(ee(:,2),:) - obj.nodes(ee(:,1),:);
+          R = sum(v.^2,2).^0.5;
+       end
     end
     function R = isBoundary(obj, varargin) % [loc]
       e2F = obj.getElem2Face(); % nExnF
@@ -114,10 +140,9 @@ classdef MeshTopology < SOFEClass
   end
   methods % connectivity information
     function R = getElem2Face(obj, varargin)
+      R = obj.connectivity{obj.dimP+1,obj.dimP};
       if nargin > 2
-        R = obj.connectivity{obj.dimP+1,obj.dimP}(varargin{1},:);
-      else
-        R = obj.connectivity{obj.dimP+1,obj.dimP};
+        R = R(varargin{1},:);
       end
     end
     function [R, type] = getFace2Elem(obj)

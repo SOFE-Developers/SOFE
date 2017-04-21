@@ -90,40 +90,16 @@ classdef MeshTopologyTet < MeshTopology
       end
     end
     function R = getNormalOrientation(obj)
-      orient = sign(obj.getOrientation([], 2)); % nEx4
-      R = ones(obj.getNumber(3), 4); % nExnF
-      R(:,[2 3]) =  orient(:,[2 3]);
-      R(:,[1 4]) = -orient(:,[1 4]);
-    end
-  end
-  methods % mesh information
-    function R = getMeasure(obj, dim, varargin)
-      I = ':'; if nargin > 2, I = varargin{1}; end
-      ee = obj.getEntity(dim); ee = ee(I,:);
-      nodes = obj.getEntity(0);
-      switch dim
-        case 3 % element
-          v1 = nodes(ee(:,2),:) - nodes(ee(:,1),:);
-          v2 = nodes(ee(:,3),:) - nodes(ee(:,1),:);
-          v3 = nodes(ee(:,4),:) - nodes(ee(:,1),:);
-          R = ((v1(:,1).*v2(:,2).*v3(:,3) + v1(:,2).*v2(:,3).*v3(:,1)+v1(:,3).*v2(:,1).*v3(:,2)) ...
-          - (v1(:,3).*v2(:,2).*v3(:,1)+v1(:,2).*v2(:,1).*v3(:,3)+v1(:,1).*v2(:,3).*v3(:,2)))/6;
-        case 2 % face
-          v1 = nodes(ee(:,2),:) - nodes(ee(:,1),:);
-          v2 = nodes(ee(:,3),:) - nodes(ee(:,1),:);
-          R = abs(v1(:,1).*v2(:,2) - v1(:,2).*v2(:,1))/2;
-        case 1 % edge
-          v = nodes(ee(:,2),:) - nodes(ee(:,1),:);
-          R = sum(v.^2,2).^0.5;
-       end
+      R = sign(obj.getOrientation(3, 2)); % nEx4
+      R(:,[1 4]) = -R(:,[1 4]);
     end
   end
   methods % refinement
     function uniformRefine(obj)
       el = obj.getEntity(3); nN = obj.getNumber(0);
       obj.nodes = [obj.nodes; obj.getCenter(1)];
-      newNodeNumber = (nN+1 : nN+obj.getNumber(1));
-      el = [el newNodeNumber(obj.connectivity{4,2})];
+      newIndices = (nN+1 : nN+obj.getNumber(1));
+      el = [el newIndices(obj.connectivity{4,2})];
       obj.connectivity{4,1} = [el(:,[1 5 7 8]); el(:,[2 6 5 9]); ...
                                el(:,[3 7 6 10]); el(:,[4 9 8 10]); ...
                                el(:,[5 6 7 9]); el(:,[5 7 8 9]); ...

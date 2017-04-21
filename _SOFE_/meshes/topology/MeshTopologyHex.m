@@ -127,45 +127,8 @@ classdef MeshTopologyHex < MeshTopology
       end
     end
     function R = getNormalOrientation(obj, varargin)
-      orient = prod(obj.getOrientation([], 2), 3); % nExnF
-      R = ones(obj.getNumber(3), 6); % nExnF
-      R(:,[2 4 6]) =  orient(:,[2 4 6]);
-      R(:,[1 3 5]) = -orient(:,[1 3 5]);
-    end
-  end
-  methods % mesh information
-    function R = getQuadRule(obj, order)
-      R{4} = GaussPoint();
-      R{3} = GaussInt(order);
-      R{2} = GaussQuad(order);
-      R{1} = GaussHex(order);
-    end
-    function R = getBarycenterRef(obj)
-      R = [1 1 1]/2;
-    end
-    function R = getMeasure(obj, dim, varargin)
-      I = ':'; if nargin > 2, I = varargin{1}; end
-      ee = obj.getEntity(dim); ee = ee(I,:);
-      switch dim
-        case 3 % element
-          
-        case 2 % face
-          v1 = obj.nodes(ee(:,2),:) - obj.nodes(ee(:,1),:);
-          v2 = obj.nodes(ee(:,3),:) - obj.nodes(ee(:,1),:);
-          R = abs(v1(:,1).*v2(:,2) - v1(:,2).*v2(:,1));
-          if all(all(obj.nodes(ee(:,1),:) + v1+v2 - obj.nodes(ee(:,4),:)))
-            warning('! Area only valid for parallelograms !');
-          end
-        case 1 % edge
-          v = obj.nodes(ee(:,2),:) - obj.nodes(ee(:,1),:);
-          R = sum(v.^2,2).^0.5;
-       end
-    end
-    function R = isFeasible(obj, points)
-      tol = 1e-12;
-      R = (points(:,1)>-tol & points(:,1)<1+tol & ...
-           points(:,2)>-tol & points(:,2)<1+tol & ...
-           points(:,3)>-tol & points(:,3)<1+tol );
+      R = prod(obj.getOrientation([], 2), 3); % nExnF
+      R(:,[1 3 5]) = -R(:,[1 3 5]);
     end
   end
   methods % refine
@@ -173,19 +136,15 @@ classdef MeshTopologyHex < MeshTopology
       el = obj.getEntity(3);
       nN = obj.getNumber(0); nEd = obj.getNumber(1);
       nF = obj.getNumber(2); nE = obj.getNumber(3);
-      % node coords
-      obj.nodes = [obj.nodes; obj.getCenter(2); obj.getCenter(1); obj.getCenter(0)];
-      % new node indices
-      newNodeIxEd = (nN+1 : nN+nEd);
-      newNodeIxF = (nN+nEd+1 : nN+nEd+nF);
-      newNodeIxE = (nN+nEd+nF+1 : nN+nEd+nF+nE)';
-      el = [el,newNodeIxEd(obj.connectivity{4,2}),newNodeIxF(obj.connectivity{4,3}),newNodeIxE];
-      % elem
+      obj.nodes = [obj.nodes; obj.getCenter(1); obj.getCenter(2); obj.getCenter(3)];
+      newIndicesEd = (nN+1 : nN+nEd);
+      newIndicesF = (nN+nEd+1 : nN+nEd+nF);
+      newIndicesE = (nN+nEd+nF+1 : nN+nEd+nF+nE)';
+      el = [el,newIndicesEd(obj.connectivity{4,2}),newIndicesF(obj.connectivity{4,3}),newIndicesE];
       obj.connectivity{4,1} = [el(:,[1 9 13 21 17 25 23 27]); el(:,[9 2 21 15 25 18 27 24]); ...
                                el(:,[13 21 3 10 23 27 19 26]); el(:,[21 15 10 4 27 24 26 20]); ...
                                el(:,[17 25 23 27 5 11 14 22]); el(:,[25 18 27 24 11 6 22 16]); ...
                                el(:,[23 27 19 26 14 22 7 12]); el(:,[27 24 26 20 22 16 12 8])];
-      % faces
       obj.updateConnectivity();
       obj.notifyObservers();
     end
@@ -218,16 +177,22 @@ classdef MeshTopologyHex < MeshTopology
       end
       text(center(:,1), center(:,2), center(:,3), num2str((1:nE)'),'Color',color,'FontSize', 18);
     end
-    function showNodeVector(obj, U, varargin)
-      fc = obj.getEntity(2);
-      if nargin > 2
-        I = obj.isSurface(varargin{1});
-      else
-        I = obj.isBoundary();
-      end
-      h = trimesh(fc(I,[1 2 4 3]),obj.nodes(:,1),obj.nodes(:,2),obj.nodes(:,3), U(1:obj.getNumber(0)));
-      set(h,'facecolor','interp','edgecolor','k');
-      axis equal, axis tight
+  end
+  methods(Static = true)
+    function R = getQuadRule(order)
+      R{4} = GaussPoint();
+      R{3} = GaussInt(order);
+      R{2} = GaussQuad(order);
+      R{1} = GaussHex(order);
+    end
+    function R = getBarycenterRef_()
+      R = [1 1 1]/2;
+    end
+    function R = isFeasible(points)
+      tol = 1e-12;
+      R = (points(:,1)>-tol & points(:,1)<1+tol & ...
+           points(:,2)>-tol & points(:,2)<1+tol & ...
+           points(:,3)>-tol & points(:,3)<1+tol );
     end
   end
 end

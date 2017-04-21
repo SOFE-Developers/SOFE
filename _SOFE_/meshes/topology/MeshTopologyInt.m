@@ -9,22 +9,6 @@ classdef MeshTopologyInt < MeshTopology
       obj.connectivity{2,2} = (1:size(obj.connectivity{2,1},1))';
     end
   end
-  methods % mesh information
-    function R = getQuadRule(obj, order)
-      R{2} = GaussPoint();
-      R{1} = GaussInt(order);
-    end
-    function R = getMeasure(obj, dim, varargin)
-      I = ':';; if nargin > 2, I = varargin{1}; end
-      ee = obj.getEntity(1); ee = ee(I,:);
-      v = obj.nodes(ee(:,2),:) - obj.nodes(ee(:,1),:);
-      R = sum(v.^2,2).^0.5;
-    end
-    function R = isFeasible(obj, points)
-      tol = 1e-12;
-      R = (points>-tol & points<1+tol);
-    end
-  end
   methods % display
     function show(obj)
       switch size(obj.nodes, 2)
@@ -56,6 +40,16 @@ classdef MeshTopologyInt < MeshTopology
       obj.updateConnectivity();
       %
       obj.notifyObservers();
+    end
+  end
+  methods(Static = true)
+    function R = getQuadRule(order)
+      R{2} = GaussPoint();
+      R{1} = GaussInt(order);
+    end
+    function R = isFeasible(points)
+      tol = 1e-12;
+      R = (points>-tol & points<1+tol);
     end
   end
 end

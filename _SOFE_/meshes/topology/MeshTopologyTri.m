@@ -47,52 +47,30 @@ classdef MeshTopologyTri < MeshTopology
       end
     end
   end
-  methods % mesh information
-    function R = getMeasure(obj, dim, varargin)
-      I = ':'; if nargin > 2, I = varargin{1}; end
-      ee = obj.getEntity(dim); ee = ee(I,:);
-      nodes = obj.getEntity(0);
-      switch dim
-        case 2 % element
-          v1 = nodes(ee(:,2),:) - nodes(ee(:,1),:);
-          v2 = nodes(ee(:,3),:) - nodes(ee(:,1),:);
-          R = abs(v1(:,1).*v2(:,2) - v1(:,2).*v2(:,1))/2;
-        case 1 % face
-          v = nodes(ee(:,2),:) - nodes(ee(:,1),:);
-          R = sum(v.^2,2).^0.5;
-       end
-    end
-  end
   methods % refinement
     function uniformRefine(obj)
       el = obj.getEntity(2);
       nE = obj.getNumber(2); nF = obj.getNumber(1); nN = obj.getNumber(0);
-      % node coords
       obj.nodes = [obj.nodes; obj.getCenter(1)];
-      % node indices
       newIndices = nN + (1:nF);
       el = [el newIndices(obj.connectivity{3,2})];
-      % elem
       obj.connectivity{3,1} = [el(:,[1 4 6]);el(:,[4 2 5]);el(:,[6 5 3]);el(:,[5 6 4])];
-      % update
       obj.updateConnectivity();
-      %
       obj.notifyObservers();
     end
   end
   methods % display
     function show(obj)
       elem = obj.getEntity(obj.dimP);
-      nodes = obj.getEntity(0);
-      if size(nodes, 2) == 2
-        trisurf(elem, nodes(:,1), nodes(:,2), zeros(size(nodes,1),1));
+      if size(obj.nodes, 2) == 2
+        trisurf(elem, obj.nodes(:,1), obj.nodes(:,2), zeros(size(obj.nodes,1),1));
         view(0,90);
       else
-        h = trimesh(elem, nodes(:,1), nodes(:,2), nodes(:,3));
+        h = trimesh(elem, obj.nodes(:,1), obj.nodes(:,2), obj.nodes(:,3));
         set(h, 'EdgeColor','black')
       end
     end
-    function showEntity(obj, dim) % for debug
+    function showEntity(obj, dim)
       center = obj.getCenter(dim);
       nE = obj.getNumber(dim);
       switch dim
@@ -108,6 +86,7 @@ classdef MeshTopologyTri < MeshTopology
   end
   methods(Static = true)
     function R = renumber(nodes, elem)
+      % positive jacobian
       if isempty(elem), R = []; return; end
       v1 = nodes(elem(:,2),:) - nodes(elem(:,1),:);
       v2 = nodes(elem(:,3),:) - nodes(elem(:,1),:);
@@ -128,31 +107,17 @@ classdef MeshTopologyTri < MeshTopology
       R{2} = GaussInt(quadOrder);
       R{1} = GaussTri(quadOrder);
     end
-    function R = getBarycenterRef()
+    function R = getBarycenterRef_()
       R = [1 1]/3;
     end
-    function R = getFacePointList(pointsFace)
-      nO = 2;
-      R = cell(nO,1);
-      dualPoints = 1 - pointsFace;
-      zeroPoints = zeros(size(pointsFace));
-      % face 1
-      R{1}(1,:,:) = [pointsFace zeroPoints];
-      R{2}(1,:,:) = [dualPoints zeroPoints];
-      % face 2
-      R{1}(2,:,:) = [dualPoints pointsFace];
-      R{2}(2,:,:) = [pointsFace dualPoints];
-      % face 3
-      R{1}(3,:,:) = [zeroPoints pointsFace];
-      R{2}(3,:,:) = [zeroPoints dualPoints];
-    end
-    function R = getEquiPoints(order)
+    function R = getEquiPoints_(order)
       ls = linspace(0,1, order+1);
       [X, Y] = meshgrid(ls, ls);
       R = [X(:) Y(:)];
       R = R(sum(R,2)<=1,:);
     end
-    function R = getRefPointsChild(P, childNr)
+    function R = getRefPointsChild_(P, childNr)
+      keyboard
       switch childNr
         case 0
           R = P;
