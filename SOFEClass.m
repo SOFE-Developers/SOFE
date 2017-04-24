@@ -28,10 +28,12 @@ classdef SOFEClass < handle
       addpath(genpath([SOFEClass.getSOFEPath(),'/postprocessing']));
       addpath(genpath([SOFEClass.getSOFEPath(),'/quadrature']));
       addpath(genpath([SOFEClass.getSOFEPath(),'/solver']));
-      SOFEClass.open('demo');
       more off
     end
-    function open(name)   
+    function open(name)
+      if isempty(strfind(path(),'SOFE'))
+        SOFEClass.unlock();
+      end  
       SOFEClass.close();
       folder = [SOFEClass.getWorkPath(),filesep,name];
       addpath(genpath(folder));
