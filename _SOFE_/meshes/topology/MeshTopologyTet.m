@@ -182,18 +182,9 @@ classdef MeshTopologyTet < MeshTopology
       R{2} = GaussTri(order);
       R{1} = GaussTet(order);
     end
-    function R = getBarycenterRef()
-      R = [1 1 1]/4;
-    end
     function R = isFeasible(points)
       tol = 1e-12;
       R = (all(points>-tol, 2) & 1-sum(points,2)>-tol);
-    end
-    function R = getEquiPoints(order)
-      ls = linspace(0,1, order+1);
-      [X, Y, Z] = meshgrid(ls, ls, ls);
-      R = [X(:) Y(:) Z(:)];
-      R = R(sum(R,2)<=1,:);
     end
     function R = renumber(nodes, elem)
       v1 = nodes(elem(:,2),:) - nodes(elem(:,1),:);

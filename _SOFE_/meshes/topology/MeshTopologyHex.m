@@ -185,9 +185,6 @@ classdef MeshTopologyHex < MeshTopology
       R{2} = GaussQuad(order);
       R{1} = GaussHex(order);
     end
-    function R = getBarycenterRef_()
-      R = [1 1 1]/2;
-    end
     function R = isFeasible(points)
       tol = 1e-12;
       R = (points(:,1)>-tol & points(:,1)<1+tol & ...

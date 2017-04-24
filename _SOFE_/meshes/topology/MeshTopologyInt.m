@@ -26,19 +26,13 @@ classdef MeshTopologyInt < MeshTopology
   end
   methods % refinement
     function uniformRefine(obj)
-      % data
       el = obj.getEntity(1);
       nE = obj.getNumber(1); nN = obj.getNumber(0);
-      % node coords
       obj.nodes = [obj.nodes; obj.getCenter(0)];
-      % node indices
       newIndices = nN + (1:nE);
       el = [el newIndices'];
-      % elem
       obj.connectivity{2,1} = [el(:,[1 3]); el(:,[3 2])];
-      % update
       obj.updateConnectivity();
-      %
       obj.notifyObservers();
     end
   end

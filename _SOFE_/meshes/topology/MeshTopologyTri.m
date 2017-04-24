@@ -107,29 +107,5 @@ classdef MeshTopologyTri < MeshTopology
       R{2} = GaussInt(quadOrder);
       R{1} = GaussTri(quadOrder);
     end
-    function R = getBarycenterRef_()
-      R = [1 1]/3;
-    end
-    function R = getEquiPoints_(order)
-      ls = linspace(0,1, order+1);
-      [X, Y] = meshgrid(ls, ls);
-      R = [X(:) Y(:)];
-      R = R(sum(R,2)<=1,:);
-    end
-    function R = getRefPointsChild_(P, childNr)
-      keyboard
-      switch childNr
-        case 0
-          R = P;
-        case 1
-          R = 0.5*P;
-        case 2
-          R = 0.5*P; R(:,1) = R(:,1) + 0.5;
-        case 3
-          R = 0.5*P; R(:,2) = R(:,2) + 0.5;
-        case 4
-          R = -0.5*P; R = R + 0.5;
-      end
-    end
   end
 end
