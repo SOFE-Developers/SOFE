@@ -296,12 +296,12 @@ classdef FESpace < SOFEClass
     function R = evalDoFVector(obj, U, points, codim, order, varargin) % [{k} or I]
       assert(numel(U)==obj.getNDoF(), 'First argument must be DoFVector!');
       if iscell(points)
-        R = obj.evalDoFVectorGlobal(U, points, codim, order);
+        R = obj.evalDoFVectorGlobal(U, points, order);
       else
         R = obj.evalDoFVectorLocal(U, points, codim, order, varargin{:});
       end
     end
-    function R = evalDoFVectorGlobal(obj, U, points, codim, order)
+    function R = evalDoFVectorGlobal(obj, U, points, order)
       if numel(points) == 1
         points = obj.mesh.evalInversReferenceMap(points{1});
       end

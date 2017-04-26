@@ -1,10 +1,13 @@
 classdef CADMesh < Mesh
+  properties
+    type
+  end
   methods % constructor
     function obj = CADMesh(file, varargin) % [dimP]
       if strcmp(file(end), 't')
         [nodes, elem] = CADMesh.importDATFormat(file);
       else
-        [nodes, elem] = CADMesh.importMESHFormat(file);
+        [nodes, elem, obj.type] = CADMesh.importMESHFormat(file);
       end
       obj = obj@Mesh(nodes, elem, varargin{:});
     end
