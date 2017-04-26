@@ -1,7 +1,6 @@
 classdef SOFEClass < handle
   properties(Constant)
     outputFlag = true;
-    nBlockGS = 1;
     mem = 4; % [GBy]
   end
   methods % constructor
