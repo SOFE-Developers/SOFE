@@ -2,8 +2,8 @@
 data.a    = @(x) 1+0*x(:,1);
 data.f    = @(x) 1+0*x(:,1);
 %% MESH
-load([SOFE.getSOFEPath '/meshes/library/nodesRing.dat']);
-load([SOFE.getSOFEPath '/meshes/library/elemRing.dat']);
+load([SOFE.getCorePath '/meshes/library/nodesRing.dat']);
+load([SOFE.getCorePath '/meshes/library/elemRing.dat']);
 m = Mesh(nodesRing, elemRing);
 % FESPACE
 fes = FESpace(m, PpL(2,5), @(x)sum(x.^2,2).^0.5<10.5, @(x)0*x(:,1));

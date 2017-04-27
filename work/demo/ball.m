@@ -1,6 +1,6 @@
 % MESH
-load([SOFE.getSOFEPath '/meshes/library/nodesBall.dat']);
-load([SOFE.getSOFEPath '/meshes/library/elemBall.dat']);
+load([SOFE.getCorePath '/meshes/library/nodesBall.dat']);
+load([SOFE.getCorePath '/meshes/library/elemBall.dat']);
 % FESPACE
 fes = FESpace(Mesh(nodesBall, elemBall), PpL(3,3), @(x)x(:,1)<Inf);
 %% PDE

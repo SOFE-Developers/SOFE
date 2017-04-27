@@ -5,7 +5,7 @@ clear data;
 data.a = 1;
 data.f = @(x)1+0*x(:,1);
 % MESH
-m = CADMesh([SOFE.getSOFEPath() '/meshes/library/disk.dat']);
+m = CADMesh([SOFE.getCorePath() '/meshes/library/disk.dat']);
 m.uniformRefine(1);
 % FESPACE
 if isTri
