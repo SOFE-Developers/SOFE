@@ -4,7 +4,7 @@ uMax = 1.5;
 clear data;
 data.nu = @(x) 1e-3 + 0*x(:,1);
 % MESH
-m = CADMesh([SOFEClass.getSOFEPath() '/meshes/library/karman.dat']);
+m = CADMesh([SOFE.getSOFEPath() '/meshes/library/karman.dat']);
 m.uniformRefine(0);
 % ELEMENT
 e = PpL(2,2); eP = PpL(2,1);

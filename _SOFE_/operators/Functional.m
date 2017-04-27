@@ -1,4 +1,4 @@
-classdef Functional < SOFEClass
+classdef Functional < SOFE
   properties
     codim
     data, dataCache

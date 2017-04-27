@@ -1,4 +1,4 @@
-classdef FESpace < SOFEClass
+classdef FESpace < SOFE
   properties
     mesh, element, quadRule
     fixB, shift, freeDoFs
@@ -53,10 +53,10 @@ classdef FESpace < SOFEClass
     function setBlocking(obj)
       nC = obj.element.getNC(); nD = obj.element.dimension;
       nB = obj.element.nB(end); nQ = numel(obj.quadRule{1}.weights);
-      elPerBlock = SOFEClass.getElementsPerBlock(nB, nQ, nC, nD);
+      elPerBlock = SOFE.getElementsPerBlock(nB, nQ, nC, nD);
       obj.nBlock = ceil(obj.mesh.topology.getNumber(nD)/elPerBlock);
       nB = obj.element.nB(end-1); nQ = numel(obj.quadRule{2}.weights);
-      elPerBlock = SOFEClass.getElementsPerBlock(nB, nQ, nC, nD);
+      elPerBlock = SOFE.getElementsPerBlock(nB, nQ, nC, nD);
       obj.nBlock(2) = ceil(obj.mesh.topology.getNumber(nD-1)/elPerBlock);
     end
     function R = getBlock_(obj, codim, varargin)

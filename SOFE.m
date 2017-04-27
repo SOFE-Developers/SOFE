@@ -1,10 +1,10 @@
-classdef SOFEClass < handle
+classdef SOFE < handle
   properties(Constant)
     outputFlag = true;
     mem = 4; % [GBy]
   end
   methods % constructor
-    function obj = SOFEClass()
+    function obj = SOFE()
     end
   end
   methods(Static = true) % path
@@ -18,25 +18,25 @@ classdef SOFEClass < handle
       R = [pwd '/plugins'];
     end
     function unlock()
-      addpath(genpath([SOFEClass.getSOFEPath(),'/elements']));
-      addpath(genpath([SOFEClass.getSOFEPath(),'/feSpaces']));
-      addpath(genpath([SOFEClass.getSOFEPath(),'/helpers']));
-      addpath(genpath([SOFEClass.getSOFEPath(),'/meshes']));
-      addpath(genpath([SOFEClass.getSOFEPath(),'/operators']));
-      addpath(genpath([SOFEClass.getSOFEPath(),'/pdes']));
-      addpath(genpath([SOFEClass.getSOFEPath(),'/postprocessing']));
-      addpath(genpath([SOFEClass.getSOFEPath(),'/quadrature']));
-      addpath(genpath([SOFEClass.getSOFEPath(),'/solver']));
+      addpath(genpath([SOFE.getSOFEPath(),'/elements']));
+      addpath(genpath([SOFE.getSOFEPath(),'/feSpaces']));
+      addpath(genpath([SOFE.getSOFEPath(),'/helpers']));
+      addpath(genpath([SOFE.getSOFEPath(),'/meshes']));
+      addpath(genpath([SOFE.getSOFEPath(),'/operators']));
+      addpath(genpath([SOFE.getSOFEPath(),'/pdes']));
+      addpath(genpath([SOFE.getSOFEPath(),'/postprocessing']));
+      addpath(genpath([SOFE.getSOFEPath(),'/quadrature']));
+      addpath(genpath([SOFE.getSOFEPath(),'/solver']));
       more off
     end
     function open(name)
-      if isempty(strfind(path(),'SOFE'))
-        SOFEClass.unlock();
+      if isempty(strfind(path(),'_SOFE_'))
+        SOFE.unlock();
       end  
-      SOFEClass.close();
-      folder = [SOFEClass.getWorkPath(),filesep,name];
-      addpath(genpath(folder));
-      if isempty(SOFEClass.isOpen())
+      SOFE.close();
+      folder = [SOFE.getWorkPath(),filesep,name];
+      addpath(folder);
+      if isempty(SOFE.isOpen())
         error('Work folder not found ');
       end
     end
@@ -51,27 +51,27 @@ classdef SOFEClass < handle
       end
     end
     function close()
-      name = SOFEClass.isOpen();
+      name = SOFE.isOpen();
       if ~isempty(name)
-          folder = [SOFEClass.getWorkPath(),filesep, SOFEClass.isOpen()];
+          folder = [SOFE.getWorkPath(),filesep, SOFE.isOpen()];
           rmpath(genpath(folder));
       end
     end
     function plugin(name)
-      addpath(genpath([SOFEClass.getPluginPath(),'/', name]));
+      addpath(genpath([SOFE.getPluginPath(),'/', name]));
     end
     function plugout(varargin)
       if nargin > 0
-        rmpath(genpath([SOFEClass.getPluginPath(),'/', varargin{:}]));
+        rmpath(genpath([SOFE.getPluginPath(),'/', varargin{:}]));
       else
-        addpath(genpath(SOFEClass.getPluginPath()));
-        rmpath(genpath(SOFEClass.getPluginPath()));
+        addpath(genpath(SOFE.getPluginPath()));
+        rmpath(genpath(SOFE.getPluginPath()));
       end
     end
   end
   methods(Static = true)
     function R = getElementsPerBlock(nB, nQ, nC, nD)
-      R = floor(1/3*10^9*SOFEClass.mem/8/nB^2/nQ/nC/nD);
+      R = floor(1/3*10^9*SOFE.mem/8/nB^2/nQ/nC/nD);
     end
   end
   methods

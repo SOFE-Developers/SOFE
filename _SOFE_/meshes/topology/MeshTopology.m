@@ -1,4 +1,4 @@
-classdef MeshTopology < SOFEClass
+classdef MeshTopology < SOFE
   properties
     dimW
     dimP

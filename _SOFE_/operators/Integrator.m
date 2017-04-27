@@ -1,4 +1,4 @@
-classdef Integrator < SOFEClass
+classdef Integrator < SOFE
   properties
     massOp, statOp
     mesh

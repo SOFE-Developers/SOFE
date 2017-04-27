@@ -1,4 +1,4 @@
-classdef GlobalSearcher < SOFEClass
+classdef GlobalSearcher < SOFE
   properties
     topology
     bgMesh

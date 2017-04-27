@@ -1,4 +1,4 @@
-classdef Mesh < SOFEClass
+classdef Mesh < SOFE
   properties
     element
     topology

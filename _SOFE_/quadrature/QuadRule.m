@@ -1,4 +1,4 @@
-classdef QuadRule < SOFEClass
+classdef QuadRule < SOFE
   properties
     order % exact for polynomials of ORDER
     points

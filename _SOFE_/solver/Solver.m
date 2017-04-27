@@ -1,4 +1,4 @@
-classdef Solver < SOFEClass
+classdef Solver < SOFE
   properties
     pde
   end

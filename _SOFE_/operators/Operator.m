@@ -1,4 +1,4 @@
-classdef Operator < SOFEClass
+classdef Operator < SOFE
   properties
     codim = 0;
     data, dataCache

@@ -1,4 +1,4 @@
-classdef PDE < SOFEClass
+classdef PDE < SOFE
   properties
     nEq
     lhs, rhs

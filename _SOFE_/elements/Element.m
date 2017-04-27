@@ -1,4 +1,4 @@
-classdef Element < SOFEClass
+classdef Element < SOFE
   properties
     dimension
     nV, nB

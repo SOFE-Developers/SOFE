@@ -1,4 +1,4 @@
-classdef Visualizer < SOFEClass
+classdef Visualizer < SOFE
   properties
     feSpace
   end
