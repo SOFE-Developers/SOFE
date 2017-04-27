@@ -8,8 +8,8 @@ classdef SOFE < handle
     end
   end
   methods(Static = true) % path
-    function R = getSOFEPath()
-      R = [pwd '/_SOFE_'];
+    function R = getCorePath()
+      R = [pwd '/core'];
     end
     function R = getWorkPath()
       R = [pwd '/work'];
@@ -18,15 +18,15 @@ classdef SOFE < handle
       R = [pwd '/plugins'];
     end
     function unlock()
-      addpath(genpath([SOFE.getSOFEPath(),'/elements']));
-      addpath(genpath([SOFE.getSOFEPath(),'/feSpaces']));
-      addpath(genpath([SOFE.getSOFEPath(),'/helpers']));
-      addpath(genpath([SOFE.getSOFEPath(),'/meshes']));
-      addpath(genpath([SOFE.getSOFEPath(),'/operators']));
-      addpath(genpath([SOFE.getSOFEPath(),'/pdes']));
-      addpath(genpath([SOFE.getSOFEPath(),'/postprocessing']));
-      addpath(genpath([SOFE.getSOFEPath(),'/quadrature']));
-      addpath(genpath([SOFE.getSOFEPath(),'/solver']));
+      addpath(genpath([SOFE.getCorePath(),'/elements']));
+      addpath(genpath([SOFE.getCorePath(),'/feSpaces']));
+      addpath(genpath([SOFE.getCorePath(),'/helpers']));
+      addpath(genpath([SOFE.getCorePath(),'/meshes']));
+      addpath(genpath([SOFE.getCorePath(),'/operators']));
+      addpath(genpath([SOFE.getCorePath(),'/pdes']));
+      addpath(genpath([SOFE.getCorePath(),'/postprocessing']));
+      addpath(genpath([SOFE.getCorePath(),'/quadrature']));
+      addpath(genpath([SOFE.getCorePath(),'/solver']));
       more off
     end
     function open(name)
