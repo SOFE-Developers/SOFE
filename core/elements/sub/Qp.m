@@ -79,5 +79,54 @@ classdef Qp < Element
       end
       B = permute(B, [1 2 4 3]); % nExnPx1xnD
     end
+    function B = evalD2Basis(obj, points)
+      nD = size(points, 2);
+      B = zeros(obj.nB(nD), size(points,1), nD);
+      p = obj.order;
+      points = 2*points-1; % transform to [-1,1]^2
+      N = cell(nD, 1);
+      for d = 1:nD
+        N{d} = cell(max(p)+1,1);
+        dN{d} = cell(max(p)+1,1);
+        d2N{d} = cell(max(p)+1,1);
+        for i = 1:max(p)+1
+          N{d}{i} = obj.getLegendreFunctions(points(:,d), i-1, 0);
+          dN{d}{i} = 2*obj.getLegendreFunctions(points(:,d), i-1, 1);
+          d2N{d}{i} = 4*obj.getLegendreFunctions(points(:,d), i-1, 2);
+        end
+      end
+      switch nD
+        case 1
+          for i = 0:p
+            B(i+1,:) = d2N{1}{i+1};
+          end
+        case 2
+          for j = 1:p(2)+1
+            for i = 1:p(1)+1              
+              B(i+(p(1)+1)*(j-1),:,1,1) =  d2N{1}{i}.*N{2}{j};
+              B(i+(p(1)+1)*(j-1),:,2,2) =  N{1}{i}.*d2N{2}{j};
+              B(i+(p(1)+1)*(j-1),:,1,2) =  dN{1}{i}.*dN{2}{j};
+              B(i+(p(1)+1)*(j-1),:,2,1) =  B(i+(p(1)+1)*(j-1),:,1,2);
+            end
+          end
+        case 3
+          for k = 1:p(3)+1
+            for j = 1:p(2)+1
+              for i = 1:p(1)+1                
+                B(i+(p(1)+1)*((j-1)+(p(2)+1)*(k-1)),:,1,1) = d2N{1}{i}.*N{2}{j}.*N{3}{k};
+                B(i+(p(1)+1)*((j-1)+(p(2)+1)*(k-1)),:,2,2) = N{1}{i}.*d2N{2}{j}.*N{3}{k};
+                B(i+(p(1)+1)*((j-1)+(p(2)+1)*(k-1)),:,3,3) = N{1}{i}.*N{2}{j}.*d2N{3}{k};
+                B(i+(p(1)+1)*((j-1)+(p(2)+1)*(k-1)),:,1,2) = dN{1}{i}.*dN{2}{j}.*N{3}{k};
+                B(i+(p(1)+1)*((j-1)+(p(2)+1)*(k-1)),:,1,3) = dN{1}{i}.*N{2}{j}.*dN{3}{k};
+                B(i+(p(1)+1)*((j-1)+(p(2)+1)*(k-1)),:,2,3) = N{1}{i}.*dN{2}{j}.*dN{3}{k};
+                B(i+(p(1)+1)*((j-1)+(p(2)+1)*(k-1)),:,3,1) = B(i+(p(1)+1)*((j-1)+(p(2)+1)*(k-1)),:,1,3);
+                B(i+(p(1)+1)*((j-1)+(p(2)+1)*(k-1)),:,3,2) = B(i+(p(1)+1)*((j-1)+(p(2)+1)*(k-1)),:,2,3);
+                B(i+(p(1)+1)*((j-1)+(p(2)+1)*(k-1)),:,2,1) = B(i+(p(1)+1)*((j-1)+(p(2)+1)*(k-1)),:,1,2);
+              end
+            end
+          end 
+      end
+      B = permute(B, [1 2 5 3 4]); % nExnPx1xnDxnD
+    end
   end
 end

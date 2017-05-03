@@ -54,6 +54,7 @@ classdef Pp < Element
       B = zeros(obj.nB(nD), size(points,1), nD);
       p = obj.order;
       points = 2*points-1; % transform to [-1,1]^2
+      N = cell(nD, 1);
       for d = 1:nD
         N{d} = cell(p+1,1);
         dN{d} = cell(p+1,1);
@@ -96,6 +97,7 @@ classdef Pp < Element
       B = zeros(obj.nB(nD), size(points,1), nD, nD);
       p = obj.order;
       points = 2*points-1; % transform to [-1,1]^2
+      N = cell(nD, 1);
       for d = 1:nD
         N{d} = cell(p+1,1);
         dN{d} = cell(p+1,1);
@@ -135,14 +137,14 @@ classdef Pp < Element
                 B(offset+1,:,1,3) = dN{1}{i+1}.*N{2}{j+1}.*dN{3}{k+1};
                 B(offset+1,:,2,3) = N{1}{i+1}.*dN{2}{j+1}.*dN{3}{k+1};
                 B(offset+1,:,2,1) = B(offset+1,1,2);
-                B(offset+1,:,3,2) = B(offset+1,1,3);
+                B(offset+1,:,3,1) = B(offset+1,1,3);
                 B(offset+1,:,3,2) = B(offset+1,2,3);
                 offset = offset + 1;
               end
             end
           end
       end
-      B = permute(B, [1 2 5 3 4]);
+      B = permute(B, [1 2 5 3 4]); % nExnPx1xnDxnD
     end
   end
 end
