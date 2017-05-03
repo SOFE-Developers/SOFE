@@ -215,8 +215,17 @@ classdef Mesh < SOFE
           elem = [1:m*(n-1)-1; 2:m*(n-1)];
           elem = [elem; elem+m]';
           elem(m:m:end,:) = [];
-          if nargin > 1 && varargin{1}
-            elem = [elem(:,[1 2 3]); elem(:,[4 3 2])];
+          if nargin > 1
+            switch varargin{1}
+              case 1
+                elem = [elem(:,[1 2 3]); elem(:,[4 3 2])];
+              case 2
+                mid = permute(sum(reshape(nodes(elem(:),:),[],4,2),2)/4,[1 3 2]);
+                elem = [elem size(nodes,1)+(1:size(elem,1))'];
+                nodes = [nodes; mid];
+                elem = [elem(:,[5 1 2]); elem(:,[5 2 4]); ...
+                        elem(:,[5 4 3]); elem(:,[5 3 1])];
+            end
           end
         case 3
           m = numel(grid{1});
