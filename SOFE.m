@@ -68,6 +68,20 @@ classdef SOFE < handle
         rmpath(genpath(SOFE.getPluginPath()));
       end
     end
+    function pluggedin()
+      X = path;
+      I = strfind(X,'/plugins/');
+      plugin = '';
+      while ~isempty(I)
+        x = X(I(1)+9:end);
+        i = strfind(x,'/');
+        if ~strcmp(plugin, x(1:i(1)-1))
+          plugin = x(1:i(1)-2);
+          fprintf([plugin '\n']);
+        end
+        I(1) = [];
+      end
+    end
   end
   methods(Static = true)
     function R = getElementsPerBlock(nB, nQ, nC, nD)
