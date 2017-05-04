@@ -4,7 +4,7 @@ classdef GlobalSearcher < SOFE
     bgMesh
     diam
     NVec
-    nBlockGS = 1;
+    nBlockGS = 10;
   end
   methods % constructor
     function obj = GlobalSearcher(topology)

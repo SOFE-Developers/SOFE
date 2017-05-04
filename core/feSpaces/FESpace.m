@@ -220,10 +220,13 @@ classdef FESpace < SOFE
         case 'H1'
           switch order
             case 0
-              R = basis; % 1xnBxnPxnC[xnD]
+              R = basis; % 1xnBxnPxnC
             case 1
               R = sum(bsxfun(@times, permute(basis,    [1 2 3 4 6 5]), ...
-                                     permute(trafo{2}, [1 2 3 6 5 4])), 6); % nExnBxnPxnCxnW
+                                     permute(trafo{2}, [1 2 3 6 5 4])), 6); % nExnBxnPxnCxnD
+            case 2
+              error('TODO');
+              % nExnBxnPxnCxnDxnD
           end
         case 'HDiv'
           switch order

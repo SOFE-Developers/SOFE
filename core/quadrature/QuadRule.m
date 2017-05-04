@@ -1,13 +1,13 @@
 classdef QuadRule < SOFE
   properties
-    order % exact for polynomials of ORDER
+    order % exact for polynomials of degree ORDER
     points
     weights
   end
   methods % constructor
     function obj = QuadRule(n)
       obj.order = n;
-      obj.initData(); % abstract
+      obj.initData();
     end
   end
   methods
@@ -25,19 +25,17 @@ classdef QuadRule < SOFE
       %      = 'RadauR'  for Gauss-RadauR quadrature
       %      = 'Lobatto' for Gauss-Lobatto quadrature
       %
-      % adaptation of Numerical Recipes amd Webnote 3 for Matlab
-      %
       a = zeros(n,1);
       b = zeros(n,1);
       oldc = 1;
-      for i=1:n                       %  Compute a and b arrays via eq. (4.6.7).
+      for i=1:n
           c = quadgk(@(x)W(x).*QuadRule.evalOrthogonalPolynomial(i-1,x,a,b).^2,-1,1);
-          b(i) = c/oldc;              %  Use b[0] to store mu_0=int W (x) dx.
+          b(i) = c/oldc;
           a(i) = quadgk(@(x)W(x).*x.*QuadRule.evalOrthogonalPolynomial(i-1,x,a,b).^2,-1,1)/c;
           oldc = c;
       end  
       switch type
-          case 'Gauss'   % nothing to do
+          case 'Gauss'
           case 'RadauR'
               [p1 p2] = QuadRule.evalOrthogonalPolynomial(n-1,1,a,b);
               a(n) = 1-b(n)*p2/p1;
@@ -59,8 +57,6 @@ classdef QuadRule < SOFE
       w     = b(1)*V(1,:)'.^2;    
     end
     function [returnPj returnPjm1] = evalOrthogonalPolynomial(j,x,a,b)
-        %   compute othogonal polynomial p_j(x) (and p_{j-1}(x)) 
-        %   with recurrance coefficients a and b using recurrence relation
         if j==0
             returnPj   = ones(size(x));
             returnPjm1 = zeros(size(x));

@@ -11,7 +11,7 @@ classdef GaussTet < QuadRule
       try 
         obj.initDataTab()
       catch
-        error('Quad Rule not supported');
+        warning('Optimal quadrule not supported! Duffy quadrature used');
         %
         N = obj.order+1;
         [q1,w1] = obj.gaussPoints4Tet(N,2);
