@@ -8,9 +8,9 @@ classdef Solver < SOFE
     end
   end
   methods
-    function reset(obj)
+    function reset(obj) %#ok<MANU>
     end
-    function solve(obj, A, b)
+    function solve(obj, A, b) %#ok<INUSD>
     end
   end
 end

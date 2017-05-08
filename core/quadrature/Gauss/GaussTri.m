@@ -24,7 +24,7 @@ classdef GaussTri < QuadRule
       end
     end
     function initDataTab(obj)
-      switch obj.order;
+      switch obj.order
         case 1
           obj.weights = 1/2;
           obj.points = [1 1]/3;

@@ -16,7 +16,7 @@ classdef Visualizer1D < Visualizer
       if numel(U)~=obj.feSpace.getNDoF
         error('w is no DoFVector!');
       end
-      if nargin > 3, res = varargin{:}; else res = 10; end
+      if nargin > 3, res = varargin{:}; else, res = 10; end
       points = linspace(0,1,res)';
       P = obj.feSpace.mesh.evalReferenceMap(points, 0); % nExnPxnD
       Z = obj.feSpace.evalDoFVector(U, points, [], 0);

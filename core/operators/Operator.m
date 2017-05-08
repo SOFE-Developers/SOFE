@@ -77,7 +77,7 @@ classdef Operator < SOFE
             e=e(obj.idx(I),:,:); r=r(obj.idx(I),:,:); c=c(obj.idx(I),:,:);
           end
         end
-        I = (r.*c==0); if any(I(:)), r(I) = []; c(I) = []; e(I) = []; end
+        I = (r.*c==0); if any(I(:)), r(I) = []; c(I) = []; e(I) = []; end %#ok<AGROW>
         obj.matrix = obj.matrix + sparse(r(:), c(:), e(:), M, N);
         if k>1
           fprintf(repmat('\b',1,length(s)));

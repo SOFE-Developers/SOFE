@@ -1,11 +1,11 @@
-T = 2; M = 50;
+T = 4; M = 50;
 uMax = 1.5;
 % DATA
 clear data;
 data.nu = @(x) 1e-3 + 0*x(:,1);
 % MESH
 m = CADMesh([SOFE.getCorePath() '/meshes/library/karman.dat']);
-m.uniformRefine(0);
+m.uniformRefine(1);
 % ELEMENT
 e = PpL(2,2); eP = PpL(2,1);
 % FESPACE2

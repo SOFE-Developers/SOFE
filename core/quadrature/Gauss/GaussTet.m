@@ -26,7 +26,7 @@ classdef GaussTet < QuadRule
       end
     end
     function initDataTab(obj) 
-      switch obj.order;
+      switch obj.order
         case 1
           obj.weights = 1/6;
           obj.points = [0.25 0.25 0.25];
@@ -1253,7 +1253,9 @@ classdef GaussTet < QuadRule
           error('!Catch me!');
       end
     end
-    function [x, w] = gaussPoints4Tet(obj,N,k)
+  end
+  methods(Static = true)
+    function [x, w] = gaussPoints4Tet(N, k)
       % MATLAB File central snippet
       k1=k+1; k2=k+2;
       n=1:N;  nnk=2*n+k;

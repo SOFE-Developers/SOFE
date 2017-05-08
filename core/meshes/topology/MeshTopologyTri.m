@@ -9,7 +9,7 @@ classdef MeshTopologyTri < MeshTopology
       obj.connectivity{2,1} = [obj.connectivity{3,1}(:,[1,2]); ...
                                obj.connectivity{3,1}(:,[2,3]); ...
                                obj.connectivity{3,1}(:,[1,3])];
-      [obj.connectivity{2,1}, dmy, e2F] = unique(sort(obj.connectivity{2,1},2),'rows');      
+      [obj.connectivity{2,1}, ~, e2F] = unique(sort(obj.connectivity{2,1},2),'rows');      
       obj.connectivity{3,2} = reshape(e2F, [], 3);
       %
       obj.connectivity{1,1} = (1:size(obj.nodes,1))';
@@ -32,25 +32,11 @@ classdef MeshTopologyTri < MeshTopology
       R = obj.getOrientation();
       R(:,3) = -R(:,3);
     end
-    function R = upliftPoints(obj, points, fLoc, orient)
-      zz = zeros(size(points));
-      if orient<0
-        points = 1-points;
-      end
-      switch fLoc
-        case 1
-          R = [points, zz];
-        case 2
-          R = [1-points, points];
-        case 3
-          R = [zz, points];
-      end
-    end
   end
   methods % refinement
     function uniformRefine(obj)
       el = obj.getEntity(2);
-      nE = obj.getNumber(2); nF = obj.getNumber(1); nN = obj.getNumber(0);
+      nF = obj.getNumber(1); nN = obj.getNumber(0);
       obj.nodes = [obj.nodes; obj.getCenter(1)];
       newIndices = nN + (1:nF);
       el = [el newIndices(obj.connectivity{3,2})];
@@ -106,6 +92,20 @@ classdef MeshTopologyTri < MeshTopology
       R{3} = GaussPoint();
       R{2} = GaussInt(quadOrder);
       R{1} = GaussTri(quadOrder);
+    end
+    function R = upliftPoints(points, fLoc, orient)
+      zz = zeros(size(points));
+      if orient<0
+        points = 1-points;
+      end
+      switch fLoc
+        case 1
+          R = [points, zz];
+        case 2
+          R = [1-points, points];
+        case 3
+          R = [zz, points];
+      end
     end
   end
 end

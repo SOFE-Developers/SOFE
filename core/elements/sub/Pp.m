@@ -55,6 +55,7 @@ classdef Pp < Element
       p = obj.order;
       points = 2*points-1; % transform to [-1,1]^2
       N = cell(nD, 1);
+      dN = cell(nD, 1);
       for d = 1:nD
         N{d} = cell(p+1,1);
         dN{d} = cell(p+1,1);
@@ -98,6 +99,8 @@ classdef Pp < Element
       p = obj.order;
       points = 2*points-1; % transform to [-1,1]^2
       N = cell(nD, 1);
+      dN = cell(nD, 1);
+      d2N = cell(nD, 1);
       for d = 1:nD
         N{d} = cell(p+1,1);
         dN{d} = cell(p+1,1);

@@ -4,12 +4,13 @@ classdef CADMesh < Mesh
   end
   methods % constructor
     function obj = CADMesh(file, varargin) % [dimP]
+      obj = obj@Mesh([], []);
       if strcmp(file(end), 't')
         [nodes, elem] = CADMesh.importDATFormat(file);
       else
         [nodes, elem, obj.type] = CADMesh.importMESHFormat(file);
       end
-      obj = obj@Mesh(nodes, elem, varargin{:});
+      obj.initMesh(nodes, elem, varargin{:});
     end
   end
   methods(Static = true)
@@ -22,7 +23,7 @@ classdef CADMesh < Mesh
       nL = countLines(file);
       nodes       = dlmread(file,'',[1 1 nN 3]);
       if norm(nodes(:,3))==0, nodes = nodes(:,[1 2]); end
-      elem    = dlmread(file,'',[nL-nE-1 2 nL-2 9]);
+      elem = dlmread(file,' ',nL-nE-1,2); elem = elem(:,1:end-1);
       nV = size(elem, 2);
       N = find(elem(:,nV)>0,1,'first');
       elem = elem(N:end,:);

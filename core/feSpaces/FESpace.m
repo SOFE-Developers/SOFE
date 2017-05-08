@@ -10,9 +10,9 @@ classdef FESpace < SOFE
     function obj = FESpace(mesh, element, varargin) % [fixB, shift]
       try
         if mesh.element.isSimplex ~= element.isSimplex || ...
-           mesh.element.dimension ~= element.dimension
-          warning('! Mesh and Element are not compatible, continue? !');
-          keyboard
+         mesh.element.dimension ~= element.dimension
+        warning('! Mesh and Element are not compatible, continue? !');
+        keyboard
         end
       end
       obj.mesh = mesh;
@@ -32,13 +32,13 @@ classdef FESpace < SOFE
       end
     end
     function resetCache(obj, varargin)
-      nBlock = max(obj.nBlock);
-      obj.cache.refMaps = cell(nBlock, 1);
-      obj.cache.DPhi = cell(nBlock, 1);
-      obj.cache.DPhiInv = cell(nBlock, 1);
-      obj.cache.jac = cell(nBlock, 1);
-      obj.cache.basis = cell(nBlock, 1);
-      for k = 1:nBlock
+      nBlockMax = max(obj.nBlock);
+      obj.cache.refMaps = cell(nBlockMax, 1);
+      obj.cache.DPhi = cell(nBlockMax, 1);
+      obj.cache.DPhiInv = cell(nBlockMax, 1);
+      obj.cache.jac = cell(nBlockMax, 1);
+      obj.cache.basis = cell(nBlockMax, 1);
+      for k = 1:nBlockMax
         obj.cache.refMaps{k} = cell(obj.element.dimension+1,1);
         obj.cache.DPhi{k} = cell(obj.element.dimension+1,1);
         obj.cache.DPhiInv{k} = cell(obj.element.dimension+1,1);
@@ -55,12 +55,11 @@ classdef FESpace < SOFE
       nB = obj.element.nB(end); nQ = numel(obj.quadRule{1}.weights);
       elPerBlock = SOFE.getElementsPerBlock(nB, nQ, nC, nD);
       obj.nBlock = ceil(obj.mesh.topology.getNumber(nD)/elPerBlock);
-      nB = obj.element.nB(end-1); nQ = numel(obj.quadRule{2}.weights);
-      elPerBlock = SOFE.getElementsPerBlock(nB, nQ, nC, nD);
-      obj.nBlock(2) = ceil(obj.mesh.topology.getNumber(nD-1)/elPerBlock);
-    end
-    function R = getBlock_(obj, codim, varargin)
-      R = obj.mesh.getBlock(codim, varargin{:});
+      if obj.mesh.topology.dimP > 1
+        nB = obj.element.nB(end-1); nQ = numel(obj.quadRule{2}.weights);
+        elPerBlock = SOFE.getElementsPerBlock(nB, nQ, nC, nD);
+        obj.nBlock(2) = ceil(obj.mesh.topology.getNumber(nD-1)/elPerBlock);
+      end
     end
     function R = getBlock(obj, codim, varargin) % [k]
       nE = obj.mesh.topology.getNumber(obj.mesh.topology.dimP - codim);
@@ -123,17 +122,17 @@ classdef FESpace < SOFE
       if nargin > 3 && iscell(varargin{1})
         block = true; k = varargin{1};
       end
-      cache =  obj.isCaching && block && isempty(points);
+      doCache =  obj.isCaching && block && isempty(points);
       %
-      if cache && ~isempty(obj.cache.refMaps{k{1}}{codim+1})
+      if doCache && ~isempty(obj.cache.refMaps{k{1}}{codim+1})
         R = obj.cache.refMaps{k{1}}{codim+1};
       else
         if ~isempty(points)
           codim = obj.element.dimension-size(points,2);
         end
         if nargin < 4 || (nargin == 4 && ischar(varargin{1}) && strcmp(varargin,':'))
-          nBlock = obj.nBlock(codim+1); R = cell(nBlock,1);
-          for k = 1:nBlock
+          nBl = obj.nBlock(codim+1); R = cell(nBl,1);
+          for k = 1:nBl
             R{k} = obj.evalReferenceMap(points, codim, {k});
           end
           try
@@ -152,7 +151,7 @@ classdef FESpace < SOFE
           end
           R = obj.mesh.evalReferenceMap(points, 0, varargin{:});
         end
-        if cache
+        if doCache
           obj.cache.refMaps{k{1}}{codim+1} = R;
         end
       end
@@ -162,9 +161,9 @@ classdef FESpace < SOFE
       if nargin > 3 && iscell(varargin{1})
         block = true; k = varargin{1};
       end
-      cache =  obj.isCaching && block && isempty(points);
+      doCache =  obj.isCaching && block && isempty(points);
       %
-      if cache && ~isempty(obj.cache.DPhi{k{1}}{codim+1})
+      if doCache && ~isempty(obj.cache.DPhi{k{1}}{codim+1})
         R = obj.cache.DPhi{k{1}}{codim+1};
         invR = obj.cache.DPhiInv{k{1}}{codim+1};
         jacR = obj.cache.jac{k{1}}{codim+1};
@@ -179,7 +178,7 @@ classdef FESpace < SOFE
           points = obj.getQuadData(codim);
         end
         [R, invR, jacR] = obj.mesh.evalTrafoInfo(points, varargin{:});
-        if cache
+        if doCache
           obj.cache.DPhiInv{k{1}}{codim+1} = invR;
           obj.cache.jac{k{1}}{codim+1} = jacR;
         end
@@ -263,16 +262,16 @@ classdef FESpace < SOFE
       if nargin > 4 && iscell(varargin{1})
         block = true; k = varargin{1};
       end
-      cache =  obj.isCaching && block && isempty(points);
-      if cache && ~isempty(obj.cache.basis{k{1}}{codim+1, order+1})
+      doCache =  obj.isCaching && block && isempty(points);
+      if doCache && ~isempty(obj.cache.basis{k{1}}{codim+1, order+1})
         R = obj.cache.basis{k{1}}{codim+1, order+1};
       else
         if ~isempty(points)
           codim = obj.element.dimension-size(points,2);
         end
         if nargin < 5 || (nargin == 5 && ischar(varargin{1}) && strcmp(varargin,':'))
-          nBlock = obj.nBlock(codim+1); R = cell(nBlock,1);
-          for k = 1:nBlock
+          nBl = obj.nBlock(codim+1); R = cell(nBl,1);
+          for k = 1:nBl
             R{k} = obj.evalGlobalBasis(points, codim, order, {k});
           end
           try
@@ -291,7 +290,7 @@ classdef FESpace < SOFE
           end
           R = obj.computeGlobalBasis(points, [], order, varargin{:});
         end
-        if cache
+        if doCache
           obj.cache.basis{k{1}}{codim+1, order+1} = R;
         end
       end
@@ -320,19 +319,19 @@ classdef FESpace < SOFE
       R(isValid,:,:) = value; % nExnC[xnD]
     end
     function R = evalDoFVectorLocal(obj, U, points, codim, order, varargin) % [{k} or I]
-        if ~isempty(points)
-          codim = obj.element.dimension-size(points,2);
-        end
-        if nargin < 6 || (nargin == 6 && ischar(varargin{1}) && strcmp(varargin,':'))
-        nBlock = obj.nBlock(codim+1); R = cell(nBlock,1); s = 0;
-        for k = 1:nBlock
+      if ~isempty(points)
+        codim = obj.element.dimension-size(points,2);
+      end
+      if nargin < 6 || (nargin == 6 && ischar(varargin{1}) && strcmp(varargin,':'))
+        nBl = obj.nBlock(codim+1); R = cell(nBl,1); s = 0;
+        for k = 1:nBl
           R{k} = obj.evalDoFVector(U, points, codim, order, {k}); % nExnPxnCxnD
-          if nBlock>1 
+          if nBl>1 
             fprintf(repmat('\b',1,length(s)));
-            s = sprintf('progress evalDoFVector: %d / %d', k, nBlock); fprintf(s);
+            s = sprintf('progress evalDoFVector: %d / %d', k, nBl); fprintf(s);
           end
         end
-        if nBlock>1, fprintf('\n'); end
+        if nBl>1, fprintf('\n'); end
         try
           R = cell2mat(R);
         catch
@@ -498,15 +497,15 @@ classdef FESpace < SOFE
     end
     function R = getInterpolation(obj, f, codim, varargin) % [{k} or I]
       if nargin < 4 || (nargin == 6 && ischar(varargin{1}) && strcmp(varargin,':'))
-        nBlock = obj.nBlock(codim+1); R = cell(1,nBlock); s = 0;
-        for k = 1:nBlock
+        nBl = obj.nBlock(codim+1); R = cell(1,nBl); s = 0;
+        for k = 1:nBl
           R{k} = obj.getInterpolation(f, codim, {k});
-          if nBlock>1
+          if nBl>1
             fprintf(repmat('\b',1,length(s)));
-            s = sprintf('progress evalInterpolation: %d / %d', k, nBlock); fprintf(s);
+            s = sprintf('progress evalInterpolation: %d / %d', k, nBl); fprintf(s);
           end
         end
-        if nBlock>1, fprintf('\n'); end
+        if nBl>1, fprintf('\n'); end
         R = cell2mat(R);
         val = sum(abs(R)>0,2);
         val(val==0) = 1;

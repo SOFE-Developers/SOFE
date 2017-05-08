@@ -64,7 +64,7 @@ classdef Functional < SOFE
             e = e(obj.idx(I),:); r = r(obj.idx(I),:);
           end
         end
-        I = (r==0); if any(I(:)), r(I) = []; e(I) = []; end
+        I = (r==0); if any(I(:)), r(I) = []; e(I) = []; end %#ok<AGROW>
         obj.vector = obj.vector + accumarray(r(:), e(:), size(obj.vector));
         if k>1
           if k>2

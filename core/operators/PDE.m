@@ -46,11 +46,12 @@ classdef PDE < SOFE
       obj.setState();
     end
     function setIndices(obj)
+      dimTest = zeros(obj.nEq, 1); dimTrial = zeros(obj.nEq, 1);
       for i = 1:obj.nEq
         dimTest(i) = obj.fesTest{i}.getNDoF();
         dimTrial(i) = obj.fesTrial{i}.getNDoF();
       end
-      offsetTrial = [0 cumsum(dimTrial)]; offsetTest = [0 cumsum(dimTest)];
+      offsetTrial = [0; cumsum(dimTrial)]; offsetTest = [0; cumsum(dimTest)];
       obj.J = cell(obj.nEq, 1); obj.I = cell(obj.nEq, 1);
       for i = 1:obj.nEq
         obj.J{i} = offsetTrial(i) + [1 dimTrial(i)];
@@ -83,7 +84,6 @@ classdef PDE < SOFE
       if ~obj.nonLin, return; end
       obj.state = cell(obj.nEq, 1); % {nEq}xnExnP
       for j = 1:obj.nEq
-        nBlock = obj.fesTrial{j}.nBlock(1);
         [~, w] = obj.fesTrial{j}.getQuadData(0);
         nD = obj.fesTrial{j}.element.dimension;
         nC = size(obj.fesTrial{j}.element.evalBasis(zeros(1,nD),0),3);
@@ -106,11 +106,7 @@ classdef PDE < SOFE
       obj.setState(obj.solution);
     end
     function assemble(obj)
-      if obj.stateChanged, 
-        obj.stateChanged = false;
-      else
-        return; 
-      end
+      if obj.stateChanged, obj.stateChanged = false; else, return; end
       % lhs
       obj.stiffMat = sparse(obj.I{obj.nEq}(2), obj.J{obj.nEq}(2));
       for i = 1:obj.nEq
@@ -121,9 +117,9 @@ classdef PDE < SOFE
               obj.lhs{i,j}{k}.assemble();
               %
               blk = obj.lhs{i,j}{k}.matrix;
-              blk = [sparse(obj.I{i}(1)-1, size(blk,2)); blk];
+              blk = [sparse(obj.I{i}(1)-1, size(blk,2)); blk]; %#ok<AGROW>
               blk(obj.I{i}(2)+1:obj.I{obj.nEq}(2),:) = 0;
-              blk = [sparse(size(blk,1), obj.J{j}(1)-1), blk];
+              blk = [sparse(size(blk,1), obj.J{j}(1)-1), blk]; %#ok<AGROW>
               blk(:,obj.J{j}(2)+1:obj.J{obj.nEq}(2)) = 0;
               %
               obj.stiffMat = obj.stiffMat + blk;

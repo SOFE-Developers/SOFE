@@ -72,7 +72,7 @@ classdef GlobalSearcher < SOFE
                reshape(kron(XX{2}, ones(size(XX{1},1),1)),[],1) ...
                reshape(kron((1:size(XX{1},2))', ones(size(XX{1},1)*size(XX{2},1),1)),[],1)];
       elseif nW == 3
-        IDXE = zeros(prod(size(XX{1}))*size(XX{2},1)*size(XX{3},1),4);
+        IDXE = zeros(numel(XX{1})*size(XX{2},1)*size(XX{3},1),4);
         IDXE(:,1) = reshape(repmat(XX{1}, size(XX{2},1)*size(XX{3},1),1),[],1);
         IDXE(:,2) = reshape(repmat(kron(XX{2}, ones(size(XX{1},1),1)), size(XX{3},1), 1),[],1);
         IDXE(:,3) = reshape(kron(XX{3}, ones(size(XX{1},1)*size(XX{2},1),1)), [], 1);

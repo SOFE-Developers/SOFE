@@ -16,7 +16,7 @@ classdef Visualizer < SOFE
     function show(obj, U, varargin) % [type]
       if nargin > 2
         type = varargin{1};
-        if nargin > 3, opt = varargin(2); else opt = {}; end
+        if nargin > 3, opt = varargin(2); else, opt = {}; end
         switch type
           case {'g', 'G', 'global', 'surf', 1}
             obj.surf(U, opt{:});

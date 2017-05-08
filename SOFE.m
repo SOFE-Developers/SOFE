@@ -30,7 +30,7 @@ classdef SOFE < handle
       more off
     end
     function open(name)
-      if isempty(strfind(path(),'_SOFE_'))
+      if isempty(strfind(path(),'_SOFE_')) %#ok<*STREMP>
         SOFE.unlock();
       end  
       SOFE.close();

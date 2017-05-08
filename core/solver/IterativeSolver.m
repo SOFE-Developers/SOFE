@@ -17,11 +17,11 @@ classdef IterativeSolver < Solver
       switch obj.precon
         case 'diag'
           M1 = spdiags(diag(A), 0, size(A,1), size(A,1));
-          M2 = speye(size(M1));
+          M2 = speye(size(M1)); %#ok<NASGU>
         case 'ilu'
-          [M1,M2] = ilu(A);
+          [M1,M2] = ilu(A); %#ok<ASGLU>
         case 'none'
-          M1 = speye(size(A,1)); M2 = M1;
+          M1 = speye(size(A,1)); M2 = M1; %#ok<NASGU>
         otherwise
           warning('Unknown preconditioner');
       end

@@ -1,4 +1,4 @@
-function [f,g,h] = plot3k(L,varargin)
+function [f,g] = plot3k(L,varargin)
 % PLOT3K  Color coded 3D scatterplot
 %   [f,g,h] = plot3k(L,varargin)
 % Input

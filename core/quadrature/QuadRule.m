@@ -12,7 +12,7 @@ classdef QuadRule < SOFE
   end
   methods
     function [P, W] = getGaussPoints(obj, varargin)
-      if nargin > 1, type = varargin{1}; else type = 'Gauss'; end
+      if nargin > 1, type = varargin{1}; else, type = 'Gauss'; end
       [P, W] = QuadRule.evalWeightedGaussPoints(ceil((obj.order + 1)/2), @(x)1+0*x(:,1), type);
     end
   end
@@ -37,14 +37,14 @@ classdef QuadRule < SOFE
       switch type
           case 'Gauss'
           case 'RadauR'
-              [p1 p2] = QuadRule.evalOrthogonalPolynomial(n-1,1,a,b);
+              [p1, p2] = QuadRule.evalOrthogonalPolynomial(n-1,1,a,b);
               a(n) = 1-b(n)*p2/p1;
           case 'RadauL'
-              [p1 p2] = QuadRule.evalOrthogonalPolynomial(n-1,-1,a,b);
+              [p1, p2] = QuadRule.evalOrthogonalPolynomial(n-1,-1,a,b);
               a(n) = -1-b(n)*p2/p1;
           case 'Lobatto'
-              [p11 p21] = QuadRule.evalOrthogonalPolynomial(n-1,-1,a,b);
-              [p12 p22] = QuadRule.evalOrthogonalPolynomial(n-1, 1,a,b);
+              [p11, p21] = QuadRule.evalOrthogonalPolynomial(n-1,-1,a,b);
+              [p12, p22] = QuadRule.evalOrthogonalPolynomial(n-1, 1,a,b);
               A = [p11 p21; p12 p22];
               l = [-p11;p12];
               res  = A\l;
@@ -52,11 +52,11 @@ classdef QuadRule < SOFE
               b(n) = res(2);
       end
       z     = diag(a)+diag(sqrt(b(2:n)),1)+diag(sqrt(b(2:n)),-1);
-      [V D] = eig(z);
+      [V, D] = eig(z);
       P     = diag(D);
       w     = b(1)*V(1,:)'.^2;    
     end
-    function [returnPj returnPjm1] = evalOrthogonalPolynomial(j,x,a,b)
+    function [returnPj, returnPjm1] = evalOrthogonalPolynomial(j,x,a,b)
         if j==0
             returnPj   = ones(size(x));
             returnPjm1 = zeros(size(x));

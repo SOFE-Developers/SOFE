@@ -4,10 +4,15 @@ classdef Mesh < SOFE
     topology
   end
   methods % constructor & more
-    function obj = Mesh(nodes, elems, varargin) % [dimP]
-      if nargin > 2, dimP = varargin{:}; else dimP = size(nodes, 2); end
-      obj.element = obj.getShapeElement(size(elems,2), dimP);
-      obj.topology = obj.getTopology(nodes, elems, dimP);
+    function obj = Mesh(nodes, elem, varargin) % [dimP]
+      if ~isempty(elem)
+        obj.initMesh(nodes, elem, varargin{:});
+      end
+    end
+    function initMesh(obj, nodes, elem, varargin)
+      if nargin > 3, dimP = varargin{:}; else, dimP = size(nodes, 2); end
+      obj.element = obj.getShapeElement(size(elem,2), dimP);
+      obj.topology = obj.getTopology(nodes, elem, dimP);
     end
   end
   methods % reference map
@@ -30,7 +35,7 @@ classdef Mesh < SOFE
     end
     function [R, invR, jacR] = evalTrafoInfo(obj, points, varargin) % [I]
       R = obj.evalReferenceMap(points, 1, varargin{:}); % nExnPxnWxnD or nExnWxnD
-      nW = obj.topology.dimW; nD = obj.topology.dimP;
+      nW = obj.topology.dimW;
       if iscell(points)
         nD = size(points{1}, 2); nP = -1;
       else

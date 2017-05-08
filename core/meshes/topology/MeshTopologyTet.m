@@ -11,11 +11,11 @@ classdef MeshTopologyTet < MeshTopology
                                obj.connectivity{4,1}(:,[1,2,4]); ...
                                obj.connectivity{4,1}(:,[2,3,4]); ...
                                obj.connectivity{4,1}(:,[1 3 4])];
-      [obj.connectivity{3,1}, dmy, e2F] = unique(sort(obj.connectivity{3,1},2),'rows');    
+      [obj.connectivity{3,1}, ~, e2F] = unique(sort(obj.connectivity{3,1},2),'rows');    
       obj.connectivity{2,1} = [obj.connectivity{4,1}(:,[1,2]); obj.connectivity{4,1}(:,[2,3]); ...
                                obj.connectivity{4,1}(:,[1,3]); obj.connectivity{4,1}(:,[1 4]); ...
                                obj.connectivity{4,1}(:,[2,4]); obj.connectivity{4,1}(:,[3 4])];
-      [obj.connectivity{2,1}, dmy, e2Ed] = unique(sort(obj.connectivity{2,1},2),'rows');    
+      [obj.connectivity{2,1}, ~, e2Ed] = unique(sort(obj.connectivity{2,1},2),'rows');    
       obj.connectivity{4,3} = reshape(e2F,[], 4);
       obj.connectivity{4,2} = reshape(e2Ed,[], 6);
       obj.connectivity{3,2} = obj.getFace2Edge();
@@ -71,6 +71,7 @@ classdef MeshTopologyTet < MeshTopology
             case 3
               e = obj.getEntity(3);
               face = [1 2 3; 1 2 4; 2 3 4; 1 3 4];
+              R = zeros(size(e,1),4);
               for i = 1:4
                   [~, R(:,i)] = min(e(:,face(i,:)),[],2);
                   [~, P] = sort(e(:,face(i,:)),2);
@@ -143,12 +144,12 @@ classdef MeshTopologyTet < MeshTopology
       end
     end
     function tetramesh(obj, varargin)
-      if nargin>1, I = varargin{1}; else I=':'; end
+      if nargin>1, I = varargin{1}; else, I=':'; end
       tet = obj.getEntity(3);
       tetramesh(tet(I,:), obj.getEntity(0));
     end
     function showEntity(obj, dim, varargin) % for debug
-      if nargin < 3, I = (1:obj.getNumber(dim))'; else I = varargin{1}; end
+      if nargin < 3, I = (1:obj.getNumber(dim))'; else, I = varargin{1}; end
       center = obj.getCenter(dim);
       switch dim
         case 3

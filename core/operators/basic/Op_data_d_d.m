@@ -16,7 +16,7 @@ classdef Op_data_d_d < Operator % ( c*dx_k(u), dx_l(v) )
       dBasisJ = dBasisJ(:,:,:,obj.kIdx); % nExnBxnP
       dBasisI = obj.fesTest.evalGlobalBasis([], 0, 1, {k}); % nExnBxnPxnD
       dBasisI = dBasisI(:,:,:,obj.lIdx); % nExnBxnP
-      R = obj.integrate(false, basisI, dBasisJ, k);
+      R = obj.integrate(false, dBasisI, dBasisJ, k);
     end
   end
 end

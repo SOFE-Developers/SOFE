@@ -22,7 +22,7 @@ classdef Integrator < SOFE
     end
   end
   methods % integrate
-    function integrate(obj)
+    function integrate(obj) %#ok<MANU>
     end
   end
 end
