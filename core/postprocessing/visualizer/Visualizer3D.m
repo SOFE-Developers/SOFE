@@ -5,7 +5,7 @@ classdef Visualizer3D < Visualizer
     end
   end
   methods
-    function patch(obj, U, varargin)
+    function h = patch(obj, U, varargin)
       obj.test(U);
       try n = varargin{1}.n; catch, n = 1; end
       try deform = varargin{1}.deform; catch, deform = false; end
@@ -40,7 +40,7 @@ classdef Visualizer3D < Visualizer
         vertices = obj.feSpace.mesh.evalReferenceMap([X(:) Y(:)],0,I) + value; % nExnPxnW
         value = sum(reshape(permute(value, [2 1 3]), [], 3).^2, 2).^0.5; % (nP*nE)
         vertices = reshape(permute(vertices, [2 1 3]), [], 3); % (nP*nE)xnW
-        patch('faces', reshape(faces, [], size(faces,3)), 'vertices', vertices, ... 
+        h = patch('faces', reshape(faces, [], size(faces,3)), 'vertices', vertices, ... 
               'facevertexcdata',value,'facecolor','interp', ...
               'edgecolor','interp');
         axis tight, axis equal
@@ -52,13 +52,13 @@ classdef Visualizer3D < Visualizer
         value = reshape(value', [], 1); % (nP*nE)
         vertices = obj.feSpace.mesh.evalReferenceMap([X(:) Y(:)], 0, I); % nExnVx3
         vertices = reshape(permute(vertices, [2 1 3]), [], 3); % (nV*nE)x3
-        patch('faces', reshape(faces, [], size(faces,3)), 'vertices', vertices, ... 
+        h = patch('faces', reshape(faces, [], size(faces,3)), 'vertices', vertices, ... 
               'facevertexcdata',value,'facecolor','interp', ...
               'edgecolor','interp');
         axis tight, axis equal
       end
     end
-    function surf(obj, U, varargin)
+    function h = surf(obj, U, varargin)
       try N = varargin{1}.N; catch, N = 200; end
       try deform = varargin{1}.deform; catch, deform = false; end
       try map = varargin{1}.map; catch, map = @(u,v)[u,v,0*u]; end
@@ -84,12 +84,12 @@ classdef Visualizer3D < Visualizer
       P = reshape(P, [size(A) 3]);
       if size(W,2) == 1
         W = reshape(W, size(A));
-        surf(P(:,:,1), P(:,:,2), P(:,:,3), W);
+        h = surf(P(:,:,1), P(:,:,2), P(:,:,3), W);
       else
         W = reshape(W,size(A,1),size(A,2),[]); % nPaxnPbxnC
         if deform
           P = P+W;
-          surf(P(:,:,1), P(:,:,2), P(:,:,3), sum(W.^2,3).^0.5); 
+          h = surf(P(:,:,1), P(:,:,2), P(:,:,3), sum(W.^2,3).^0.5); 
         else
           try scale = varargin{1}.scale; catch, scale = 1.0; end
           try width = varargin{1}.width; catch, width = 2; end
@@ -100,7 +100,7 @@ classdef Visualizer3D < Visualizer
           if numel(n) == 1, n = n*ones(2,1); end
           absW = sum(W.^2, 3).^0.5; % nPaxnPb
           if abs
-            surf(P(:,:,1),P(:,:,2),P(:,:,3),absW);
+            h = surf(P(:,:,1),P(:,:,2),P(:,:,3),absW);
           end
           if vectors
             if normalize, W = bsxfun(@rdivide, W, absW); W(W==Inf) = 0; end
@@ -108,8 +108,8 @@ classdef Visualizer3D < Visualizer
             P = P(1:filter(1):end, 1:filter(2):end,:);
             W = W(1:filter(1):end, 1:filter(2):end,:);
             hold on;
-            quiver3(P(:,:,1),P(:,:,2),P(:,:,3),W(:,:,1),W(:,:,2),W(:,:,3), scale, ...
-              'linewidth', width, 'color',[0 0 1]);
+            h = quiver3(P(:,:,1),P(:,:,2),P(:,:,3),W(:,:,1),W(:,:,2),W(:,:,3), scale, ...
+                        'linewidth', width, 'color',[0 0 1]);
             hold off;
           end
         end
@@ -117,7 +117,7 @@ classdef Visualizer3D < Visualizer
       axis equal;
       shading interp;
     end
-    function scatter(obj, U, varargin)
+    function h = scatter(obj, U, varargin)
       obj.test(U);
       isT = obj.feSpace.element.isSimplex();
       try I = varargin{1}.loc; catch, I = ':'; end
@@ -138,28 +138,29 @@ classdef Visualizer3D < Visualizer
       P = obj.feSpace.mesh.evalReferenceMap(P, 0, I); % nExnPxnW
       if size(Z,3) == 1
         P = reshape(P, [], size(P,3));
-        plot3k([P(:,1),P(:,2),P(:,3)], 'ColorData', Z(:));
+        h = plot3k([P(:,1),P(:,2),P(:,3)], 'ColorData', Z(:));
       else
         if deform
           P = reshape(P + Z, [], size(P,3)); % (nE*nP)xnW
           Z = sum(Z.^2, 3).^0.5; % nExnP
-          plot3k([P(:,1),P(:,2), P(:,3)], 'ColorData', Z(:));
+          h = plot3k([P(:,1),P(:,2), P(:,3)], 'ColorData', Z(:));
         else
           try scale = varargin{1}.scale; catch, scale = 1.0; end
           try width = varargin{1}.width; catch, width = 4; end
           try n = varargin{1}.n/sqrt(sum(I)*0.5^isT); catch, n = 50/sqrt(sum(I)*0.5^isT); end
           absZ = sum(Z.^2, 3).^0.5;
           Z = bsxfun(@rdivide, Z, absZ); Z(Z==Inf) = 0;
-          plot3k(reshape(P,[],3), 'ColorData', absZ(:));
-          hold on
+          h = plot3k(reshape(P,[],3), 'ColorData', absZ(:));
           P = reshape(P(:,1:ceil(N/n)^2:end,:), [], size(P,3)); % (nE*nP)xnW
           Z = reshape(Z(:,1:ceil(N/n)^2:end,:), [], size(Z,3)); % (nE*nP)xnW
-          quiver3(P(:,1),P(:,2),P(:,3),Z(:,1),Z(:,2),Z(:,3), scale, 'linewidth', width); hold off
+          hold on
+          quiver3(P(:,1),P(:,2),P(:,3),Z(:,1),Z(:,2),Z(:,3), scale, 'linewidth', width);
+          hold off
         end
       end
       axis equal; axis tight;
     end
-    function surfFH(obj, F, varargin)      
+    function h = surfFH(obj, F, varargin)      
       try N = varargin{1}.N; catch, N = 200; end
       try map = varargin{1}.map; catch, map = @(u,v)[u,v,0*u]; end
       if numel(N) == 1, N = N*ones(2,1); end
@@ -167,7 +168,7 @@ classdef Visualizer3D < Visualizer
       P = map(A(:),B(:)); % nPx3
       W = reshape(F(P), size(A)); % nPxnC
       P = reshape(P, [size(A) 3]);
-      surf(P(:,:,1), P(:,:,2), P(:,:,3), W); shading interp;
+      h = surf(P(:,:,1), P(:,:,2), P(:,:,3), W); shading interp;
       diam = obj.feSpace.mesh.topology.globalSearcher.diam';
       axis(diam(:)); axis equal;
     end

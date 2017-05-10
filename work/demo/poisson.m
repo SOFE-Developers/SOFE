@@ -22,7 +22,7 @@ p.compute();
 v = Visualizer.create(fes);
 switch dim
   case 1
-    v.show(p.solution);
+    v.show(p.solution, 'g');
   case 2
     v.show(p.solution, 'g');
   case 3

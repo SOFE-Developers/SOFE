@@ -5,7 +5,7 @@ classdef Visualizer2D < Visualizer
     end
   end
   methods
-    function patch(obj, U, varargin)
+    function h = patch(obj, U, varargin)
       obj.test(U);
       try n = varargin{1}.n; catch, n = 1; end
       try deform = varargin{1}.deform; catch, deform = false; end
@@ -38,9 +38,9 @@ classdef Visualizer2D < Visualizer
         value = sum(reshape(permute(value, [2 1 3]), [], 2).^2, 2).^0.5; % (nP*nE)
         vertices = reshape(permute(vertices, [2 1 3]), [], 2); % (nP*nE)xnW
         height = zeros(size(value));
-        patch('faces', reshape(elem, [], size(elem,3)), 'vertices', [vertices height], ... 
-            'facevertexcdata',value,'facecolor','interp', ...
-            'edgecolor','interp');
+        h = patch('faces', reshape(elem, [], size(elem,3)), 'vertices', [vertices height], ... 
+                  'facevertexcdata',value,'facecolor','interp', ...
+                  'edgecolor','interp');
         view(0,90), axis normal;
       else
         value = obj.feSpace.evalDoFVector(U,[X(:) Y(:)],[],0); % nExnPxnC
@@ -53,16 +53,16 @@ classdef Visualizer2D < Visualizer
         if size(vertices,2)==2
           vertices = [vertices, value];
         end
-        patch('faces', reshape(elem, [], obj.feSpace.element.nV(end)), ...
-              'vertices', vertices , ... 
-              'facevertexcdata',value,'facecolor','interp', ...
-              'edgecolor','interp');
+        h = patch('faces', reshape(elem, [], obj.feSpace.element.nV(end)), ...
+                  'vertices', vertices , ... 
+                  'facevertexcdata',value,'facecolor','interp', ...
+                  'edgecolor','interp');
         diam = obj.feSpace.mesh.topology.globalSearcher.diam';
         axis(diam(:));
         view(0,90), axis normal;
       end
     end
-    function surf(obj, U, varargin)
+    function h = surf(obj, U, varargin)
       obj.test(U);
       try N = varargin{1}.N; catch, N = 200; end
       if numel(N) == 1, N = N*ones(2,1); end
@@ -78,11 +78,11 @@ classdef Visualizer2D < Visualizer
         Z = obj.feSpace.evalDoFVector(U,{[X(:) Y(:)]}, [], 0); % nPxnC
       end
       if size(Z,2) == 1
-        surf(X,Y,reshape(Z,size(X))); shading interp
+        h = surf(X,Y,reshape(Z,size(X))); shading interp
       else
         if deform
           absZ = reshape(sum(Z.^2, 2).^0.5, size(X));
-          surf(X+reshape(Z(:,1),size(X)), Y+reshape(Z(:,2),size(X)), absZ); shading interp;
+          h = surf(X+reshape(Z(:,1),size(X)), Y+reshape(Z(:,2),size(X)), absZ); shading interp;
           view(0,90), axis normal; return
         else
           try scale = varargin{1}.scale; catch, scale = 1.0; end
@@ -92,7 +92,7 @@ classdef Visualizer2D < Visualizer
           try n = varargin{1}.n; catch, n = 40; end
           if numel(n) == 1, n = n*ones(2,1); end
           absZ = sum(Z.^2, 2).^0.5;
-          surf(X,Y,0*X,reshape(absZ,size(X))); shading interp
+          h = surf(X,Y,0*X,reshape(absZ,size(X))); shading interp
           if vectors
             if normalize, Z = bsxfun(@rdivide, Z, absZ); Z(Z==Inf) = 0; end
             Z = reshape(Z, size(X,1), size(X,2), []);
@@ -100,14 +100,16 @@ classdef Visualizer2D < Visualizer
             X = X(1:filter(1):end, 1:filter(2):end);
             Y = Y(1:filter(1):end, 1:filter(2):end);
             Z = Z(1:filter(1):end, 1:filter(2):end,:);
-            hold on, quiver(X,Y,Z(:,:,1),Z(:,:,2), scale, 'linewidth', width); hold off
+            hold on
+            h = quiver(X,Y,Z(:,:,1),Z(:,:,2), scale, 'linewidth', width);
+            hold off
           end
         end
       end
       diam = obj.feSpace.mesh.topology.globalSearcher.diam';
       axis(diam(:)); view(0,90), axis normal; axis tight
     end
-    function scatter(obj, U, varargin)
+    function h = scatter(obj, U, varargin)
       obj.test(U);
       isT = obj.feSpace.element.isSimplex();
       nN = obj.feSpace.mesh.topology.getNumber(2);
@@ -128,9 +130,9 @@ classdef Visualizer2D < Visualizer
       if size(Z,3) == 1
         P = reshape(P, [], size(P,3));
         if size(P,2) == 2
-          plot3k([P(:,1),P(:,2),Z(:)]);
+          h = plot3k([P(:,1),P(:,2),Z(:)]);
         else
-          plot3k([P(:,1),P(:,2), P(:,3)], 'ColorData', Z(:));
+          h = plot3k([P(:,1),P(:,2), P(:,3)], 'ColorData', Z(:));
         end
       else
         if deform
@@ -144,24 +146,25 @@ classdef Visualizer2D < Visualizer
           try n = varargin{1}.n/sqrt(nN*0.5^isT); catch, n = 50/sqrt(nN*0.5^isT); end
           absZ = sum(Z.^2, 3).^0.5;
           Z = bsxfun(@rdivide, Z, absZ); Z(Z==Inf) = 0;
-          plot3k([reshape(P,[],2), zeros(size(P,1)*size(P,2),1)], 'ColorData', absZ(:));
-          hold on
+          h = plot3k([reshape(P,[],2), zeros(size(P,1)*size(P,2),1)], 'ColorData', absZ(:));
           P = reshape(P(:,1:ceil(N/n)^2:end,:), [], size(P,3)); % (nE*nP)xnW
           Z = reshape(Z(:,1:ceil(N/n)^2:end,:), [], size(Z,3)); % (nE*nP)xnW
-          quiver(P(:,1),P(:,2),Z(:,1),Z(:,2), scale, 'linewidth', width); hold off
+          hold on
+          quiver(P(:,1),P(:,2),Z(:,1),Z(:,2), scale, 'linewidth', width);
+          hold off
         end
       end
       diam = obj.feSpace.mesh.topology.globalSearcher.diam';
       axis(diam(:)); view(0,90), axis normal; axis tight
     end
-    function surfFH(obj, F, varargin)
+    function h = surfFH(obj, F, varargin)
       try N = varargin{1}.N; catch, N = 200; end
       if numel(N) == 1, N = N*ones(2,1); end
       box = obj.feSpace.mesh.topology.globalSearcher.diam';
       [X,Y] = meshgrid(linspace(box(1), box(2), N(1)), ...
                        linspace(box(3), box(4), N(2)));
       Z = F([X(:) Y(:)]); % nPx1
-      surf(X,Y,reshape(Z,size(X))); shading interp
+      h = surf(X,Y,reshape(Z,size(X))); shading interp
       diam = obj.feSpace.mesh.topology.globalSearcher.diam';
       axis(diam(:)); view(0,90), axis normal; axis tight
     end

@@ -5,14 +5,21 @@ classdef Visualizer1D < Visualizer
     end
   end
   methods % display
-    function patch(obj, U, varargin)
-      obj.surf(U, varargin{:});
+    function h = patch(obj, U, varargin)
+      obj.test(U);
+      X = obj.feSpace.mesh.topology.getEntity(0);
+      Y = obj.feSpace.evalDoFVector(U, {X}, [], 0);
+      h = plot(X,Y);
     end
-    function surf(obj, U, varargin)
-      f = @(x)obj.feSpace.evalDoFVector(U, {x}, [], 0);
-      fplot(f, obj.feSpace.mesh.topology.globalSearcher.diam, varargin{:});
+    function h = surf(obj, U, varargin)
+      obj.test(U);
+      try N = varargin{1}.N; catch, N = 200; end
+      try box = varargin{1}.box; catch, box = obj.feSpace.mesh.topology.globalSearcher.diam'; end
+      X = linspace(box(1), box(2), N)';
+      Y = obj.feSpace.evalDoFVector(U, {X}, [], 0);
+      h = plot(X,Y);
     end
-    function scatter(obj, U, varargin) % [resolution]
+    function h = scatter(obj, U, varargin) % [resolution]
       if numel(U)~=obj.feSpace.getNDoF
         error('w is no DoFVector!');
       end
@@ -21,13 +28,13 @@ classdef Visualizer1D < Visualizer
       P = obj.feSpace.mesh.evalReferenceMap(points, 0); % nExnPxnD
       Z = obj.feSpace.evalDoFVector(U, points, [], 0);
       if size(P,3) == 1
-        scatter(P(:), Z(:), 2)
+        h = scatter(P(:), Z(:), 2);
       elseif size(P,3) == 2
         Px = P(:,:,1); Py = P(:,:,2);
-        plot3k([Px(:),Py(:),Z(:)]); view(0,90);
+        h = plot3k([Px(:),Py(:),Z(:)]); view(0,90);
       else
         Px = P(:,:,1); Py = P(:,:,2); Pz = P(:,:,3);
-        plot3k([Px(:),Py(:), Pz(:)], 'ColorData', Z(:));
+        h = plot3k([Px(:),Py(:), Pz(:)], 'ColorData', Z(:));
       end
     end
   end
