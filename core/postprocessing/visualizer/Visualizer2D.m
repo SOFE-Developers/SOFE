@@ -118,10 +118,13 @@ classdef Visualizer2D < Visualizer
       catch
         N = max(2,ceil(300/sqrt(nN*0.5^isT)));
       end
+      try codim = varargin{1}.codim; catch, codim = 0; end
       try deform = varargin{1}.deform; catch, deform = false; end
-      LS = linspace(0,1,N)';
-      [pointsX, pointsY] = meshgrid(LS, LS);
-      points = [pointsX(:) pointsY(:)];
+      points = linspace(0,1,N)';
+      if codim == 0
+        [pointsX, pointsY] = meshgrid(points);
+        points = [pointsX(:) pointsY(:)];
+      end
       if isT
         points = points(sum(points,2)<=1,:);
       end
