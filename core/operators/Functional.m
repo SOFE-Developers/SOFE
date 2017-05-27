@@ -9,7 +9,7 @@ classdef Functional < SOFE
   end
   methods % constructor
     function obj = Functional(data, fes, codim, varargin) % [loc]
-      if isreal(data), data = @(x)data+0*x(:,1); end
+      if isreal(data)&&numel(data)<=3, data = @(x)data+0*x(:,1); end
       obj.dataCache = data;
       obj.data = data;
       obj.fes = fes;
@@ -27,13 +27,15 @@ classdef Functional < SOFE
         obj.vector = [];
         obj.idx = ':';
       else
-        if nargin(obj.dataCache) == 2 % f(x,t)
-          obj.vector = [];
-          obj.data = @(x)obj.dataCache(x, varargin{1});  
-        elseif nargin(obj.dataCache) == 3 % f(x,t,U)
-          obj.vector = [];
-          obj.data = @(x, U)obj.dataCache(x, varargin{1}, U);
-          obj.state = varargin{2};
+        if ~isreal(obj.dataCache)
+          if nargin(obj.dataCache) == 2 % f(x,t)
+            obj.vector = [];
+            obj.data = @(x)obj.dataCache(x, varargin{1});  
+          elseif nargin(obj.dataCache) == 3 % f(x,t,U)
+            obj.vector = [];
+            obj.data = @(x, U)obj.dataCache(x, varargin{1}, U);
+            obj.state = varargin{2};
+          end
         end
         if ~isempty(obj.loc)
           if nargin(obj.loc) > 1 % loc(x,t)
