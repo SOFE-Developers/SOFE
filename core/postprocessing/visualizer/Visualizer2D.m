@@ -157,8 +157,7 @@ classdef Visualizer2D < Visualizer
           hold off
         end
       end
-      diam = obj.feSpace.mesh.topology.globalSearcher.diam';
-      axis(diam(:)); view(0,90), axis normal; axis tight
+      view(0,90), axis normal; axis tight
     end
     function h = surfFH(obj, F, varargin)
       try N = varargin{1}.N; catch, N = 200; end
