@@ -34,6 +34,17 @@ classdef MeshTopologyTri < MeshTopology
     end
   end
   methods % refinement
+    function addBoundaryLayer(obj, dN)
+      bFace = obj.getEntity(1,obj.isBoundary());
+      bNode = unique(bFace);
+      nN = obj.getNumber(0);
+      obj.nodes = [obj.nodes; obj.nodes(bNode,:)+dN];
+      idx = accumarray(bNode,nN+(1:numel(bNode)));
+      elNew = [bFace idx(bFace)];
+      elNew = [elNew(:,[1 2 3]); elNew(:,[4 3 2])];
+      obj.connectivity{3,1} = [obj.connectivity{3,1}; elNew];
+      obj.updateConnectivity();
+    end
     function uniformRefine(obj)
       el = obj.getEntity(2);
       nF = obj.getNumber(1); nN = obj.getNumber(0);

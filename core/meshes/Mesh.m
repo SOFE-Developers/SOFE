@@ -154,6 +154,7 @@ classdef Mesh < SOFE
       for i = 1:N
         obj.topology.uniformRefine();
       end
+      obj.topology.notifyObservers();
     end
   end
   methods % display

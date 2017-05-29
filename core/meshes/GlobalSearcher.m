@@ -50,7 +50,7 @@ classdef GlobalSearcher < SOFE
       bins = zeros([size(elem) size(obj.topology.nodes,2)]); % nExnVxnW
       nV = size(elem,2);
       for k = 1:nV
-       bins(:,k,:) = obj.getBin(obj.topology.nodes(elem(:,k),:)); % nExnVxnW
+        bins(:,k,:) = obj.getBin(obj.topology.nodes(elem(:,k),:)); % nExnVxnW
       end
       minBins = permute(min(bins,[],2), [1 3 2]); % nExnW
       maxBins = permute(max(bins,[],2), [1 3 2]); % nExnW

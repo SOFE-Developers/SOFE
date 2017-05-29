@@ -18,7 +18,7 @@ classdef MeshTopology < SOFE
       try
         obj.globalSearcher = GlobalSearcher(obj);
       catch
-        warning('Building GlobalSearcher failed');
+        fprintf('Building GlobalSearcher failed\n');
       end
     end
   end
@@ -30,7 +30,7 @@ classdef MeshTopology < SOFE
       try
         obj.globalSearcher = GlobalSearcher(obj);
       catch
-        warning('Building GlobalSearcher failed');
+        fprintf('Building GlobalSearcher failed\n');
       end
       for i = 1:numel(obj.observers)
         obj.observers{i}.notify();

@@ -284,6 +284,7 @@ classdef FESpace < SOFE
         else
           if block
             varargin{1} = obj.getBlock(codim, k{1});
+            if isempty(varargin{1}), R = []; return; end
           end
           if isempty(points)
             points = obj.getQuadData(codim);
@@ -346,6 +347,7 @@ classdef FESpace < SOFE
         end
         if block
           varargin{1} = obj.getBlock(codim, k{1});
+          if isempty(varargin{1}), R = []; return; end
         end
         if isempty(points)
           points = obj.getQuadData(codim);
@@ -353,6 +355,7 @@ classdef FESpace < SOFE
         assert(codim==0 || order==0, '! Derivatives for traces not supported !');
         basis = obj.evalGlobalBasis(points, [], order, varargin{:}); % [1/nE]xnB[xnP]xnCx[nD]
         dMap = abs(obj.getDoFMap(codim, varargin{:})).'; % nExnB
+        if isempty(dMap), R = []; return; end
         R = zeros(size(dMap)); I = dMap > 0; R(I) = U(dMap(I)); % nExnB
         R = sum(bsxfun(@times,permute(R,[1 3:5 2]),permute(basis,[1 3:5 2])),5); % nExnPxnCx[nD]
       end
@@ -512,6 +515,7 @@ classdef FESpace < SOFE
         R = sum(R,2)./val;
       else
         basis = obj.evalGlobalBasis([], codim, 0, varargin{:}); % nExnBxnPxnC
+        if isempty(basis), R = []; return; end
         F = permute(obj.evalFunction(f, [], codim, [], varargin{:}), [1 4 2 3]); % nEx1xnPxnC
         [~,~,jac] = obj.evalTrafoInfo([], codim, varargin{:}); % nExnP
         [~, weights] = obj.getQuadData(codim); % nPx1
