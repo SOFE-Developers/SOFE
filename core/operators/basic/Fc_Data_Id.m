@@ -9,6 +9,8 @@ classdef Fc_Data_Id < Functional % ( F, V )
       [points, weights] = obj.fes.getQuadData(obj.codim); % nPx1
       if isreal(obj.data)
         R = obj.data;
+      elseif iscell(obj.data)
+        R = obj.data{k};
       else
         R = obj.fes.evalFunction(obj.data, [], obj.codim, obj.state, {k}); % nExnPxnC
       end
