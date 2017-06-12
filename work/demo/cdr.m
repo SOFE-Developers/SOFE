@@ -1,5 +1,5 @@
 % PARAMETERS
-dim = 2; N = 30; order = 1; isTri = 0;
+dim = 3; N = 30; order = 1; isTri = 0;
 % DATA
 clear data;
 data.a = @(x)0.1+0*x(:,1);
@@ -8,7 +8,6 @@ data.c = @(x)1+0*x(:,1);
 data.f = @(x)1+0*x(:,1);
 % MESH
 m = RegularMesh(N*ones(dim,1), repmat([0 1],dim,1), isTri);
-if dim == 3, m.nBlock = 20; end
 % FESPACE
 if isTri
   e = PpL(dim, order);
