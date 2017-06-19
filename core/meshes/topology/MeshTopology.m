@@ -15,6 +15,9 @@ classdef MeshTopology < SOFE
       obj.connectivity = cell(obj.dimP+1);
       obj.connectivity{obj.dimP+1,1} = elem;
       obj.observers = {};
+      obj.buildGlobalSearcher();
+    end
+    function buildGlobalSearcher(obj)
       try
         obj.globalSearcher = GlobalSearcher(obj);
       catch
@@ -27,11 +30,7 @@ classdef MeshTopology < SOFE
       obj.observers = [obj.observers, {observer}];
     end
     function notifyObservers(obj)
-      try
-        obj.globalSearcher = GlobalSearcher(obj);
-      catch
-        fprintf('Building GlobalSearcher failed\n');
-      end
+      obj.buildGlobalSearcher();
       for i = 1:numel(obj.observers)
         obj.observers{i}.notify();
       end
