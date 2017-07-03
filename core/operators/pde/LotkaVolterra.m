@@ -8,7 +8,7 @@ classdef LotkaVolterra < PDE
       lhs = {{lap},  {}; ...
               {}, {lap}};
       rhs = {{f1}; {f2}};
-      obj = obj@PDE(lhs, rhs, struct('nonLin', true));
+      obj = obj@PDE(lhs, rhs);
     end
   end
 end

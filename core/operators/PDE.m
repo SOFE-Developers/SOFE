@@ -10,20 +10,17 @@ classdef PDE < SOFE
     fesTest,fesTrial
     I,J, nDoF
     %
-    time, state
-    nonLin = false;
+    time, state, dState
+    narginData
     stateChanged
     %
     solver = DirectSolver([]);
   end
   methods % constructor & more
-    function obj = PDE(lhs, rhs, varargin)
+    function obj = PDE(lhs, rhs)
       obj.lhs = lhs;
       obj.rhs = rhs;
       obj.nEq = numel(rhs);
-      if nargin > 2
-        obj.nonLin = varargin{1}.nonLin;
-      end
       obj.fesTrial = cell(obj.nEq, 1);
       obj.fesTest = cell(obj.nEq, 1);
       for i = 1:obj.nEq
@@ -40,10 +37,27 @@ classdef PDE < SOFE
           end
         end
       end
+      obj.checkNarginData();
       obj.mesh = obj.fesTrial{1}.mesh;
       obj.setIndices();
       obj.setTime(0.0);
       obj.setState();
+    end
+    function R = checkNarginData(obj)
+      R = 1; % maximal nargin of data(x,t,u,d)
+      for k = 1:size(obj.lhs,1)
+        for l = 1:size(obj.lhs,2)
+          for j = 1:numel(obj.lhs{k,l})
+            R = max(R, nargin(obj.lhs{k,l}{j}.dataCache));
+            if (l==1)
+              try
+                R = max(R, nargin(obj.rhs{k}{j}.dataCache));
+              end
+            end
+          end
+        end
+      end
+      obj.narginData = R;
     end
     function setIndices(obj)
       dimTest = zeros(obj.nEq, 1); dimTrial = zeros(obj.nEq, 1);
@@ -81,16 +95,29 @@ classdef PDE < SOFE
     end
     function setState(obj, varargin)
       obj.stateChanged = true;
-      if ~obj.nonLin, return; end
+      if obj.narginData < 3, return; end
       obj.state = cell(obj.nEq, 1); % {nEq}xnExnP
       for j = 1:obj.nEq
         [~, w] = obj.fesTrial{j}.getQuadData(0);
         nD = obj.fesTrial{j}.element.dimension;
         nC = size(obj.fesTrial{j}.element.evalBasis(zeros(1,nD),0),3);
-        obj.state{j} = zeros(obj.mesh.topology.getNumber(obj.mesh.topology.dimP), numel(w), nC);
+        nE = obj.mesh.topology.getNumber(obj.mesh.topology.dimP);
+        obj.state{j} = zeros(nE, numel(w), nC);
         if nargin < 2, continue; end
         U = varargin{1}(obj.J{j}(1):obj.J{j}(2));
         obj.state{j} = obj.fesTrial{j}.evalDoFVector(U, [], 0, 0);
+      end
+      if obj.narginData < 4, return; end
+      obj.dState = cell(obj.nEq, 1); % {nEq}xnExnP
+      for j = 1:obj.nEq
+        [~, w] = obj.fesTrial{j}.getQuadData(0);
+        nD = obj.fesTrial{j}.element.dimension;
+        nC = size(obj.fesTrial{j}.element.evalBasis(zeros(1,nD),0),3);
+        nE = obj.mesh.topology.getNumber(obj.mesh.topology.dimP);
+        obj.dState{j} = zeros(nE, numel(w), nC, nD);
+        if nargin < 2, continue; end
+        U = varargin{1}(obj.J{j}(1):obj.J{j}(2));
+        obj.dState{j} = obj.fesTrial{j}.evalDoFVector(U, [], 0, 1);
       end
     end
   end
@@ -132,7 +159,7 @@ classdef PDE < SOFE
       for i = 1:obj.nEq
         if ~isempty(obj.rhs{i})
           for k = 1:numel(obj.rhs{i})
-            obj.rhs{i}{k}.notify(obj.time, obj.state);
+            obj.rhs{i}{k}.notify(obj.time, obj.state, obj.dState);
             obj.rhs{i}{k}.assemble();
             idx = obj.I{i}(1):obj.I{i}(2);
             obj.loadVec(idx,:) = obj.loadVec(idx,:) + obj.rhs{i}{k}.vector;

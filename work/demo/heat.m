@@ -3,7 +3,6 @@ N = 50; M = 50;
 clear data;
 data.a    = @(x) 0.01 + 0*x(:,1);
 data.b    = @(x)0.5*[1+0*x(:,1) 1+0*x(:,1)];;
-data.f    = @(x) 0*x(:,1);
 data.g    = @(x) 0*x(:,1);
 % MESH
 m = RegularMesh([N; N], [0 1; 0 1], 0);

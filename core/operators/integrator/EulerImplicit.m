@@ -21,6 +21,7 @@ classdef EulerImplicit < Integrator
       for k = 1:obj.nT-1
         tt = tic;
         obj.statOp.setTime(obj.mesh.topology.nodes(k+1));
+        obj.statOp.setState(obj.solution{k});
         % assemble
         obj.statOp.assemble();
         S = obj.massOp.stiffMat + obj.dt(k)*obj.statOp.stiffMat;
@@ -31,7 +32,6 @@ classdef EulerImplicit < Integrator
         obj.solution{k+1}(~iTrial) = obj.statOp.shift(~iTrial);
         obj.solution{k+1}(iTrial) = obj.statOp.shift(iTrial) + ...
           obj.solver.solve(S(iTest, iTrial), b(iTest));
-        obj.statOp.setState(obj.solution{k+1});
         fprintf('timestep: %d / %d: %f sec\n', k, obj.nT-1, toc(tt));
       end
     end

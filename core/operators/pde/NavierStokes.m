@@ -14,7 +14,7 @@ classdef NavierStokes < PDE
       lhs = {{lap, conv},  {grad}; ...
              {div},     []};
       rhs = {f; []};
-      obj = obj@PDE(lhs, rhs, struct('nonLin', true));
+      obj = obj@PDE(lhs, rhs);
     end
   end
 end

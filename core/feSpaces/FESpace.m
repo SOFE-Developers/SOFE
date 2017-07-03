@@ -101,7 +101,7 @@ classdef FESpace < SOFE
     end
   end
   methods % evaluation.
-    function R = evalFunction(obj, F, points, codim, U, varargin) % [{k} or I]
+    function R = evalFunction(obj, F, points, codim, U, D, varargin) % [{k} or I]
       block = false;
       if nargin > 5 && iscell(varargin{1})
         block = true; k = varargin{1};
@@ -115,7 +115,7 @@ classdef FESpace < SOFE
       if isempty(points)
         points = obj.getQuadData(codim);
       end
-      R = obj.mesh.evalFunction(F, points, U, varargin{:});
+      R = obj.mesh.evalFunction(F, points, U, D, varargin{:});
     end
     function R = evalReferenceMap(obj, points, codim, varargin) % [{k} or I]
       block = false;
@@ -516,7 +516,7 @@ classdef FESpace < SOFE
       else
         basis = obj.evalGlobalBasis([], codim, 0, varargin{:}); % nExnBxnPxnC
         if isempty(basis), R = []; return; end
-        F = permute(obj.evalFunction(f, [], codim, [], varargin{:}), [1 4 2 3]); % nEx1xnPxnC
+        F = permute(obj.evalFunction(f, [], codim, [], [], varargin{:}), [1 4 2 3]); % nEx1xnPxnC
         [~,~,jac] = obj.evalTrafoInfo([], codim, varargin{:}); % nExnP
         [~, weights] = obj.getQuadData(codim); % nPx1
         dX = bsxfun(@times, abs(jac), weights'); % nExnP

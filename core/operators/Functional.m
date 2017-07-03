@@ -4,7 +4,7 @@ classdef Functional < SOFE
     data, dataCache
     fes
     vector
-    state
+    state, dState
     loc, idx
   end
   methods % constructor
@@ -35,6 +35,11 @@ classdef Functional < SOFE
             obj.vector = [];
             obj.data = @(x, U)obj.dataCache(x, varargin{1}, U);
             obj.state = varargin{2};
+          elseif nargin(obj.dataCache) == 4 % f(x,t,U,d)
+            obj.vector = [];
+            obj.data = @(x, U, d)obj.dataCache(x, varargin{1}, U, d);
+            obj.state = varargin{2};
+            obj.dState = varargin{3};
           end
         end
         if ~isempty(obj.loc)

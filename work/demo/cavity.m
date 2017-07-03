@@ -1,4 +1,4 @@
-N = 50; nNonLin = 7;
+N = 60; nNonLin = 7;
 isTri = 1; order = 2;
 % DATA
 clear data;

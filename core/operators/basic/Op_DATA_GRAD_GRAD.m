@@ -11,7 +11,7 @@ classdef Op_DATA_GRAD_GRAD < Operator % ( CC*GRAD(U), GRAD(V) )
       %
       [~, weights] = obj.fesTrial.getQuadData(obj.codim);
       [~,~,jac] = obj.fesTrial.evalTrafoInfo([], obj.codim, {k});
-      coeff = obj.fesTrial.evalFunction(obj.data, [], obj.codim, obj.state, {k});
+      coeff = obj.fesTrial.evalFunction(obj.data, [], obj.codim, obj.state, [], {k});
       nD = obj.fesTrial.element.dimension;
       coeff = reshape(coeff, size(coeff,1), size(coeff,2), nD, nD); % nExnPxnDxnD
       dX = bsxfun(@times, abs(jac), weights'); % nExnP

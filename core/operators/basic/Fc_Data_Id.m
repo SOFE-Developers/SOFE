@@ -12,7 +12,7 @@ classdef Fc_Data_Id < Functional % ( F, V )
       elseif iscell(obj.data)
         R = obj.data{k};
       else
-        R = obj.fes.evalFunction(obj.data, [], obj.codim, obj.state, {k}); % nExnPxnC
+        R = obj.fes.evalFunction(obj.data, [], obj.codim, obj.state, obj.dState, {k}); % nExnPxnC
       end
       if ~isempty(points)
         basis = obj.fes.evalGlobalBasis([], obj.codim, 0, {k}); % nExnBxnPxnC

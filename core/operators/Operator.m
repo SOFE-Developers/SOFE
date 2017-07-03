@@ -43,6 +43,10 @@ classdef Operator < SOFE
           obj.matrix = [];
           obj.data = @(x, U)obj.dataCache(x, varargin{1}, U);
           obj.state = varargin{2};
+        elseif nargin(obj.dataCache) == 4 % f(x,t,U,d)
+            obj.vector = [];
+            obj.data = @(x, U, d)obj.dataCache(x, varargin{1}, U, d);
+            obj.state = varargin{2};
         end
         if ~isempty(obj.loc)
           if nargin(obj.loc) > 1 % loc(x,t)
@@ -92,7 +96,7 @@ classdef Operator < SOFE
       [~, weights] = obj.fesTrial.getQuadData(obj.codim);
       [~,~,jac] = obj.fesTrial.evalTrafoInfo([], obj.codim, {k}); % nExnP
       if hasCoeff
-        coeff = obj.fesTrial.evalFunction(obj.data, [], obj.codim, obj.state, {k}); % nExnP
+        coeff = obj.fesTrial.evalFunction(obj.data, [], obj.codim, obj.state, [], {k}); % nExnP
         dX = bsxfun(@times, coeff.*abs(jac), weights'); % nExnP
       else
         dX = bsxfun(@times, abs(jac), weights'); % nExnP
