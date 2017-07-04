@@ -146,7 +146,7 @@ classdef Mesh < SOFE
             U{i} = reshape(U{i}(I,:), [], sz(3));
             D{i} = reshape(D{i}(I,:), [], sz(3), sz(4));
           end
-          R = reshape(F(P, U, D), nE, nP, sz(3)); % nExnPxnCxnD
+          R = reshape(F(P, U, D), nE, nP, []); % nExnPxnCxnD
       end
     end
     function [R, RVec] = integrate(obj, func, quadRule)

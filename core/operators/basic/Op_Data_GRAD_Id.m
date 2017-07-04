@@ -6,7 +6,7 @@ classdef Op_Data_GRAD_Id < Operator % ( C*GRAD(U), V )
   end
   methods
     function R = assembleOp(obj, k)
-      C = obj.fesTrial.evalFunction(obj.data, [], 0, obj.state, [], {k}); % nExnPxnW
+      C = obj.fesTrial.evalFunction(obj.data, [], 0, obj.state, obj.dState, {k}); % nExnPxnW
       C = permute(C, [1 4 2 5 3]); % nEx1xnPx1xnW
       dBasisJ = obj.fesTrial.evalGlobalBasis([], 0, 1, {k}); % nExnBxnPxnCxnW
       dBasisJ = sum(bsxfun(@times, dBasisJ, C), 5); % nExnBxnPxnC

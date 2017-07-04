@@ -140,7 +140,7 @@ classdef PDE < SOFE
         for j = 1:obj.nEq
           if ~isempty(obj.lhs{i,j})
             for k = 1:numel(obj.lhs{i,j})
-              obj.lhs{i,j}{k}.notify(obj.time, obj.state);
+              obj.lhs{i,j}{k}.notify(obj.time, obj.state, obj.dState);
               obj.lhs{i,j}{k}.assemble();
               %
               blk = obj.lhs{i,j}{k}.matrix;
