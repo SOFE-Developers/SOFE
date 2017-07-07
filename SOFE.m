@@ -9,24 +9,24 @@ classdef SOFE < handle
   end
   methods(Static = true) % path
     function R = getCorePath()
-      R = [pwd '/core'];
+      R = [pwd,filesep,'core'];
     end
     function R = getWorkPath()
-      R = [pwd '/work'];
+      R = [pwd,filesep,'work'];
     end
     function R = getPluginPath()
-      R = [pwd '/plugins'];
+      R = [pwd,filesep,'plugins'];
     end
     function unlock()
-      addpath(genpath([SOFE.getCorePath(),'/elements']));
-      addpath(genpath([SOFE.getCorePath(),'/feSpaces']));
-      addpath(genpath([SOFE.getCorePath(),'/helpers']));
-      addpath(genpath([SOFE.getCorePath(),'/meshes']));
-      addpath(genpath([SOFE.getCorePath(),'/operators']));
-      addpath(genpath([SOFE.getCorePath(),'/pdes']));
-      addpath(genpath([SOFE.getCorePath(),'/postprocessing']));
-      addpath(genpath([SOFE.getCorePath(),'/quadrature']));
-      addpath(genpath([SOFE.getCorePath(),'/solver']));
+      addpath(genpath([SOFE.getCorePath(),filesep,'elements']));
+      addpath(genpath([SOFE.getCorePath(),filesep,'feSpaces']));
+      addpath(genpath([SOFE.getCorePath(),filesep,'helpers']));
+      addpath(genpath([SOFE.getCorePath(),filesep,'meshes']));
+      addpath(genpath([SOFE.getCorePath(),filesep,'operators']));
+      addpath(genpath([SOFE.getCorePath(),filesep,'pdes']));
+      addpath(genpath([SOFE.getCorePath(),filesep,'postprocessing']));
+      addpath(genpath([SOFE.getCorePath(),filesep,'quadrature']));
+      addpath(genpath([SOFE.getCorePath(),filesep,'solver']));
       more off
     end
     function open(name)
@@ -42,7 +42,7 @@ classdef SOFE < handle
     end
     function R = isOpen()
       x = path();
-      i = strfind(x,'/work/');
+      i = strfind(x,[filesep,'work',filesep]);
       if ~isempty(i) 
           j = strfind(x(i(1):end),':');
           R = x(i(1)+6:i(1)+j(1)-2);
@@ -58,11 +58,11 @@ classdef SOFE < handle
       end
     end
     function plugin(name)
-      addpath(genpath([SOFE.getPluginPath(),'/', name]));
+      addpath(genpath([SOFE.getPluginPath(),filesep, name]));
     end
     function plugout(varargin)
       if nargin > 0
-        rmpath(genpath([SOFE.getPluginPath(),'/', varargin{:}]));
+        rmpath(genpath([SOFE.getPluginPath(),filesep, varargin{:}]));
       else
         addpath(genpath(SOFE.getPluginPath()));
         rmpath(genpath(SOFE.getPluginPath()));
@@ -70,11 +70,11 @@ classdef SOFE < handle
     end
     function pluggedin()
       X = path;
-      I = strfind(X,'/plugins/');
+      I = strfind(X,[filesep,'plugins',filesep]);
       plugin = '';
       while ~isempty(I)
         x = X(I(1)+9:end);
-        i = strfind(x,'/');
+        i = strfind(x,filesep,'');
         if ~strcmp(plugin, x(1:i(1)-1))
           plugin = x(1:i(1)-2);
           fprintf([plugin '\n']);
