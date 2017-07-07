@@ -1,6 +1,6 @@
-classdef Op_data_Curl_Id < Operator % ( c*Curl(U), V )
+classdef OpCurlId < Operator % ( c*Curl(U), V )
   methods % constructor
-    function obj = Op_data_Curl_Id(coeff, fesTrial, varargin)
+    function obj = OpCurlId(coeff, fesTrial, varargin)
       obj = obj@Operator(coeff, fesTrial, varargin{:});
     end
   end

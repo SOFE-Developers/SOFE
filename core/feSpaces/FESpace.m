@@ -494,8 +494,8 @@ classdef FESpace < SOFE
       end
     end
     function R = getL2Projection(obj, f)
-      mass = Op_data_Id_Id(1, 0, obj); mass.assemble();
-      l2 = Fc_Data_Id(f, obj,0); l2.assemble();
+      mass = OpIdId(1, 0, obj); mass.assemble();
+      l2 = FcId(f, obj,0); l2.assemble();
       R = mass.matrix \ l2.vector;
     end
     function R = getInterpolation(obj, f, codim, varargin) % [{k} or I]

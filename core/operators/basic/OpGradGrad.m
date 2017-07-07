@@ -1,6 +1,6 @@
-classdef Op_data_GRAD_GRAD < Operator % ( c*GRAD(U), GRAD(V) )
+classdef OpGradGrad < Operator % ( c*GRAD(U), GRAD(V) )
   methods % constructor
-    function obj = Op_data_GRAD_GRAD(coeff, fesTrial, varargin)
+    function obj = OpGradGrad(coeff, fesTrial, varargin)
       obj = obj@Operator(coeff, fesTrial, varargin{:});
     end
   end

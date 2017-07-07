@@ -1,6 +1,6 @@
-classdef Op_data_Id_Id < Operator % ( c*U, V )
+classdef OpIdId < Operator % ( c*U, V )
   methods % constructor
-    function obj = Op_data_Id_Id(coeff, codim, fesTrial, varargin) % [fesTest loc]
+    function obj = OpIdId(coeff, codim, fesTrial, varargin) % [fesTest loc]
       obj = obj@Operator(coeff, fesTrial, varargin{:});
       obj.codim = codim;
       if codim == 1 && nargin < 6

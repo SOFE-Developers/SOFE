@@ -1,6 +1,6 @@
-classdef Op_data_Curl_Curl < Operator % ( c*Curl(U), Curl(V) )
+classdef OpCurlCurl < Operator % ( c*Curl(U), Curl(V) )
   methods % constructor
-    function obj = Op_data_Curl_Curl(coeff, fesTrial, varargin)
+    function obj = OpCurlCurl(coeff, fesTrial, varargin)
       obj = obj@Operator(coeff, fesTrial, varargin{:});
     end
   end

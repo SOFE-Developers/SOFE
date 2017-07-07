@@ -1,6 +1,6 @@
-classdef Op_NULL < Operator % ( 0*U, V )
+classdef OpNull < Operator % ( 0*U, V )
   methods 
-    function obj = Op_NULL(fesTrial, fesTest)
+    function obj = OpNull(fesTrial, fesTest)
       obj = obj@Operator([], fesTrial, fesTest);
     end
   end

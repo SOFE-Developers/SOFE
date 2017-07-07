@@ -1,6 +1,6 @@
-classdef Fc_Data_Id < Functional % ( F, V )
+classdef FcId < Functional % ( F, V )
   methods % constructor
-    function obj = Fc_Data_Id(coeff, fes, codim, varargin) % [loc]
+    function obj = FcId(coeff, fes, codim, varargin) % [loc]
       obj = obj@Functional(coeff, fes, codim, varargin{:});
     end
   end

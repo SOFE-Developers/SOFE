@@ -1,9 +1,9 @@
-classdef Op_data_d_id < Operator % ( c*dx_k(u), v )
+classdef OpDId < Operator % ( c*dx_k(u), v )
   properties
     kIdx
   end
   methods % constructor
-    function obj = Op_data_d_id(coeff, kIdx, fesTrial, varargin)
+    function obj = OpDId(coeff, kIdx, fesTrial, varargin)
       obj = obj@Operator(coeff, fesTrial, varargin{:});
       obj.kIdx = kIdx;
     end

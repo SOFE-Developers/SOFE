@@ -1,6 +1,6 @@
-classdef Op_data_div_id < Operator % (c*div(U), v )
+classdef OpDivId < Operator % (c*div(U), v )
   methods % constructor
-    function obj = Op_data_div_id(coeff, fesTrial, fesTest)
+    function obj = OpDivId(coeff, fesTrial, fesTest)
       obj = obj@Operator(coeff, fesTrial, fesTest);
     end
   end
