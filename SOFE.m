@@ -85,7 +85,7 @@ classdef SOFE < handle
   end
   methods(Static = true)
     function R = getElementsPerBlock(nB, nQ, nC, nD)
-      R = floor(1/3*10^9*SOFE.mem/8/nB^2/nQ/nC/nD);
+      R = max(floor(1/3*10^9*SOFE.mem/8/nB^2/nQ/nC/nD), 1);
     end
   end
   methods

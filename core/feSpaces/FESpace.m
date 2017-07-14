@@ -324,7 +324,7 @@ classdef FESpace < SOFE
         codim = obj.element.dimension-size(points,2);
       end
       if nargin < 6 || (nargin == 6 && ischar(varargin{1}) && strcmp(varargin,':'))
-        nBl = obj.nBlock(codim+1); R = cell(nBl,1); s = 0;
+        nBl = obj.nBlock(codim+1); R = cell(nBl,1); s = '';
         for k = 1:nBl
           R{k} = obj.evalDoFVector(U, points, codim, order, {k}); % nExnPxnCxnD
           if nBl>1 
@@ -500,7 +500,7 @@ classdef FESpace < SOFE
     end
     function R = getInterpolation(obj, f, codim, varargin) % [{k} or I]
       if nargin < 4 || (nargin == 6 && ischar(varargin{1}) && strcmp(varargin,':'))
-        nBl = obj.nBlock(codim+1); R = cell(1,nBl); s = 0;
+        nBl = obj.nBlock(codim+1); R = cell(1,nBl); s = '';
         for k = 1:nBl
           R{k} = obj.getInterpolation(f, codim, {k});
           if nBl>1
