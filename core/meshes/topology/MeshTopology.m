@@ -171,7 +171,11 @@ classdef MeshTopology < SOFE
         end
         II = sparse(segm(:,[1 2]),segm(:,[2 1]),segm(:,[2 1]));
         II = leftShiftNonZero(II);
-        R = full(II(:,1:2));
+        if dim < 0 % on boundary
+          R = full(II(:,1:2));
+        else
+          R = full(II(:,1:max(sum(II>0,2))));
+        end
         R(R(:,1)==0,:) = [];
       end
     end
