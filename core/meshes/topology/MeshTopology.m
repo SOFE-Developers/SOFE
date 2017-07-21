@@ -151,17 +151,29 @@ classdef MeshTopology < SOFE
       type = full(sparse(obj.getElem2Face(), orient, ones(nE,1)*(1:size(orient,2)),nF,2));
     end
     function R = getNodePatch(obj, dim)
-      nE = obj.getNumber(dim);
-      entity = obj.getEntity(dim);
-      idx = repmat((1:nE)', 1, size(entity,2));
-      entity = entity(:);
-      [~,I] = sort(entity);
-      count = accumarray(entity,1);
-      maxCount = max(count);
-      upperTri = triu(repmat((1:maxCount)',1,maxCount));
-      count = upperTri(:,count); count = count(:);
-      count(count==0) = [];
-      R = accumarray([entity(I), count], idx(I));
+      if dim>0
+        nE = obj.getNumber(dim);
+        entity = obj.getEntity(dim);
+        idx = repmat((1:nE)', 1, size(entity,2));
+        entity = entity(:);
+        [~,I] = sort(entity);
+        count = accumarray(entity,1);
+        maxCount = max(count);
+        upperTri = triu(repmat((1:maxCount)',1,maxCount));
+        count = upperTri(:,count); count = count(:);
+        count(count==0) = [];
+        R = accumarray([entity(I), count], idx(I));
+      else
+        segm = obj.getEntity(1);
+        if dim < 0 % on boundary
+          iB = obj.isBoundary;
+          segm = segm(iB,:);  
+        end
+        II = sparse(segm(:,[1 2]),segm(:,[2 1]),segm(:,[2 1]));
+        II = leftShiftNonZero(II);
+        R = full(II(:,1:2));
+        R(R(:,1)==0,:) = [];
+      end
     end
   end
   methods % mesh operations
