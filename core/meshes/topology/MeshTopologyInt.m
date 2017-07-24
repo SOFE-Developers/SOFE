@@ -13,11 +13,11 @@ classdef MeshTopologyInt < MeshTopology
     function show(obj)
       switch size(obj.nodes, 2)
         case 1
-          plot(obj.nodes, zeros(obj.getNumber(0),1), '.');
+          plot(obj.nodes, zeros(obj.getNumber(0),1), '*');
         case 2
-          plot(obj.nodes(:,1), obj.nodes(:,2), '.');
+          plot(obj.nodes(:,1), obj.nodes(:,2), '*');
         case 3
-          plot3(obj.nodes(:,1), obj.nodes(:,2), obj.nodes(:,3), '.');
+          plot3(obj.nodes(:,1), obj.nodes(:,2), obj.nodes(:,3), '*');
       end
     end
     function showNodeVector(obj, U)
