@@ -342,8 +342,12 @@ classdef FESpace < SOFE
         R = R(I,:,:,:);
       else
         block = false;
-        if nargin > 5 && iscell(varargin{1})
-          block = true; k = varargin{1};
+        if nargin > 5
+          if iscell(varargin{1})
+            block = true; k = varargin{1};
+          elseif isempty(varargin{1})
+            R = []; return
+          end
         end
         if block
           varargin{1} = obj.getBlock(codim, k{1});
