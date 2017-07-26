@@ -125,7 +125,7 @@ classdef Mesh < SOFE
   end
   methods % evaluation
     function R = evalFunction(obj, F, points, U, D, varargin) % [I]
-      I = ':'; if nargin > 4, I = varargin{1}; end
+      I = ':'; if nargin > 5, I = varargin{1}; end
       P = obj.evalReferenceMap(points, 0, I); % nExnPxnW
       [nE, nP, nD] = size(P);
       P = reshape(P, nE*nP, nD); % (nE*nP)xnW
@@ -149,11 +149,11 @@ classdef Mesh < SOFE
           R = reshape(F(P, U, D), nE, nP, []); % nExnPxnCxnD
       end
     end
-    function [R, RVec] = integrate(obj, func, quadRule)
+    function [R, RVec] = integrate(obj, func, quadRule, varargin)
       if ~isreal(func)
-        func = obj.evalFunction(func, quadRule.points, [], []);
+        func = obj.evalFunction(func, quadRule.points, [], [], varargin{:});
       end
-      [~,~,trafo] = obj.evalTrafoInfo(quadRule.points);
+      [~,~,trafo] = obj.evalTrafoInfo(quadRule.points,varargin{:});
       RVec = (func.*abs(trafo))*quadRule.weights;
       R =  sum(RVec);
     end

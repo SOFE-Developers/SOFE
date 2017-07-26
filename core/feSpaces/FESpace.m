@@ -103,7 +103,7 @@ classdef FESpace < SOFE
   methods % evaluation.
     function R = evalFunction(obj, F, points, codim, U, D, varargin) % [{k} or I]
       block = false;
-      if nargin > 5 && iscell(varargin{1})
+      if nargin > 6 && iscell(varargin{1})
         block = true; k = varargin{1};
       end
       if ~isempty(points)
