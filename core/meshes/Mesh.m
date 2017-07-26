@@ -2,6 +2,7 @@ classdef Mesh < SOFE
   properties
     element
     topology
+    nNewtonMax = 1
   end
   methods % constructor & more
     function obj = Mesh(nodes, elem, varargin) % [dimP]
@@ -103,13 +104,12 @@ classdef Mesh < SOFE
       C = obj.topology.globalSearcher.findCandidates(points);
       [nP, nC] = size(C);
       H = zeros(nP,1); L = zeros(size(points));
-      nMax = 1;
       todo = (1:nP)';
       for i = 1:nC
         if isempty(todo), break; end
         todo(C(todo,i)==0) = [];
         pLoc = zeros(numel(todo), size(points,2));
-        for n = 1:nMax
+        for n = 1:obj.nNewtonMax
           Phi = obj.evalReferenceMap({pLoc, C(todo,i)}, 0);
           [~, DPhiInv] = obj.evalTrafoInfo({pLoc, C(todo,i)});
           delta = sum(bsxfun(@times, DPhiInv, permute(points(todo,:) - Phi,[1 3 2])), 3);
