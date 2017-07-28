@@ -47,10 +47,11 @@ classdef GlobalSearcher < SOFE
     end
     function R = buildBackgroundMesh(obj, I)
       elem = obj.topology.getEntity(obj.topology.dimP, I); % nExnV
-      bins = zeros([size(elem) size(obj.topology.nodes,2)]); % nExnVxnW
+      bins = nan([size(elem) size(obj.topology.nodes,2)]); % nExnVxnW
       nV = size(elem,2);
       for k = 1:nV
-        bins(:,k,:) = obj.getBin(obj.topology.nodes(elem(:,k),:)); % nExnVxnW
+        I = (elem(:,k)>0);
+        bins(I,k,:) = obj.getBin(obj.topology.nodes(elem(I,k),:)); % nExnVxnW
       end
       minBins = permute(min(bins,[],2), [1 3 2]); % nExnW
       maxBins = permute(max(bins,[],2), [1 3 2]); % nExnW
