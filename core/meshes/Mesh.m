@@ -100,47 +100,50 @@ classdef Mesh < SOFE
       end
     end
     function R = evalInversReferenceMap(obj, points, varargin) % [output flag]
+      armijo = false; armijoMax = 5; notFMax = 2; out = false;
       C = obj.topology.globalSearcher.findCandidates(points);
-      center = obj.topology.getCenterLoc();
       [nP, nC] = size(C);
-      H = zeros(nP,1); L = zeros(size(points));
-      Ic = (1:nP)';
-      % Ic ... to iterate on candidates
-      % In ... to iterate on Newton steps
-      % Is ... to iterate on Armijo steps
+      H = zeros(nP,1); L = zeros(size(points)); Ic = (1:nP)';
       for i = 1:nC
         if isempty(Ic), break; end
         Ic(C(Ic,i)==0) = [];
         In = (1:numel(Ic))';
         InotF = zeros(size(In));
-        pLoc = repmat(center,numel(Ic),1);
+        pLoc = repmat(obj.topology.getCenterLoc(), numel(Ic),1);
         for n = 1:10
-          if nargin > 2, fprintf('Cand=%d(#points:%d), nNewton=%d\n',i,numel(Ic),n); end
-          Phi = obj.evalReferenceMap({pLoc(In,:), C(Ic(In),i)}, 0);
+          pLocN = pLoc(In,:);
+          Phi = obj.evalReferenceMap({pLocN, C(Ic(In),i)}, 0);
           F = points(Ic(In),:) - Phi;
-          InotF = InotF + (~obj.topology.isFeasible(pLoc(In,:)));
-          normF = sum(F.^2,2); del = normF<1e-12 | InotF>2;
-          In(del) = []; F(del,:) = []; normF(del) = []; InotF(del) = []; % Newton converged
+          % test for convergence
+          InotF = InotF + (~obj.topology.isFeasible(pLocN));
+          normF = sum(F.^2,2); del = normF<1e-12 | InotF>notFMax;
+          In(del) = []; F(del,:) = [];
+          normF(del) = []; InotF(del) = []; pLocN(del,:) = [];
           if isempty(In), break; end
           % Newton step
-          [~, DPhiInv] = obj.evalTrafoInfo({pLoc(In,:), C(Ic(In),i)});
+          [~, DPhiInv] = obj.evalTrafoInfo({pLocN, C(Ic(In),i)});
           delta = sum(bsxfun(@times, DPhiInv, permute(F,[1 3 2])), 3);
-          % Armijo control
-          step = ones(size(In));
-          Is = (1:numel(step))';
-          pLocTmp = pLoc(In,:);
-          while ~isempty(Is)
-            pLocTmp(Is,:) = pLoc(In(Is),:) + bsxfun(@times, step(Is), delta(Is,:));
-            PhiTmp = obj.evalReferenceMap({pLocTmp(Is,:), C(Ic(In(Is)),i)}, 0);
-            normFTmp = sum((points(Ic(In(Is),:),:) - PhiTmp).^2,2);
-            Is(normFTmp <= normF(Is)) = [];
-            step = step/2;
+          if ~armijo
+            pLoc(In,:) = pLocN + delta;
+          else % Armijo control
+            step = ones(size(In));
+            Is = (1:numel(step))';
+            pLocTmp = pLocN;
+            cnt = 0;
+            while ~isempty(Is) && cnt < armijoMax
+              cnt = cnt+1;
+              pLocTmp(Is,:) = pLocN(Is,:) + bsxfun(@times, step(Is), delta(Is,:));
+              PhiTmp = obj.evalReferenceMap({pLocTmp(Is,:), C(Ic(In(Is)),i)}, 0);
+              normFTmp = sum((points(Ic(In(Is),:),:) - PhiTmp).^2,2);
+              Is(normFTmp <= normF(Is)) = [];
+              step = step/2;
+            end
+            pLoc(In,:) = pLocTmp;
           end
-          pLoc(In,:) = pLocTmp;
+          if out, fprintf('Cand=%d(#points:%d), nNewton=%d\n',i,numel(Ic),n); end
         end
         I = obj.topology.isFeasible(pLoc);
-        H(Ic(I)) = C(Ic(I),i);
-        L(Ic(I),:) = pLoc(I,:);
+        H(Ic(I)) = C(Ic(I),i); L(Ic(I),:) = pLoc(I,:);
         Ic = Ic(~I);
       end
       R = {L,H};
