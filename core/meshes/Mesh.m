@@ -2,7 +2,6 @@ classdef Mesh < SOFE
   properties
     element
     topology
-    nNewtonMax = 1
   end
   methods % constructor & more
     function obj = Mesh(nodes, elem, varargin) % [dimP]
@@ -115,7 +114,7 @@ classdef Mesh < SOFE
         In = (1:numel(Ic))';
         InotF = zeros(size(In));
         pLoc = repmat(center,numel(Ic),1);
-        for n = 1:obj.nNewtonMax
+        for n = 1:10
           if nargin > 2, fprintf('Cand=%d(#points:%d), nNewton=%d\n',i,numel(Ic),n); end
           Phi = obj.evalReferenceMap({pLoc(In,:), C(Ic(In),i)}, 0);
           F = points(Ic(In),:) - Phi;
