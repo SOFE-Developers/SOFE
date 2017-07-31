@@ -191,5 +191,8 @@ classdef MeshTopologyHex < MeshTopology
            points(:,2)>-tol & points(:,2)<1+tol & ...
            points(:,3)>-tol & points(:,3)<1+tol );
     end
+    function R = getCenterLoc()
+      R = [1 1 1]/2;
+    end
   end
 end

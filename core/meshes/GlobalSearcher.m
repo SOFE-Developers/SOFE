@@ -27,9 +27,9 @@ classdef GlobalSearcher < SOFE
       obj.diam(:,1) = min(obj.topology.nodes); % nWx2
       obj.diam(:,2) = max(obj.topology.nodes); % nWx2
       range = diff(obj.diam');
-      obj.diam(:,1) = obj.diam(:,1) - 0.01*range'; % nWx2
-      obj.diam(:,2) = obj.diam(:,2) + 0.01*range'; % nWx2
-      obj.NVec = obj.topology.getNumber(obj.topology.dimP)/2^dim; % number of bins
+      obj.diam(:,1) = obj.diam(:,1) - 0.05*range'; % nWx2
+      obj.diam(:,2) = obj.diam(:,2) + 0.05*range'; % nWx2
+      obj.NVec = 10*obj.topology.getNumber(obj.topology.dimP)/2^dim; % number of bins
       if dim == 2
         obj.NVec = [obj.NVec*range(1)/range(2) ...
                     obj.NVec*range(2)/range(1)].^(1/2);

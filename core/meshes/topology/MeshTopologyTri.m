@@ -88,6 +88,9 @@ classdef MeshTopologyTri < MeshTopology
       tol = 1e-12;
       R = (all(points>-tol, 2) & 1-sum(points,2)>-tol);
     end
+    function R = getCenterLoc()
+      R = [1 1]/3;
+    end
     function R = getQuadRule(quadOrder)
       R{3} = GaussPoint();
       R{2} = GaussInt(quadOrder);

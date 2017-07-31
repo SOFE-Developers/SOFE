@@ -187,6 +187,9 @@ classdef MeshTopologyTet < MeshTopology
       tol = 1e-12;
       R = (all(points>-tol, 2) & 1-sum(points,2)>-tol);
     end
+    function R = getCenterLoc()
+      R = [1 1 1]/4;
+    end
     function R = renumber(nodes, elem)
       v1 = nodes(elem(:,2),:) - nodes(elem(:,1),:);
       v2 = nodes(elem(:,3),:) - nodes(elem(:,1),:);
