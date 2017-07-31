@@ -46,7 +46,7 @@ classdef MeshTopologyInt < MeshTopology
       R = (points>-tol & points<1+tol);
     end
     function R = getCenterLoc()
-      R = 1(2;
+      R = 1/2;
     end
   end
 end
