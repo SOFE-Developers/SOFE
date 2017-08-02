@@ -29,7 +29,7 @@ classdef GlobalSearcher < SOFE
       range = diff(obj.diam');
       obj.diam(:,1) = obj.diam(:,1) - 0.05*range'; % nWx2
       obj.diam(:,2) = obj.diam(:,2) + 0.05*range'; % nWx2
-      obj.NVec = 10*obj.topology.getNumber(obj.topology.dimP)/2^dim; % number of bins
+      obj.NVec = 5*obj.topology.getNumber(obj.topology.dimP)/2^dim; % number of bins
       if dim == 2
         obj.NVec = [obj.NVec*range(1)/range(2) ...
                     obj.NVec*range(2)/range(1)].^(1/2);

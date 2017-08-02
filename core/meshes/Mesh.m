@@ -105,8 +105,8 @@ classdef Mesh < SOFE
       [nP, nC] = size(C);
       H = zeros(nP,1); L = zeros(size(points)); Ic = (1:nP)';
       for i = 1:nC
-        if isempty(Ic), break; end
         Ic(C(Ic,i)==0) = [];
+        if isempty(Ic), break; end
         In = (1:numel(Ic))';
         InotF = zeros(size(In));
         pLoc = repmat(obj.topology.getCenterLoc(), numel(Ic),1);
