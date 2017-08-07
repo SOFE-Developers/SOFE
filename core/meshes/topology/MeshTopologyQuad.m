@@ -51,12 +51,12 @@ classdef MeshTopologyQuad < MeshTopology
     function show(obj)
       elem = obj.getEntity(obj.dimP);
       if size(obj.nodes, 2) == 2
-        trisurf(elem(:,[1 2 4 3]), obj.nodes(:,1), obj.nodes(:,2), zeros(size(obj.nodes,1),1));
+        h = trisurf(elem(:,[1 2 4 3]), obj.nodes(:,1), obj.nodes(:,2), zeros(size(obj.nodes,1),1));
         view(0,90);
       else
         h = trimesh(elem(:,[1 2 4 3]), obj.nodes(:,1), obj.nodes(:,2), obj.nodes(:,3));
-        set(h, 'EdgeColor','black')
       end
+      set(h,'facecolor',[0.5 0.8 0.5], 'edgecolor', 'k');
     end
     function showEntity(obj, dim)
       center = obj.getCenter(dim);
