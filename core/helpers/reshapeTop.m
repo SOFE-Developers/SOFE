@@ -3,7 +3,8 @@ function R = reshapeTop(slots, varargin)
 	% entries from varargin
 	% Columnwise, the matrix is filled from top to bottom,
 	% unspecified entries being filled with zero.
-	rows = max(slots);
+	if isempty(slots), R = []; return; end
+  rows = max(slots);
 	cols = numel(slots);
 	R = repmat((1:rows)',1,cols); 
 	R = bsxfun(@le,R,slots(:)');
