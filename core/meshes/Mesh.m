@@ -116,7 +116,7 @@ classdef Mesh < SOFE
           F = points(Ic(In),:) - Phi;
           % test for convergence
           InotF = InotF + (~obj.topology.isFeasible(pLocN));
-          normF = sum(F.^2,2); del = normF<1e-12 | InotF>notFMax;
+          normF = sum(F.^2,2); del = normF<1e-32 | InotF>notFMax;
           In(del) = []; F(del,:) = [];
           normF(del) = []; InotF(del) = []; pLocN(del,:) = [];
           if isempty(In), break; end
@@ -140,7 +140,7 @@ classdef Mesh < SOFE
             end
             pLoc(In,:) = pLocTmp;
           end
-          if out, fprintf('Cand=%d(#points:%d), nNewton=%d\n',i,numel(Ic),n); end
+          if out, fprintf('Cand=%d(#points:%d), nNewton=%d\n',i,numel(Ic),n); end %#ok<UNRCH>
         end
         I = obj.topology.isFeasible(pLoc);
         H(Ic(I)) = C(Ic(I),i); L(Ic(I),:) = pLoc(I,:);

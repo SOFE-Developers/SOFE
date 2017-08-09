@@ -114,7 +114,7 @@ classdef Visualizer2D < Visualizer
       isT = obj.feSpace.element.isSimplex();
       nN = obj.feSpace.mesh.topology.getNumber(2);
       try
-        N = varargin{1}.N/sqrt(nN*0.5^isT);
+        N = max(2,varargin{1}.N/sqrt(nN*0.5^isT));
       catch
         N = max(2,ceil(300/sqrt(nN*0.5^isT)));
       end
