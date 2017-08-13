@@ -7,7 +7,7 @@ classdef FcId < Functional % ( F, V )
   methods
     function R = assembleOp(obj, k)
       [points, weights] = obj.fes.getQuadData(obj.codim); % nPx1
-      if isreal(obj.data)
+      if isnumeric(obj.data)
         R = obj.data;
       elseif iscell(obj.data)
         R = obj.data{k};

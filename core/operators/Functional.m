@@ -9,7 +9,9 @@ classdef Functional < SOFE
   end
   methods % constructor
     function obj = Functional(data, fes, codim, varargin) % [loc]
-      if isreal(data)&&numel(data)<=3, data = @(x)data+0*x(:,1); end
+      if isnumeric(data) && numel(data)<4
+        data = @(x)data+zeros(size(x,1),numel(data)); 
+      end
       obj.dataCache = data;
       obj.data = data;
       obj.fes = fes;
@@ -27,7 +29,7 @@ classdef Functional < SOFE
         obj.vector = [];
         obj.idx = ':';
       else
-        if ~isreal(obj.dataCache)
+        if ~isnumeric(obj.dataCache)
           if nargin(obj.dataCache) == 2 % f(x,t)
             obj.vector = [];
             obj.data = @(x)obj.dataCache(x, varargin{1});  

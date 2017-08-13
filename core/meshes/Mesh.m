@@ -176,7 +176,7 @@ classdef Mesh < SOFE
       end
     end
     function [R, RVec] = integrate(obj, func, quadRule, varargin)
-      if ~isreal(func)
+      if ~isnumeric(func)
         func = obj.evalFunction(func, quadRule.points, [], [], varargin{:});
       end
       [~,~,trafo] = obj.evalTrafoInfo(quadRule.points,varargin{:});

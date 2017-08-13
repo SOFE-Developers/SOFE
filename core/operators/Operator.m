@@ -9,7 +9,9 @@ classdef Operator < SOFE
   end
   methods % constructor
     function obj = Operator(data, fesTrial, varargin) % [fesTest loc]
-      if isreal(data), data = @(x)data+zeros(size(x,1),numel(data)); end
+      if isnumeric(data) && numel(data)<4
+        data = @(x)data+zeros(size(x,1),numel(data)); 
+      end
       obj.dataCache = data;
       obj.data = data;
       obj.fesTrial = fesTrial;
@@ -36,18 +38,20 @@ classdef Operator < SOFE
         obj.matrix = [];
         obj.idx = ':';
       else
-        if nargin(obj.dataCache) == 2 % f(x,t)
-          obj.matrix = [];
-          obj.data = @(x)obj.dataCache(x, varargin{1});
-        elseif nargin(obj.dataCache) == 3 % f(x,t,U)
-          obj.matrix = [];
-          obj.data = @(x, U)obj.dataCache(x, varargin{1}, U);
-          obj.state = varargin{2};
-        elseif nargin(obj.dataCache) == 4 % f(x,t,U,d)
+        if ~isnumeric(obj.dataCache)
+          if nargin(obj.dataCache) == 2 % f(x,t)
             obj.matrix = [];
-            obj.data = @(x, U, d)obj.dataCache(x, varargin{1}, U, d);
+            obj.data = @(x)obj.dataCache(x, varargin{1});
+          elseif nargin(obj.dataCache) == 3 % f(x,t,U)
+            obj.matrix = [];
+            obj.data = @(x, U)obj.dataCache(x, varargin{1}, U);
             obj.state = varargin{2};
-            obj.dState = varargin{3};
+          elseif nargin(obj.dataCache) == 4 % f(x,t,U,d)
+              obj.matrix = [];
+              obj.data = @(x, U, d)obj.dataCache(x, varargin{1}, U, d);
+              obj.state = varargin{2};
+              obj.dState = varargin{3};
+          end
         end
         if ~isempty(obj.loc)
           if nargin(obj.loc) > 1 % loc(x,t)
@@ -96,12 +100,16 @@ classdef Operator < SOFE
     function R = integrate(obj, hasCoeff, basisI, basisJ, k)
       [~, weights] = obj.fesTrial.getQuadData(obj.codim);
       [~,~,jac] = obj.fesTrial.evalTrafoInfo([], obj.codim, {k}); % nExnP
+      jac = abs(jac);
       if hasCoeff
-        coeff = obj.fesTrial.evalFunction(obj.data, [], obj.codim, obj.state, obj.dState, {k}); % nExnP
-        dX = bsxfun(@times, coeff.*abs(jac), weights'); % nExnP
-      else
-        dX = bsxfun(@times, abs(jac), weights'); % nExnP
+        if ~isnumeric(obj.data)
+          coef = obj.fesTrial.evalFunction(obj.data, [], obj.codim, obj.state, obj.dState, {k}); % nExnP
+        else
+          coef = obj.data;
+        end
+        jac = jac.*coef;
       end
+      dX = bsxfun(@times, jac, weights'); % nExnP
       nE = size(basisI, 1); nBI = size(basisI, 2); nBJ = size(basisJ,2); nP = size(basisI,3);
       basisI = reshape(basisI, nE, nBI, nP, []);
       basisJ = reshape(basisJ, nE, nBJ, nP, []);
