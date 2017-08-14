@@ -48,7 +48,9 @@ classdef PDE < SOFE
       for k = 1:size(obj.lhs,1)
         for l = 1:size(obj.lhs,2)
           for j = 1:numel(obj.lhs{k,l})
-            R = max(R, nargin(obj.lhs{k,l}{j}.dataCache));
+            try
+              R = max(R, nargin(obj.lhs{k,l}{j}.dataCache));
+            end
             if (l==1)
               try
                 R = max(R, nargin(obj.rhs{k}{j}.dataCache));

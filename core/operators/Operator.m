@@ -100,16 +100,15 @@ classdef Operator < SOFE
     function R = integrate(obj, hasCoeff, basisI, basisJ, k)
       [~, weights] = obj.fesTrial.getQuadData(obj.codim);
       [~,~,jac] = obj.fesTrial.evalTrafoInfo([], obj.codim, {k}); % nExnP
-      jac = abs(jac);
       if hasCoeff
-        if ~isnumeric(obj.data)
-          coef = obj.fesTrial.evalFunction(obj.data, [], obj.codim, obj.state, obj.dState, {k}); % nExnP
+        if isnumeric(obj.data)
+          coef = obj.fesTrial.evalDoFVector(obj.data, [], obj.codim, 0, {k}); % nExnPx(nD*nD)
         else
-          coef = obj.data;
+          coef = obj.fesTrial.evalFunction(obj.data, [], obj.codim, obj.state, obj.dState, {k}); % nExnP
         end
-        jac = jac.*coef;
+      else, coef = 1;
       end
-      dX = bsxfun(@times, jac, weights'); % nExnP
+      dX = bsxfun(@times, abs(jac).*coef, weights'); % nExnP
       nE = size(basisI, 1); nBI = size(basisI, 2); nBJ = size(basisJ,2); nP = size(basisI,3);
       basisI = reshape(basisI, nE, nBI, nP, []);
       basisJ = reshape(basisJ, nE, nBJ, nP, []);
