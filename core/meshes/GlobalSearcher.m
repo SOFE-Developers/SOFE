@@ -1,6 +1,8 @@
 classdef GlobalSearcher < SOFE
   properties
     topology
+    nodes % nExnN
+    dim
     bgMesh
     diam
     NVec
@@ -9,12 +11,13 @@ classdef GlobalSearcher < SOFE
   methods % constructor
     function obj = GlobalSearcher(topology)
       obj.topology = topology;
+      obj.dim = topology.dimP;
       fprintf('Set up GlobalSearcher ... \n');
       obj.notify();
       fprintf('DONE\n');
     end
     function R = getBlock(obj, varargin) % [I]
-      nE = obj.topology.getNumber(obj.topology.dimP);
+      nE = obj.topology.getNumber(obj.dim);
       if obj.nBlockGS>nE, error('!Number of blocks exceeds number of elements!'); end
       R = unique(floor(linspace(0,nE,obj.nBlockGS+1)));
       R = [R(1:end-1)+1; R(2:end)];
@@ -22,18 +25,28 @@ classdef GlobalSearcher < SOFE
         R = R(:,varargin{1});
       end
     end
-    function notify(obj)
-      dim = obj.topology.dimW;
-      obj.diam(:,1) = min(obj.topology.nodes); % nWx2
-      obj.diam(:,2) = max(obj.topology.nodes); % nWx2
+    function notify(obj, varargin) % [nodes]
+      if nargin < 2
+        N = obj.topology.nodes;
+        elem = obj.topology.getEntity(obj.dim); % nExnV
+        I = (elem>0);
+        obj.nodes = nan([numel(elem) obj.dim]);
+        obj.nodes(I,:) = N(elem(I),:);
+        obj.nodes = reshape(obj.nodes,size(elem,1),[],obj.dim);
+      else
+        obj.nodes = varargin{1};
+      end
+      obj.diam(:,1) = min(reshape(obj.nodes,[],obj.dim)); % nWx2
+      obj.diam(:,2) = max(reshape(obj.nodes,[],obj.dim)); % nWx2
       range = diff(obj.diam');
-      obj.diam(:,1) = obj.diam(:,1) - 0.05*range'; % nWx2
-      obj.diam(:,2) = obj.diam(:,2) + 0.05*range'; % nWx2
-      obj.NVec = 5*obj.topology.getNumber(obj.topology.dimP)/2^dim; % number of bins
-      if dim == 2
+      obj.diam(:,1) = obj.diam(:,1) - 1e-12*range'; % nWx2
+      obj.diam(:,2) = obj.diam(:,2) + 1e-12*range'; % nWx2
+      range = diff(obj.diam');
+      obj.NVec = 5*obj.topology.getNumber(obj.dim)/2^obj.dim; % number of bins
+      if obj.dim == 2
         obj.NVec = [obj.NVec*range(1)/range(2) ...
                     obj.NVec*range(2)/range(1)].^(1/2);
-      elseif dim == 3
+      elseif obj.dim == 3
         obj.NVec = [obj.NVec*range(1)^2/range(2)/range(3) ...
                     obj.NVec*range(2)^2/range(3)/range(1) ...
                     obj.NVec*range(3)^2/range(1)/range(2)].^(1/3);
@@ -46,13 +59,11 @@ classdef GlobalSearcher < SOFE
       end
     end
     function R = buildBackgroundMesh(obj, I)
-      elem = obj.topology.getEntity(obj.topology.dimP, I); % nExnV
-      bins = nan([size(elem) size(obj.topology.nodes,2)]); % nExnVxnW
-      nV = size(elem,2);
-      for k = 1:nV
-        I = (elem(:,k)>0);
-        bins(I,k,:) = obj.getBin(obj.topology.nodes(elem(I,k),:)); % nExnVxnW
-      end
+      N = obj.nodes(I,:,:);
+      bins = nan(size(N)); % nExnVxnW
+      idx = ~isnan(N);
+      bins(idx) = obj.getBin(reshape(N(idx),[],obj.dim));
+      %
       minBins = permute(min(bins,[],2), [1 3 2]); % nExnW
       maxBins = permute(max(bins,[],2), [1 3 2]); % nExnW
       %
@@ -115,7 +126,7 @@ classdef GlobalSearcher < SOFE
       L = obj.getLinearIndex(R);
     end
     function R = getLinearIndex(obj, idx)
-      nW = obj.topology.dimW;
+      nW = obj.dim;
       correct = [0, cumprod(obj.NVec)];
       tmp = [1 cumprod(obj.NVec)];
       R = sum(bsxfun(@times, idx, tmp(1:nW)), 2) - sum(correct(1:nW));

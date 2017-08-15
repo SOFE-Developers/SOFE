@@ -297,12 +297,18 @@ classdef FESpace < SOFE
       end
     end
     function R = evalDoFVector(obj, U, points, codim, order, varargin) % [{k} or I]
-      assert(numel(U)==obj.getNDoF(), 'First argument must be DoFVector!');
-      if iscell(points)
-        R = obj.evalDoFVectorGlobal(U, points, order);
-      else
-        R = obj.evalDoFVectorLocal(U, points, codim, order, varargin{:});
+      assert(size(U,1)==obj.getNDoF(), 'First argument must be DoFVector(s)!');
+      N = size(U,2);
+      R = cell(1,1,1,N);
+      for k = 1:N
+        if iscell(points)
+          R{1,1,1,k} = obj.evalDoFVectorGlobal(U(:,k), points, order);
+        else
+          R{1,1,1,k} = obj.evalDoFVectorLocal(U(:,k), points, codim, order, varargin{:});
+        end
       end
+      R = cell2mat(R);
+      if size(R,3)==1, R = permute(R,[1 2 4 3]); end
     end
     function R = evalDoFVectorGlobal(obj, U, points, order)
       if numel(points) == 1

@@ -8,11 +8,9 @@ classdef FcId < Functional % ( F, V )
     function R = assembleOp(obj, k)
       [points, weights] = obj.fes.getQuadData(obj.codim); % nPx1
       if isnumeric(obj.data)
-        R = obj.data;
-      elseif iscell(obj.data)
-        R = obj.data{k};
+        R = obj.fes.evalDoFVector(obj.data, [], obj.codim, 0, {k}); % nExnPx(nD*nD)
       else
-        R = obj.fes.evalFunction(obj.data, [], obj.codim, obj.state, obj.dState, {k}); % nExnPxnC
+        R = obj.fes.evalFunction(obj.data, [], obj.codim, obj.state, obj.dState, {k}); % nExnP
       end
       if ~isempty(points)
         basis = obj.fes.evalGlobalBasis([], obj.codim, 0, {k}); % nExnBxnPxnC
