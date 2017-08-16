@@ -1,8 +1,14 @@
 classdef FESpace < SOFE
+  % FESpace class
   properties
-    mesh, element, quadRule
-    fixB, shift, freeDoFs
-    cache, isCaching = true;
+    mesh 
+    element
+    quadRule
+    fixB
+    shift
+    freeDoFs
+    cache
+    isCaching = true;
     observers
     nBlock = 1;
   end
