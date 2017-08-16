@@ -1,0 +1,257 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>FESpace &#8212; SOFE 0.3 documentation</title>
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.3',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="SOFE" href="SOFE.html" />
+   
+  <link rel="stylesheet" href="../_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-SOFE.core.feSpaces">
+<span id="fespace"></span><h1>FESpace<a class="headerlink" href="#module-SOFE.core.feSpaces" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="SOFE.core.feSpaces.FESpace">
+<em class="property">class </em><code class="descclassname">SOFE.core.feSpaces.</code><code class="descname">FESpace</code><span class="sig-paren">(</span><em>mesh</em>, <em>element</em>, <em>varargin</em><span class="sig-paren">)</span><a class="headerlink" href="#SOFE.core.feSpaces.FESpace" title="Permalink to this definition">¶</a></dt>
+<dd><p>FESpace class</p>
+<dl class="method">
+<dt id="SOFE.core.feSpaces.FESpace.FESpace">
+<code class="descname">FESpace</code><span class="sig-paren">(</span><em>mesh</em>, <em>element</em>, <em>varargin</em><span class="sig-paren">)</span><a class="headerlink" href="#SOFE.core.feSpaces.FESpace.FESpace" title="Permalink to this definition">¶</a></dt>
+<dd><p>[fixB, shift]</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="SOFE.core.feSpaces.FESpace.cache">
+<code class="descname">cache</code><em class="property"> = None</em><a class="headerlink" href="#SOFE.core.feSpaces.FESpace.cache" title="Permalink to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SOFE.core.feSpaces.FESpace.computeGlobalBasis">
+<code class="descname">computeGlobalBasis</code><span class="sig-paren">(</span><em>points</em>, <em>codim</em>, <em>order</em>, <em>varargin</em><span class="sig-paren">)</span><a class="headerlink" href="#SOFE.core.feSpaces.FESpace.computeGlobalBasis" title="Permalink to this definition">¶</a></dt>
+<dd><p>[{k} or I]</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="SOFE.core.feSpaces.FESpace.element">
+<code class="descname">element</code><em class="property"> = None</em><a class="headerlink" href="#SOFE.core.feSpaces.FESpace.element" title="Permalink to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SOFE.core.feSpaces.FESpace.evalDoFVector">
+<code class="descname">evalDoFVector</code><span class="sig-paren">(</span><em>U</em>, <em>points</em>, <em>codim</em>, <em>order</em>, <em>varargin</em><span class="sig-paren">)</span><a class="headerlink" href="#SOFE.core.feSpaces.FESpace.evalDoFVector" title="Permalink to this definition">¶</a></dt>
+<dd><p>[{k} or I]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SOFE.core.feSpaces.FESpace.evalDoFVectorLocal">
+<code class="descname">evalDoFVectorLocal</code><span class="sig-paren">(</span><em>U</em>, <em>points</em>, <em>codim</em>, <em>order</em>, <em>varargin</em><span class="sig-paren">)</span><a class="headerlink" href="#SOFE.core.feSpaces.FESpace.evalDoFVectorLocal" title="Permalink to this definition">¶</a></dt>
+<dd><p>[{k} or I]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SOFE.core.feSpaces.FESpace.evalFunction">
+<code class="descname">evalFunction</code><span class="sig-paren">(</span><em>F</em>, <em>points</em>, <em>codim</em>, <em>U</em>, <em>D</em>, <em>varargin</em><span class="sig-paren">)</span><a class="headerlink" href="#SOFE.core.feSpaces.FESpace.evalFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>[{k} or I]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SOFE.core.feSpaces.FESpace.evalGlobalBasis">
+<code class="descname">evalGlobalBasis</code><span class="sig-paren">(</span><em>points</em>, <em>codim</em>, <em>order</em>, <em>varargin</em><span class="sig-paren">)</span><a class="headerlink" href="#SOFE.core.feSpaces.FESpace.evalGlobalBasis" title="Permalink to this definition">¶</a></dt>
+<dd><p>[{k} or I]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SOFE.core.feSpaces.FESpace.evalReferenceMap">
+<code class="descname">evalReferenceMap</code><span class="sig-paren">(</span><em>points</em>, <em>codim</em>, <em>varargin</em><span class="sig-paren">)</span><a class="headerlink" href="#SOFE.core.feSpaces.FESpace.evalReferenceMap" title="Permalink to this definition">¶</a></dt>
+<dd><p>[{k} or I]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SOFE.core.feSpaces.FESpace.evalTrafoInfo">
+<code class="descname">evalTrafoInfo</code><span class="sig-paren">(</span><em>points</em>, <em>codim</em>, <em>varargin</em><span class="sig-paren">)</span><a class="headerlink" href="#SOFE.core.feSpaces.FESpace.evalTrafoInfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>[{k} or I]</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="SOFE.core.feSpaces.FESpace.fixB">
+<code class="descname">fixB</code><em class="property"> = None</em><a class="headerlink" href="#SOFE.core.feSpaces.FESpace.fixB" title="Permalink to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="SOFE.core.feSpaces.FESpace.freeDoFs">
+<code class="descname">freeDoFs</code><em class="property"> = None</em><a class="headerlink" href="#SOFE.core.feSpaces.FESpace.freeDoFs" title="Permalink to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SOFE.core.feSpaces.FESpace.getBlock">
+<code class="descname">getBlock</code><span class="sig-paren">(</span><em>codim</em>, <em>varargin</em><span class="sig-paren">)</span><a class="headerlink" href="#SOFE.core.feSpaces.FESpace.getBlock" title="Permalink to this definition">¶</a></dt>
+<dd><p>[k]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SOFE.core.feSpaces.FESpace.getBoundaryDoFs">
+<code class="descname">getBoundaryDoFs</code><span class="sig-paren">(</span><em>varargin</em><span class="sig-paren">)</span><a class="headerlink" href="#SOFE.core.feSpaces.FESpace.getBoundaryDoFs" title="Permalink to this definition">¶</a></dt>
+<dd><p>[loc]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SOFE.core.feSpaces.FESpace.getDoFMap">
+<code class="descname">getDoFMap</code><span class="sig-paren">(</span><em>codim</em>, <em>varargin</em><span class="sig-paren">)</span><a class="headerlink" href="#SOFE.core.feSpaces.FESpace.getDoFMap" title="Permalink to this definition">¶</a></dt>
+<dd><p>[{k} or I]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SOFE.core.feSpaces.FESpace.getInterpolation">
+<code class="descname">getInterpolation</code><span class="sig-paren">(</span><em>f</em>, <em>codim</em>, <em>varargin</em><span class="sig-paren">)</span><a class="headerlink" href="#SOFE.core.feSpaces.FESpace.getInterpolation" title="Permalink to this definition">¶</a></dt>
+<dd><p>[{k} or I]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SOFE.core.feSpaces.FESpace.getShiftVector">
+<code class="descname">getShiftVector</code><span class="sig-paren">(</span><em>varargin</em><span class="sig-paren">)</span><a class="headerlink" href="#SOFE.core.feSpaces.FESpace.getShiftVector" title="Permalink to this definition">¶</a></dt>
+<dd><p>[time]</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="SOFE.core.feSpaces.FESpace.isCaching">
+<code class="descname">isCaching</code><em class="property"> = u'true'</em><a class="headerlink" href="#SOFE.core.feSpaces.FESpace.isCaching" title="Permalink to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="SOFE.core.feSpaces.FESpace.mesh">
+<code class="descname">mesh</code><em class="property"> = None</em><a class="headerlink" href="#SOFE.core.feSpaces.FESpace.mesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="SOFE.core.feSpaces.FESpace.nBlock">
+<code class="descname">nBlock</code><em class="property"> = u'1'</em><a class="headerlink" href="#SOFE.core.feSpaces.FESpace.nBlock" title="Permalink to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="SOFE.core.feSpaces.FESpace.observers">
+<code class="descname">observers</code><em class="property"> = None</em><a class="headerlink" href="#SOFE.core.feSpaces.FESpace.observers" title="Permalink to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="SOFE.core.feSpaces.FESpace.orient">
+<code class="descname">orient</code><span class="sig-paren">(</span><em>R</em>, <em>dim</em>, <em>d</em>, <em>varargin</em><span class="sig-paren">)</span><a class="headerlink" href="#SOFE.core.feSpaces.FESpace.orient" title="Permalink to this definition">¶</a></dt>
+<dd><p>[I]</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="SOFE.core.feSpaces.FESpace.quadRule">
+<code class="descname">quadRule</code><em class="property"> = None</em><a class="headerlink" href="#SOFE.core.feSpaces.FESpace.quadRule" title="Permalink to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="SOFE.core.feSpaces.FESpace.shift">
+<code class="descname">shift</code><em class="property"> = None</em><a class="headerlink" href="#SOFE.core.feSpaces.FESpace.shift" title="Permalink to this definition">¶</a></dt>
+<dd><p>None</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../index.html">SOFE</a></h1>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="SOFE.html">SOFE</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">FESpace</a></li>
+</ul>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../index.html">Documentation overview</a><ul>
+      <li>Previous: <a href="SOFE.html" title="previous chapter">SOFE</a></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Lars Ludwig.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="../_sources/reference/fespace.rst.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
