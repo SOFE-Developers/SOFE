@@ -1,5 +1,5 @@
 classdef FESpace < SOFE
-  % FESpace class
+  % Finite Element Space
   properties
     mesh 
     element
