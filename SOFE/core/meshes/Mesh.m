@@ -100,7 +100,11 @@ classdef Mesh < SOFE
       end
     end
     function R = evalInversReferenceMap(obj, points, varargin) % [output flag]
-      armijo = false; armijoMax = 5; notFMax = 2; out = false;
+      out = false;
+      armijo = false; armijoMax = 100;
+      notFblMax = 3; 
+      TOLF = 1e-14;
+      %
       C = obj.topology.globalSearcher.findCandidates(points);
       [nP, nC] = size(C);
       H = zeros(nP,1); L = zeros(size(points)); Ic = (1:nP)';
@@ -108,17 +112,16 @@ classdef Mesh < SOFE
         Ic(C(Ic,i)==0) = [];
         if isempty(Ic), break; end
         In = (1:numel(Ic))';
-        InotF = zeros(size(In));
+        InotFbl = zeros(size(In));
         pLoc = repmat(obj.topology.getCenterLoc(), numel(Ic),1);
         for n = 1:10
           pLocN = pLoc(In,:);
-          Phi = obj.evalReferenceMap({pLocN, C(Ic(In),i)}, 0);
-          F = points(Ic(In),:) - Phi;
           % test for convergence
-          InotF = InotF + (~obj.topology.isFeasible(pLocN));
-          normF = sum(F.^2,2); del = normF<1e-32 | InotF>notFMax;
-          In(del) = []; F(del,:) = [];
-          normF(del) = []; InotF(del) = []; pLocN(del,:) = [];
+          F = points(Ic(In),:) - obj.evalReferenceMap({pLocN, C(Ic(In),i)},0);
+          InotFbl = InotFbl + ~obj.topology.isFeasible(pLocN);
+          normF = sum(F.^2,2); del = normF<TOLF^2 | InotFbl>notFblMax;
+          In(del) = []; InotFbl(del) = []; pLocN(del,:) = [];
+          F(del,:) = []; normF(del) = [];
           if isempty(In), break; end
           % Newton step
           [~, DPhiInv] = obj.evalTrafoInfo({pLocN, C(Ic(In),i)});
@@ -138,6 +141,7 @@ classdef Mesh < SOFE
               Is(normFTmp <= normF(Is)) = [];
               step = step/2;
             end
+            if cnt==armijoMax, warning('!armijoMax reached!'); end
             pLoc(In,:) = pLocTmp;
           end
           if out, fprintf('Cand=%d(#points:%d), nNewton=%d\n',i,numel(Ic),n); end %#ok<UNRCH>
