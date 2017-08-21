@@ -12,9 +12,6 @@ classdef GlobalSearcher < SOFE
     function obj = GlobalSearcher(topology)
       obj.topology = topology;
       obj.dim = topology.dimP;
-      fprintf('Set up GlobalSearcher ... \n');
-      obj.notify();
-      fprintf('DONE\n');
     end
     function R = getBlock(obj, varargin) % [I]
       nE = obj.topology.getNumber(obj.dim);
@@ -38,9 +35,6 @@ classdef GlobalSearcher < SOFE
       end
       obj.diam(:,1) = min(reshape(obj.nodes,[],obj.dim)); % nWx2
       obj.diam(:,2) = max(reshape(obj.nodes,[],obj.dim)); % nWx2
-      range = diff(obj.diam');
-      obj.diam(:,1) = obj.diam(:,1) - 1e-12*range'; % nWx2
-      obj.diam(:,2) = obj.diam(:,2) + 1e-12*range'; % nWx2
       range = diff(obj.diam');
       obj.NVec = 5*obj.topology.getNumber(obj.dim)/2^obj.dim; % number of bins
       if obj.dim == 2
@@ -107,6 +101,7 @@ classdef GlobalSearcher < SOFE
   end
   methods % global search
     function R = findCandidates(obj, points)
+      if isempty(obj.diam), obj.notify(); end
       [~,L] = obj.getBin(points);
       I = L>0 & L<=prod(obj.NVec);
       R = cell(1,obj.nBlockGS);
@@ -122,6 +117,7 @@ classdef GlobalSearcher < SOFE
     end
     function [R, L] = getBin(obj, points)
       sPoints = bsxfun(@rdivide, bsxfun(@minus, points, obj.diam(:,1)'), diff(obj.diam')); % nPx3
+      sPoints = max(0,min(1-eps,sPoints));
       R = floor(bsxfun(@times, obj.NVec, sPoints)) + 1;
       L = obj.getLinearIndex(R);
     end
