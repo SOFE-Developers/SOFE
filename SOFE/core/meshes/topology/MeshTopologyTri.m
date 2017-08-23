@@ -76,7 +76,7 @@ classdef MeshTopologyTri < MeshTopology
       if isempty(elem), R = []; return; end
       v1 = nodes(elem(:,2),:) - nodes(elem(:,1),:);
       v2 = nodes(elem(:,3),:) - nodes(elem(:,1),:);
-      I = abs(v1(:,1).*v2(:,2) - v1(:,2).*v2(:,1))/2;
+      I = v1(:,1).*v2(:,2) - v1(:,2).*v2(:,1);
       I = I<0;
       if any(I)
         fprintf('Elements renumbered!\n');
