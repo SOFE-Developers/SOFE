@@ -10,7 +10,7 @@ classdef FcId < Functional % ( F, V )
       if isnumeric(obj.data)
         R = obj.fes.evalDoFVector(obj.data, [], obj.codim, 0, {k}); % nExnPx(nD*nD)
       else
-        R = obj.fes.evalFunction(obj.data, [], obj.codim, obj.state, obj.dState, {k}); % nExnP
+        R = obj.fes.evalFunction(obj.data, [], obj.codim, obj.pde.state, obj.pde.dState, {k}); % nExnP
       end
       if ~isempty(points)
         basis = obj.fes.evalGlobalBasis([], obj.codim, 0, {k}); % nExnBxnPxnC

@@ -24,6 +24,7 @@ vP = Visualizer.create(fesP);
 opt.scale = 0.5; opt.N = 200; opt.n = 40; opt.width = 1.5;
 for k = 1:nNonLin
   p.compute();
+  p.setState(p.solution);
   figure(1), vV.show(p.getSolution(1), 'g', opt);
   fprintf('step: %d / %d\n', k, nNonLin);
   pause(0.01);
