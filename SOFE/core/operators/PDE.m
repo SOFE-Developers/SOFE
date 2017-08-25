@@ -138,7 +138,7 @@ classdef PDE < SOFE
         for j = 1:obj.nEq
           if ~isempty(obj.lhs{i,j})
             for k = 1:numel(obj.lhs{i,j})
-              obj.lhs{i,j}{k}.notify(obj.time, obj.state, obj.dState);
+              obj.lhs{i,j}{k}.notify(obj.time);
               obj.lhs{i,j}{k}.assemble();
               %
               blk = obj.lhs{i,j}{k}.matrix;
@@ -157,7 +157,7 @@ classdef PDE < SOFE
       for i = 1:obj.nEq
         if ~isempty(obj.rhs{i})
           for k = 1:numel(obj.rhs{i})
-            obj.rhs{i}{k}.notify(obj.time, obj.state, obj.dState);
+            obj.rhs{i}{k}.notify(obj.time);
             obj.rhs{i}{k}.assemble();
             idx = obj.I{i}(1):obj.I{i}(2);
             obj.loadVec(idx,:) = obj.loadVec(idx,:) + obj.rhs{i}{k}.vector;

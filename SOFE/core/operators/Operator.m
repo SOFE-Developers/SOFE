@@ -32,8 +32,9 @@ classdef Operator < SOFE
       if nargin > 3
         obj.loc = varargin{2};
       end
+      obj.pde.state = []; obj.pde.dState = [];
     end
-    function notify(obj, varargin) % [time]
+    function notify(obj, varargin) % [time, state]
       if nargin < 2
         obj.matrix = [];
         obj.idx = ':';
@@ -49,6 +50,12 @@ classdef Operator < SOFE
               obj.matrix = [];
               obj.data = @(x, U, d)obj.dataCache(x, varargin{1}, U, d);
           end
+        end
+        if nargin > 2
+          obj.pde.state = varargin{2};
+        end
+        if nargin > 3
+          obj.pde.dState = varargin{3};
         end
         if ~isempty(obj.loc)
           if nargin(obj.loc) > 1 % loc(x,t)

@@ -23,8 +23,9 @@ classdef Functional < SOFE
       elseif codim == 1
         obj.loc = @(x)~obj.fes.fixB(x);
       end
+      obj.pde.state = []; obj.pde.dState = [];
     end
-    function notify(obj, varargin) % [time]
+    function notify(obj, varargin) % [time, state]
       if nargin < 2
         obj.vector = [];
         obj.idx = ':';
@@ -40,6 +41,12 @@ classdef Functional < SOFE
             obj.vector = [];
             obj.data = @(x, U, d)obj.dataCache(x, varargin{1}, U, d);
           end
+        end
+        if nargin > 2
+          obj.pde.state = varargin{2};
+        end
+        if nargin > 3
+          obj.pde.dState = varargin{3};
         end
         if ~isempty(obj.loc)
           if nargin(obj.loc) > 1 % loc(x,t)
