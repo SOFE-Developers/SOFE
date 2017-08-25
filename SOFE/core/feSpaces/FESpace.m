@@ -4,15 +4,15 @@ classdef FESpace < SOFE
     fixB, shift, freeDoFs
     cache, isCaching = true;
     observers
-    nBlock = 1;
+    nBlock
   end
   methods % constructor, observer and caching.
     function obj = FESpace(mesh, element, varargin) % [fixB, shift]
       try
         if mesh.element.isSimplex ~= element.isSimplex || ...
          mesh.element.dimension ~= element.dimension
-        warning('! Mesh and Element are not compatible, continue? !');
-        keyboard
+          warning('! Mesh and Element are not compatible, continue? !');
+          keyboard
         end
       end
       obj.mesh = mesh;

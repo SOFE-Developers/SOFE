@@ -11,7 +11,7 @@ classdef Visualizer3D < Visualizer
       try deform = varargin{1}.deform; catch, deform = false; end
       try I = varargin{1}.loc; catch, I = ':'; end
       I = obj.feSpace.mesh.topology.isSurface(I);
-      [Y,X] = meshgrid(linspace(0,1,n+1), linspace(0,1,n+1));
+      [Y,X] = meshgrid(linspace(0,1,n+1));
       if obj.feSpace.element.isSimplex()
         idx = X(:)+Y(:)<=1;
         X = X(idx); Y = Y(idx);
@@ -128,8 +128,7 @@ classdef Visualizer3D < Visualizer
         N = max(2,ceil(300/sqrt(sum(I)*0.5^isT)));
       end
       try deform = varargin{1}.deform; catch, deform = false; end
-      LS = linspace(0,1,N)';
-      [Px, Py] = meshgrid(LS, LS);
+      [Px, Py] = meshgrid(linspace(0,1,N)');
       P = [Px(:) Py(:)];
       if isT
         P = P(sum(P,2)<=1,:);

@@ -57,9 +57,7 @@ classdef Visualizer2D < Visualizer
                   'vertices', vertices , ... 
                   'facevertexcdata',value,'facecolor','interp', ...
                   'edgecolor','interp');
-        diam = obj.feSpace.mesh.topology.globalSearcher.diam';
-        axis(diam(:));
-        view(0,90), axis normal;
+        view(2);
       end
     end
     function h = surf(obj, U, varargin)
@@ -68,7 +66,7 @@ classdef Visualizer2D < Visualizer
       if numel(N) == 1, N = N*ones(2,1); end
       try deform = varargin{1}.deform; catch, deform = false; end
       try curl = varargin{1}.curl; catch, curl = 0; end
-      try box = varargin{1}.box; catch, box = obj.feSpace.mesh.topology.globalSearcher.diam'; end
+      try box = varargin{1}.box; catch, box = obj.feSpace.mesh.topology.getDiam(); end
       [X,Y] = meshgrid(linspace(box(1), box(2), N(1)), ...
                        linspace(box(3), box(4), N(2)));
       if curl 
@@ -106,8 +104,7 @@ classdef Visualizer2D < Visualizer
           end
         end
       end
-      diam = obj.feSpace.mesh.topology.globalSearcher.diam';
-      axis(diam(:)); view(0,90), axis normal; axis tight
+      axis(box(:)); view(2), axis normal; axis tight
     end
     function h = scatter(obj, U, varargin)
       obj.test(U);
@@ -162,13 +159,12 @@ classdef Visualizer2D < Visualizer
     function h = surfFH(obj, F, varargin)
       try N = varargin{1}.N; catch, N = 200; end
       if numel(N) == 1, N = N*ones(2,1); end
-      box = obj.feSpace.mesh.topology.globalSearcher.diam';
+      box = obj.feSpace.mesh.topology.getDiam();
       [X,Y] = meshgrid(linspace(box(1), box(2), N(1)), ...
                        linspace(box(3), box(4), N(2)));
       Z = F([X(:) Y(:)]); % nPx1
       h = surf(X,Y,reshape(Z,size(X))); shading interp
-      diam = obj.feSpace.mesh.topology.globalSearcher.diam';
-      axis(diam(:)); view(0,90), axis normal; axis tight
+      axis(box(:)); view(0,90), axis normal; axis tight
     end
   end
 end

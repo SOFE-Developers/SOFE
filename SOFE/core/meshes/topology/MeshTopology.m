@@ -107,6 +107,9 @@ classdef MeshTopology < SOFE
           R = sum(v.^2,2).^0.5;
        end
     end
+    function R = getDiam(obj)
+      R = [min(obj.nodes); max(obj.nodes)];
+    end
     function R = isBoundary(obj, varargin) % [loc]
       e2F = obj.getElem2Face(); % nExnF
       R = accumarray(e2F(e2F>0),1, [obj.getNumber(obj.dimP-1) 1])==1; % nFx1

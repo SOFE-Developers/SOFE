@@ -81,6 +81,7 @@ classdef PDE < SOFE
       obj.setIndices(); obj.setState();
     end
     function setTime(obj, newTime)
+      obj.stateChanged = true;
       obj.time = newTime;
       for k = 1:obj.nEq
         if isempty(obj.fesTrial{k}.shift) || nargin(obj.fesTrial{k}.shift) > 1
@@ -93,7 +94,6 @@ classdef PDE < SOFE
           obj.fDoFsTest = [];
         end
       end
-      obj.stateChanged = true;
     end
     function setState(obj, varargin)
       obj.stateChanged = true;
