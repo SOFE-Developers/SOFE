@@ -59,6 +59,8 @@ classdef FESpace < SOFE
         nB = obj.element.nB(end-1); nQ = numel(obj.quadRule{2}.weights);
         elPerBlock = SOFE.getElementsPerBlock(nB, nQ, nC, nD);
         obj.nBlock(2) = ceil(obj.mesh.topology.getNumber(nD-1)/elPerBlock);
+      else
+        obj.nBlock(2) = 1;
       end
     end
     function R = getBlock(obj, codim, varargin) % [k]
