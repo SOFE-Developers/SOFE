@@ -75,13 +75,13 @@ classdef PDE < SOFE
       obj.stateChanged = true;
       obj.time = newTime;
       for k = 1:obj.nEq
-        if isempty(obj.fesTrial{k}.shift) || nargin(obj.fesTrial{k}.shift) > 1
+        if ~isempty(obj.fesTrial{k}.shift) && nargin(obj.fesTrial{k}.shift) > 1
           obj.shift = [];
         end
-        if isempty(obj.fesTrial{k}.fixB) || nargin(obj.fesTrial{k}.fixB) > 1
+        if ~isempty(obj.fesTrial{k}.fixB) && nargin(obj.fesTrial{k}.fixB) > 1
           obj.fDoFsTrial = [];
         end
-        if isempty(obj.fesTest{k}.fixB) || nargin(obj.fesTest{k}.fixB) > 1
+        if ~isempty(obj.fesTest{k}.fixB) && nargin(obj.fesTest{k}.fixB) > 1
           obj.fDoFsTest = [];
         end
       end
