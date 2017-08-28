@@ -25,7 +25,7 @@ classdef Functional < SOFE
       end
       obj.pde.state = []; obj.pde.dState = [];
     end
-    function notify(obj, varargin) % [time, state]
+    function notify(obj, varargin) % [time, state, dState]
       if nargin < 2
         obj.vector = [];
         obj.idx = ':';

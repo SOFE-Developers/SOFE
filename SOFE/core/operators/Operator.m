@@ -34,7 +34,7 @@ classdef Operator < SOFE
       end
       obj.pde.state = []; obj.pde.dState = [];
     end
-    function notify(obj, varargin) % [time, state]
+    function notify(obj, varargin) % [time, state, dState]
       if nargin < 2
         obj.matrix = [];
         obj.idx = ':';

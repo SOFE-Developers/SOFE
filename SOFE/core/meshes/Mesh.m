@@ -173,8 +173,8 @@ classdef Mesh < SOFE
           if ~iscell(D); D = {D}; end % nExnPxnCxnD
           sz = size(D{1});
           for i = 1:numel(U)
-            U{i} = reshape(U{i}(I,:), [], sz(3));
-            D{i} = reshape(D{i}(I,:), [], sz(3), sz(4));
+            U{i} = reshape(U{i}(I,1:nP), [], sz(3));
+            D{i} = reshape(D{i}(I,1:nP,:), [], sz(3), sz(4));
           end
           R = reshape(F(P, U, D), nE, nP, []); % nExnPxnCxnD
       end
