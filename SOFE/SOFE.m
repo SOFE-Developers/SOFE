@@ -74,7 +74,7 @@ classdef SOFE < handle
       plugin = '';
       while ~isempty(I)
         x = X(I(1)+9:end);
-        i = strfind(x,filesep,'');
+        i = strfind(x,filesep);
         if ~strcmp(plugin, x(1:i(1)-1))
           plugin = x(1:i(1)-2);
           fprintf([plugin '\n']);
