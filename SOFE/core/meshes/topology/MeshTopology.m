@@ -139,6 +139,9 @@ classdef MeshTopology < SOFE
       I = hist(E2F(:),uE2F)==1;
       R = full(sparse(uE2F(I), 1, true, obj.getNumber(obj.dimP-1), 1));
     end
+    function R = getBoundaryNodes(obj)
+      R = unique(obj.getEntity(1,obj.isBoundary()));
+    end
   end
   methods % connectivity information
     function R = getElem2Face(obj, varargin)
