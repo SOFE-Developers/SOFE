@@ -11,8 +11,7 @@ classdef FESpace < SOFE
       try
         if mesh.element.isSimplex ~= element.isSimplex || ...
          mesh.element.dimension ~= element.dimension
-          warning('! Mesh and Element are not compatible, continue? !');
-          keyboard
+          warning('! Mesh and Element are not compatible !');
         end
       end
       obj.mesh = mesh;

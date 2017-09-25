@@ -10,12 +10,12 @@ classdef Visualizer2D < Visualizer
       try n = varargin{1}.n; catch, n = 1; end
       try deform = varargin{1}.deform; catch, deform = false; end
       [Y,X] = meshgrid(linspace(0,1,n+1), linspace(0,1,n+1));
-      if obj.feSpace.element.isSimplex()
+      if obj.feSpace.mesh.element.isSimplex()
         idx = X(:)+Y(:)<=1;
         X = X(idx); Y = Y(idx);
       end
       nE = obj.feSpace.mesh.topology.getNumber(2);
-      if obj.feSpace.element.isSimplex()
+      if obj.feSpace.mesh.element.isSimplex()
         col = reshapeTop(n+1:-1:1, 1:(n+2)*(n+1)/2);
         col1 = col; col1(n+1:n:n^2+n+1) = 0; col1(col1 == 0) = [];
         col2 = col; col2(:,1) = []; col2(col2 == 0) = [];
@@ -53,7 +53,7 @@ classdef Visualizer2D < Visualizer
         if size(vertices,2)==2
           vertices = [vertices, value];
         end
-        h = patch('faces', reshape(elem, [], obj.feSpace.element.nV(end)), ...
+        h = patch('faces', reshape(elem, [], obj.feSpace.mesh.element.nV(end)), ...
                   'vertices', vertices , ... 
                   'facevertexcdata',value,'facecolor','interp', ...
                   'edgecolor','interp');
@@ -108,7 +108,7 @@ classdef Visualizer2D < Visualizer
     end
     function h = scatter(obj, U, varargin)
       obj.test(U);
-      isT = obj.feSpace.element.isSimplex();
+      isT = obj.feSpace.mesh.element.isSimplex();
       nN = obj.feSpace.mesh.topology.getNumber(2);
       try
         N = max(2,varargin{1}.N/sqrt(nN*0.5^isT));
