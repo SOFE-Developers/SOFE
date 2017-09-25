@@ -139,8 +139,9 @@ classdef MeshTopology < SOFE
       I = hist(E2F(:),uE2F)==1;
       R = full(sparse(uE2F(I), 1, true, obj.getNumber(obj.dimP-1), 1));
     end
-    function R = getBoundaryNodes(obj)
+    function R = isBoundaryNode(obj)
       R = unique(obj.getEntity(1,obj.isBoundary()));
+      R = accumarray(R,1,[obj.getNumber(0) 1])>0;
     end
   end
   methods % connectivity information
