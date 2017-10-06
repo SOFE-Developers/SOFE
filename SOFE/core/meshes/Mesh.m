@@ -24,6 +24,7 @@ classdef Mesh < SOFE
       end
       if iscell(points)
         I = points{2}; points = points{1};
+        if isempty(points), R = []; return; end
         pVecN = [1 3 4 5 2]; pVecB = [2 3 4 5 1];
       else
         pVecN = [1 4 3 5 2]; pVecB = [5 2 3 4 1];
