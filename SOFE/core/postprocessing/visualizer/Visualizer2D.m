@@ -66,15 +66,18 @@ classdef Visualizer2D < Visualizer
       if numel(N) == 1, N = N*ones(2,1); end
       try deform = varargin{1}.deform; catch, deform = false; end
       try curl = varargin{1}.curl; catch, curl = 0; end
+      try factor = varargin{1}.factor; catch, factor = []; end
       try box = varargin{1}.box; catch, box = obj.feSpace.mesh.topology.globalSearcher.diam'; end
       [X,Y] = meshgrid(linspace(box(1), box(2), N(1)), ...
                        linspace(box(3), box(4), N(2)));
+      P = [X(:) Y(:)];
       if curl 
-        Z = obj.feSpace.evalDoFVector(U,{[X(:) Y(:)]}, [], 1); % nPxnCxnD
+        Z = obj.feSpace.evalDoFVector(U,{P}, [], 1); % nPxnCxnD
         Z = Z(:,2,1) - Z(:,1,2);
       else
-        Z = obj.feSpace.evalDoFVector(U,{[X(:) Y(:)]}, [], 0); % nPxnC
+        Z = obj.feSpace.evalDoFVector(U,{P}, [], 0); % nPxnC
       end
+      if ~isempty(factor), Z = bsxfun(@times, Z, factor(P)); end
       if size(Z,2) == 1
         h = surf(X,Y,reshape(Z,size(X))); shading interp
       else
