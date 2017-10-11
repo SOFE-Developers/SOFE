@@ -2,15 +2,15 @@ classdef MeshTopologyTri < MeshTopology
   methods % constructor
     function obj = MeshTopologyTri(nodes, elem, dimP)
       elem = MeshTopologyTri.renumber(nodes, elem);
-      obj = obj@MeshTopology(nodes, elem, dimP);
-      obj.updateConnectivity();
+      obj = obj@MeshTopology(nodes, dimP);
+      obj.updateConnectivity(elem);
     end
-    function updateConnectivity(obj)
-      obj.connectivity{2,1} = [obj.connectivity{3,1}(:,[1,2]); ...
-                               obj.connectivity{3,1}(:,[2,3]); ...
-                               obj.connectivity{3,1}(:,[1,3])];
+    function updateConnectivity(obj, elem)
+      obj.connectivity = cell(obj.dimP+1);
+      obj.connectivity{obj.dimP+1,1} = elem;
+      obj.connectivity{2,1} = [elem(:,[1,2]); elem(:,[2,3]); elem(:,[1,3])];
       [obj.connectivity{2,1}, ~, e2F] = unique(sort(obj.connectivity{2,1},2),'rows');      
-      obj.connectivity{3,2} = reshape(e2F, [], 3);
+      obj.connectivity{3,2} = reshape(e2F, size(elem,1), []);
       %
       obj.connectivity{1,1} = (1:size(obj.nodes,1))';
       obj.connectivity{2,2} = (1:size(obj.connectivity{2,1},1))';
@@ -40,8 +40,8 @@ classdef MeshTopologyTri < MeshTopology
       obj.nodes = [obj.nodes; obj.getCenter(1)];
       newIndices = nN + (1:nF);
       el = [el newIndices(obj.connectivity{3,2})];
-      obj.connectivity{3,1} = [el(:,[1 4 6]);el(:,[4 2 5]);el(:,[6 5 3]);el(:,[5 6 4])];
-      obj.updateConnectivity();
+      el = [el(:,[1 4 6]);el(:,[4 2 5]);el(:,[6 5 3]);el(:,[5 6 4])];
+      obj.updateConnectivity(el);
       obj.notifyObservers();
     end
   end

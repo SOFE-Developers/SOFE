@@ -8,14 +8,11 @@ classdef MeshTopology < SOFE
     observers
   end
   methods % constructor
-    function obj = MeshTopology(nodes, elem, dimP)
+    function obj = MeshTopology(nodes, dimP)
       obj.nodes = nodes;
       obj.dimW = size(nodes,2);
       obj.dimP = dimP;
-      obj.connectivity = cell(obj.dimP+1);
-      obj.connectivity{obj.dimP+1,1} = elem;
       obj.observers = {};
-      obj.buildGlobalSearcher();
     end
     function buildGlobalSearcher(obj)
       try
@@ -152,24 +149,31 @@ classdef MeshTopology < SOFE
       end
     end
     function [R, type] = getFace2Elem(obj)
-      nE = obj.getNumber(obj.dimP); nF = obj.getNumber(obj.dimP-1);
-      orient = 0.5*(3-obj.getNormalOrientation());
-      R = full(sparse(obj.getElem2Face(), orient, repmat((1:nE)',1,size(orient,2)),nF,2));
-      type = full(sparse(obj.getElem2Face(), orient, ones(nE,1)*(1:size(orient,2)),nF,2));
+      if isempty(obj.connectivity{obj.dimP,obj.dimP+1})        
+        nE = obj.getNumber(obj.dimP); nF = obj.getNumber(obj.dimP-1);
+        orient = 0.5*(3-obj.getNormalOrientation());
+        obj.connectivity{obj.dimP,obj.dimP+1}{1} = full(sparse(obj.getElem2Face(), orient, repmat((1:nE)',1,size(orient,2)),nF,2));
+        obj.connectivity{obj.dimP,obj.dimP+1}{2} = full(sparse(obj.getElem2Face(), orient, ones(nE,1)*(1:size(orient,2)),nF,2));
+      end
+      R = obj.connectivity{obj.dimP,obj.dimP+1}{1};
+      type = obj.connectivity{obj.dimP,obj.dimP+1}{2};
     end
     function R = getNodePatch(obj, dim)
       if dim>0
-        nE = obj.getNumber(dim);
-        entity = obj.getEntity(dim);
-        idx = repmat((1:nE)', 1, size(entity,2));
-        entity = entity(:);
-        [~,I] = sort(entity);
-        count = accumarray(entity,1);
-        maxCount = max(count);
-        upperTri = triu(repmat((1:maxCount)',1,maxCount));
-        count = upperTri(:,count); count = count(:);
-        count(count==0) = [];
-        R = accumarray([entity(I), count], idx(I));
+        if isempty(obj.connectivity{1,dim+1})
+          nE = obj.getNumber(dim);
+          entity = obj.getEntity(dim);
+          idx = repmat((1:nE)', 1, size(entity,2));
+          entity = entity(:);
+          [~,I] = sort(entity);
+          count = accumarray(entity,1);
+          maxCount = max(count);
+          upperTri = triu(repmat((1:maxCount)',1,maxCount));
+          count = upperTri(:,count); count = count(:);
+          count(count==0) = [];
+          obj.connectivity{1,dim+1} = accumarray([entity(I), count], idx(I));
+        end
+        R = obj.connectivity{1,dim+1};
       else
         segm = obj.getEntity(1);
         if dim < 0 % on boundary

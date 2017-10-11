@@ -12,6 +12,7 @@ classdef GlobalSearcher < SOFE
     function obj = GlobalSearcher(topology)
       obj.topology = topology;
       obj.dim = topology.dimP;
+      obj.notify();
     end
     function R = getBlock(obj, varargin) % [I]
       nE = obj.topology.getNumber(obj.dim);

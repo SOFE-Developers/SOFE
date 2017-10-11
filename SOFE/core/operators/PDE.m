@@ -199,6 +199,9 @@ classdef PDE < SOFE
     function R = getSolution(obj, idx)
       R = obj.solution(obj.J{idx}(1):obj.J{idx}(2));
     end
+    function setSolution(obj, sol, idx)
+      obj.solution(obj.J{idx}(1):obj.J{idx}(2)) = sol;
+    end
     function R = getStiffnessBlock(obj, idxI, idxJ)
       R = obj.stiffMat(obj.I{idxI},obj.J{idxJ});
     end

@@ -2,19 +2,17 @@ classdef MeshTopologyTet < MeshTopology
   methods % constructor
     function obj = MeshTopologyTet(nodes, elem, dimP)
       elem = MeshTopologyTet.renumber(nodes, elem);
-      obj = obj@MeshTopology(nodes, elem, dimP);
-      obj.updateConnectivity();
+      obj = obj@MeshTopology(nodes, dimP);
+      obj.updateConnectivity(elem);
     end
-    function updateConnectivity(obj)
-      obj.connectivity{1,1} = (1:size(obj.nodes,1))';
-      obj.connectivity{3,1} = [obj.connectivity{4,1}(:,[1,2,3]); ...
-                               obj.connectivity{4,1}(:,[1,2,4]); ...
-                               obj.connectivity{4,1}(:,[2,3,4]); ...
-                               obj.connectivity{4,1}(:,[1 3 4])];
+    function updateConnectivity(obj, elem)
+      obj.connectivity = cell(obj.dimP+1);
+      obj.connectivity{obj.dimP+1,1} = elem;
+      obj.connectivity{3,1} = [elem(:,[1,2,3]); elem(:,[1,2,4]); ...
+                               elem(:,[2,3,4]); elem(:,[1 3 4])];
       [obj.connectivity{3,1}, ~, e2F] = unique(sort(obj.connectivity{3,1},2),'rows');    
-      obj.connectivity{2,1} = [obj.connectivity{4,1}(:,[1,2]); obj.connectivity{4,1}(:,[2,3]); ...
-                               obj.connectivity{4,1}(:,[1,3]); obj.connectivity{4,1}(:,[1 4]); ...
-                               obj.connectivity{4,1}(:,[2,4]); obj.connectivity{4,1}(:,[3 4])];
+      obj.connectivity{2,1} = [elem(:,[1,2]); elem(:,[2,3]); elem(:,[1,3]); ...
+                               elem(:,[1 4]); elem(:,[2,4]); elem(:,[3 4])];
       [obj.connectivity{2,1}, ~, e2Ed] = unique(sort(obj.connectivity{2,1},2),'rows');    
       obj.connectivity{4,3} = reshape(e2F,[], 4);
       obj.connectivity{4,2} = reshape(e2Ed,[], 6);
@@ -101,11 +99,11 @@ classdef MeshTopologyTet < MeshTopology
       obj.nodes = [obj.nodes; obj.getCenter(1)];
       newIndices = (nN+1 : nN+obj.getNumber(1));
       el = [el newIndices(obj.connectivity{4,2})];
-      obj.connectivity{4,1} = [el(:,[1 5 7 8]); el(:,[2 6 5 9]); ...
-                               el(:,[3 7 6 10]); el(:,[4 9 8 10]); ...
-                               el(:,[5 6 7 9]); el(:,[5 7 8 9]); ...
-                               el(:,[7 8 9 10]); el(:,[7 9 6 10])];
-      obj.updateConnectivity();
+      el = [el(:,[1 5 7 8]); el(:,[2 6 5 9]); ...
+            el(:,[3 7 6 10]); el(:,[4 9 8 10]); ...
+            el(:,[5 6 7 9]); el(:,[5 7 8 9]); ...
+            el(:,[7 8 9 10]); el(:,[7 9 6 10])];
+      obj.updateConnectivity(el);
       obj.notifyObservers();
     end
   end

@@ -7,6 +7,7 @@ classdef Mesh < SOFE
     function obj = Mesh(nodes, elem, varargin) % [dimP]
       if ~isempty(elem)
         obj.initMesh(nodes, elem, varargin{:});
+        obj.topology.buildGlobalSearcher();
       end
     end
     function initMesh(obj, nodes, elem, varargin)

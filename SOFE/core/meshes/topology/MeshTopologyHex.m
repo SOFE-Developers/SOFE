@@ -1,17 +1,15 @@
 classdef MeshTopologyHex < MeshTopology
   methods % constructor
-    function obj = MeshTopologyHex(nodes, elems, dimP)
-      obj = obj@MeshTopology(nodes, elems, dimP);
-      obj.updateConnectivity();
+    function obj = MeshTopologyHex(nodes, elem, dimP)
+      obj = obj@MeshTopology(nodes, dimP);
+      obj.updateConnectivity(elem);
     end
-    function updateConnectivity(obj)
-      obj.connectivity{1,1} = (1:size(obj.nodes,1))';
-      obj.connectivity{3,1} = [obj.connectivity{4,1}(:,[1,2,3,4]); ...
-                               obj.connectivity{4,1}(:,[5,6,7,8]); ...
-                               obj.connectivity{4,1}(:,[1,3,5,7]); ...
-                               obj.connectivity{4,1}(:,[2,4,6,8]); ...
-                               obj.connectivity{4,1}(:,[1,2,5,6]); ...
-                               obj.connectivity{4,1}(:,[3,4,7,8])];
+    function updateConnectivity(obj, elem)
+      obj.connectivity = cell(obj.dimP+1);
+      obj.connectivity{obj.dimP+1,1} = elem;
+      obj.connectivity{3,1} = [elem(:,[1,2,3,4]); elem(:,[5,6,7,8]); ...
+                               elem(:,[1,3,5,7]); elem(:,[2,4,6,8]); ...
+                               elem(:,[1,2,5,6]); elem(:,[3,4,7,8])];
       [~,I] = min(obj.connectivity{3,1},[],2);
       obj.connectivity{3,1}(I==1,:) = obj.connectivity{3,1}(I==1,[1 2 3 4]);
       obj.connectivity{3,1}(I==2,:) = obj.connectivity{3,1}(I==2,[2 1 4 3]);
@@ -19,12 +17,9 @@ classdef MeshTopologyHex < MeshTopology
       obj.connectivity{3,1}(I==4,:) = obj.connectivity{3,1}(I==4,[4 2 3 1]);
       obj.connectivity{3,1}(:,2:3) = sort(obj.connectivity{3,1}(:,2:3),2);
       [obj.connectivity{3,1}, ~, e2F] = unique(obj.connectivity{3,1}, 'rows');    
-      obj.connectivity{2,1} = [obj.connectivity{4,1}(:,[1,2]); obj.connectivity{4,1}(:,[3,4]); ...
-                               obj.connectivity{4,1}(:,[5,6]); obj.connectivity{4,1}(:,[7,8]); ...
-                               obj.connectivity{4,1}(:,[1,3]); obj.connectivity{4,1}(:,[5,7]); ...
-                               obj.connectivity{4,1}(:,[2,4]); obj.connectivity{4,1}(:,[6,8]); ...
-                               obj.connectivity{4,1}(:,[1,5]); obj.connectivity{4,1}(:,[2,6]); ...
-                               obj.connectivity{4,1}(:,[3,7]); obj.connectivity{4,1}(:,[4,8])];
+      obj.connectivity{2,1} = [elem(:,[1,2]); elem(:,[3,4]); elem(:,[5,6]); elem(:,[7,8]); ...
+                               elem(:,[1,3]); elem(:,[5,7]); elem(:,[2,4]); elem(:,[6,8]); ...
+                               elem(:,[1,5]); elem(:,[2,6]); elem(:,[3,7]); elem(:,[4,8])];
       [obj.connectivity{2,1}, ~, e2Ed] = unique(sort(obj.connectivity{2,1},2),'rows');    
       obj.connectivity{4,3} = reshape(e2F, [], 6);
       obj.connectivity{4,2} = reshape(e2Ed, [], 12);
@@ -141,11 +136,11 @@ classdef MeshTopologyHex < MeshTopology
       newIndicesF = (nN+nEd+1 : nN+nEd+nF);
       newIndicesE = (nN+nEd+nF+1 : nN+nEd+nF+nE)';
       el = [el,newIndicesEd(obj.connectivity{4,2}),newIndicesF(obj.connectivity{4,3}),newIndicesE];
-      obj.connectivity{4,1} = [el(:,[1 9 13 21 17 25 23 27]); el(:,[9 2 21 15 25 18 27 24]); ...
-                               el(:,[13 21 3 10 23 27 19 26]); el(:,[21 15 10 4 27 24 26 20]); ...
-                               el(:,[17 25 23 27 5 11 14 22]); el(:,[25 18 27 24 11 6 22 16]); ...
-                               el(:,[23 27 19 26 14 22 7 12]); el(:,[27 24 26 20 22 16 12 8])];
-      obj.updateConnectivity();
+      el = [el(:,[1 9 13 21 17 25 23 27]); el(:,[9 2 21 15 25 18 27 24]); ...
+            el(:,[13 21 3 10 23 27 19 26]); el(:,[21 15 10 4 27 24 26 20]); ...
+            el(:,[17 25 23 27 5 11 14 22]); el(:,[25 18 27 24 11 6 22 16]); ...
+            el(:,[23 27 19 26 14 22 7 12]); el(:,[27 24 26 20 22 16 12 8])];
+      obj.updateConnectivity(el);
       obj.notifyObservers();
     end
   end
@@ -153,9 +148,14 @@ classdef MeshTopologyHex < MeshTopology
     function show(obj, varargin)
       c = caxis();
       fc = obj.getEntity(2);
-      I = obj.isSurface(varargin{:});
-      h = trimesh(fc(I,[1 2 4 3]), obj.nodes(:,1), obj.nodes(:,2), obj.nodes(:,3));
-      set(h,'facecolor','none','edgecolor','k');
+      Ib = obj.isBoundary(varargin{:});
+      Is = obj.isSurface(varargin{:}) & ~Ib;
+      h = trimesh(fc(Is,[1 2 4 3]), obj.nodes(:,1), obj.nodes(:,2), obj.nodes(:,3));
+      set(h,'facecolor',[0.5 0.7 0.2],'edgecolor','k');
+      hold on
+      h = trimesh(fc(Ib,[1 2 4 3]), obj.nodes(:,1), obj.nodes(:,2), obj.nodes(:,3));
+      hold off
+      set(h,'facecolor',[0.5 0.8 0.5],'edgecolor','k');
       axis equal, axis tight, caxis(c);
     end
     function showEntity(obj, dim)

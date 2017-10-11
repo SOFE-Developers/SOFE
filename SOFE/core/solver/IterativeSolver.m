@@ -20,6 +20,9 @@ classdef IterativeSolver < Solver
           M2 = speye(size(M1)); %#ok<NASGU>
         case 'ilu'
           [M1,M2] = ilu(A); %#ok<ASGLU>
+        case 'ichol'
+          M1 = ichol(A,struct('michol','on'));
+          M2 = M1'; %#ok<NASGU>
         case 'none'
           M1 = speye(size(A,1)); M2 = M1; %#ok<NASGU>
         otherwise
