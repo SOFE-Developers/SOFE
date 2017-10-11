@@ -58,8 +58,8 @@ classdef MeshTopology < SOFE
         R = true(obj.getNumber(dim), 1);
       end
     end
-    function R = getNumber(obj, dim, varargin) % [I]
-      R = size(obj.getEntity(dim), 1, varargin{:});
+    function R = getNumber(obj, dim)
+      R = numel(obj.connectivity{dim+1, dim+1});
     end
     function R = getCenter(obj, dim, varargin) % [I]
       I = ':'; if nargin > 2, I = varargin{1}; end
@@ -177,7 +177,7 @@ classdef MeshTopology < SOFE
       else
         segm = obj.getEntity(1);
         if dim < 0 % on boundary
-          iB = obj.isBoundary;
+          iB = obj.isBoundary();
           segm = segm(iB,:);  
         end
         II = sparse(segm(:,[1 2]),segm(:,[2 1]),segm(:,[2 1]));

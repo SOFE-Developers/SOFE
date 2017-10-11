@@ -104,7 +104,6 @@ classdef MeshTopologyTet < MeshTopology
             el(:,[5 6 7 9]); el(:,[5 7 8 9]); ...
             el(:,[7 8 9 10]); el(:,[7 9 6 10])];
       obj.updateConnectivity(el);
-      obj.notifyObservers();
     end
   end
   methods % display

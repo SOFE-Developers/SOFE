@@ -43,7 +43,6 @@ classdef MeshTopologyQuad < MeshTopology
       el = [el newIndicesF(obj.connectivity{3,2}) newIndicesE];
       el = [el(:,[1 5 7 9]);el(:,[5 2 9 8]);el(:,[7 9 3 6]);el(:,[9 8 6 4])];
       obj.updateConnectivity(el);
-      obj.notifyObservers();
     end
   end
   methods % display

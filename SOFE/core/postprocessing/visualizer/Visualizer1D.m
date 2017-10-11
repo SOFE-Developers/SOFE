@@ -7,7 +7,7 @@ classdef Visualizer1D < Visualizer
   methods % display
     function h = patch(obj, U, varargin)
       obj.test(U);
-      X = obj.feSpace.mesh.topology.getEntity(0);
+      X = sort(obj.feSpace.mesh.topology.getEntity(0));
       Y = obj.feSpace.evalDoFVector(U, {X}, [], 0);
       h = plot(X,Y);
     end

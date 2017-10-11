@@ -141,7 +141,6 @@ classdef MeshTopologyHex < MeshTopology
             el(:,[17 25 23 27 5 11 14 22]); el(:,[25 18 27 24 11 6 22 16]); ...
             el(:,[23 27 19 26 14 22 7 12]); el(:,[27 24 26 20 22 16 12 8])];
       obj.updateConnectivity(el);
-      obj.notifyObservers();
     end
   end
   methods % display

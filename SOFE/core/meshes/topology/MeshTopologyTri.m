@@ -12,7 +12,7 @@ classdef MeshTopologyTri < MeshTopology
       [obj.connectivity{2,1}, ~, e2F] = unique(sort(obj.connectivity{2,1},2),'rows');      
       obj.connectivity{3,2} = reshape(e2F, size(elem,1), []);
       %
-      obj.connectivity{1,1} = (1:size(obj.nodes,1))';
+      obj.connectivity{1,1} = (1:max(obj.connectivity{2,1}(:)))';
       obj.connectivity{2,2} = (1:size(obj.connectivity{2,1},1))';
       obj.connectivity{3,3} = (1:size(obj.connectivity{3,1},1))';
     end
@@ -34,15 +34,17 @@ classdef MeshTopologyTri < MeshTopology
     end
   end
   methods % refinement
-    function uniformRefine(obj)
+    function P = uniformRefine(obj)
       el = obj.getEntity(2);
       nF = obj.getNumber(1); nN = obj.getNumber(0);
-      obj.nodes = [obj.nodes; obj.getCenter(1)];
+      faces = obj.connectivity{2,1};
+      P = sparse(repmat((1:size(faces,1))',1,2), faces, 0.5);
+      P = [eye(obj.getNumber(0)); P];
+      obj.nodes = P*obj.nodes;
       newIndices = nN + (1:nF);
       el = [el newIndices(obj.connectivity{3,2})];
       el = [el(:,[1 4 6]);el(:,[4 2 5]);el(:,[6 5 3]);el(:,[5 6 4])];
       obj.updateConnectivity(el);
-      obj.notifyObservers();
     end
   end
   methods % display
