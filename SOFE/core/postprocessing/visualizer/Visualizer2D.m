@@ -111,7 +111,7 @@ classdef Visualizer2D < Visualizer
     end
     function h = scatter(obj, U, varargin)
       obj.test(U);
-      isT = obj.feSpace.mesh.element.isSimplex();
+      isT = obj.feSpace.element.isSimplex();
       nN = obj.feSpace.mesh.topology.getNumber(2);
       try
         N = max(2,varargin{1}.N/sqrt(nN*0.5^isT));
