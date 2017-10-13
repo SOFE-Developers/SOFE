@@ -16,12 +16,13 @@ classdef MeshTopologyTet < MeshTopology
       [obj.connectivity{2,1}, ~, e2Ed] = unique(sort(obj.connectivity{2,1},2),'rows');    
       obj.connectivity{4,3} = reshape(e2F,[], 4);
       obj.connectivity{4,2} = reshape(e2Ed,[], 6);
-      obj.connectivity{3,2} = obj.getFace2Edge();
       %
       obj.connectivity{1,1} = (1:size(obj.nodes,1))';
       obj.connectivity{2,2} = (1:size(obj.connectivity{2,1},1))';
       obj.connectivity{3,3} = (1:size(obj.connectivity{3,1},1))';
       obj.connectivity{4,4} = (1:size(obj.connectivity{4,1},1))';
+      %
+      obj.connectivity{3,2} = obj.getFace2Edge();
     end
   end
   methods % connectivity information
