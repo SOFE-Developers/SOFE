@@ -132,28 +132,76 @@ classdef FESpace < SOFE
   end
   methods % quadrature.
     function setQuadRule(obj, quadRule)
-      % setQuadRule(quadRule) sets the quadrature rule
+      % setQuadRule(obj, quadRule)
+      %   sets the quadrature rule
       %
       % Input
       % -----
-      % quadRule ... (sub)class of type QuadRule
+      % quadRule
+      %   (sub)class of type QuadRule
       %
+      %--------------------------------
+      % SOFE Toolbox.
+      % Copyright 2017, Dr. Lars Ludwig
+      %--------------------------------
       obj.quadRule = quadRule;
       obj.resetCache('Do not reset DoFMaps');
     end
     function [Rp, Rw] = getQuadData(obj, codim)
-      % getQuadData(codim) returns quadrature points and weights
+      % [Rp, Rw] = getQuadData(obj, codim)
+      %   returns quadrature points and weights
       %
       % Input
       % -----
-      % quadRule ... (sub)class of type QuadRule
+      % codim
+      %   codimension of quadrature rule
       %
+      % Output
+      % ------
+      % Rp
+      %   quadrature points
+      % Rw
+      %   quadrature weights
+      %
+      %--------------------------------
+      % SOFE Toolbox.
+      % Copyright 2017, Dr. Lars Ludwig
+      %--------------------------------
       Rp = obj.quadRule{codim+1}.points;
       Rw = obj.quadRule{codim+1}.weights;
     end
   end
   methods % evaluation.
-    function R = evalFunction(obj, F, points, codim, U, D, varargin) % [{k} or I]
+    function R = evalFunction(obj, F, points, codim, U, D, varargin)
+      % R = evalFunction(obj, F, points, codim, U, D [,idx])
+      %   evaluates function in local/quadrature points
+      %
+      % Input
+      % -----
+      % F = F(x [, u, gradU])
+      %   function handle to be evaluated
+      % points
+      %   local evaluation points ([] if not needed)
+      % codim
+      %   codimension of quadrature points (in case of POINTS = [])
+      % U
+      %   nExnPxnC state array for nonlinear function F
+      %   ([] if not needed)
+      % D
+      %   nExnPxnCxnD gradient state array for nonlinear function F
+      %   ([] if not needed)
+      % idx
+      %   subentities I or block {k}
+      %
+      % Output
+      % ------
+      % R
+      %   nExnPxnC array
+      %
+      %--------------------------------
+      % SOFE Toolbox.
+      % Copyright 2017, Dr. Lars Ludwig
+      %--------------------------------
       block = false;
       if nargin > 6 && iscell(varargin{1})
         block = true; k = varargin{1};
@@ -169,7 +217,28 @@ classdef FESpace < SOFE
       end
       R = obj.mesh.evalFunction(F, points, U, D, varargin{:});
     end
-    function R = evalReferenceMap(obj, points, codim, varargin) % [{k} or I]
+    function R = evalReferenceMap(obj, points, codim, varargin)
+      % R = evalReferenceMap(obj, points, codim [, idx])
+      %   evaluates reference map in local/quadrature points
+      %
+      % Input
+      % -----
+      % points
+      %   local evaluation points ([] if not needed)
+      % codim
+      %   codimension of quadrature points (in case of POINTS = [])
+      % idx
+      %   subentities I or block {k}
+      %
+      % Output
+      % ------
+      % R
+      %   nExnPxnW[xnD] array
+      %
+      %--------------------------------
+      % SOFE Toolbox.
+      % Copyright 2017, Dr. Lars Ludwig
+      %--------------------------------
       block = false;
       if nargin > 3 && iscell(varargin{1})
         block = true; k = varargin{1};
@@ -209,6 +278,27 @@ classdef FESpace < SOFE
       end
     end
     function [R, invR, jacR] = evalTrafoInfo(obj, points, codim, varargin) % [{k} or I]
+      % [R, invR, jacR] = evalTrafoInfo(obj, points, codim [, idx])
+      %   evaluates factor from int map in local/quadrature points
+      %
+      % Input
+      % -----
+      % points
+      %   local evaluation points ([] if not needed)
+      % codim
+      %   codimension of quadrature points (in case of POINTS = [])
+      % idx
+      %   subentities I or block {k}
+      %
+      % Output
+      % ------
+      % R
+      %   nExnPxnW[xnD] array
+      %
+      %--------------------------------
+      % SOFE Toolbox.
+      % Copyright 2017, Dr. Lars Ludwig
+      %--------------------------------
       block = false;
       if nargin > 3 && iscell(varargin{1})
         block = true; k = varargin{1};
