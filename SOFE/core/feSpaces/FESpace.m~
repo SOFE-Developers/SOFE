@@ -1,38 +1,34 @@
 classdef FESpace < SOFE
 % FESpace Class representing the Finite Element Space
 %
-%   constructor
-%   -----------
-%     obj = FESpace(mesh, element [, fixB, shift])
+%     obj = FESpace(mesh, element[, fixB, shift])
 %
 %     where
 %     
-%     mesh ... (sub)class of type Mesh
-%     element --- (sub)class of type Element
-%     fixB ... function handle for location of Dirichlet boundary
-%     shift ... function handle for values of Dirichlet boundary
+%     mesh ... class of type Mesh
+%   
 %
-%   properties
-%   ----------
-%     mesh 
-%     element
-%     quadRule
-%     fixB
-%     shift
-%     freeDoFs
-% 
-%   public methods
-%   --------------
-%     setQuadRule / getQuadRule
-%     evalFunction / evalReferenceMap / evalTrafoInfo
-%     evalGlobalBasis / evalDoFVector
-%     getDoFMap / getNDoF / extractDoFs / getBoundaryDoFs / getFreeDoFs
-%     getL2Projection / getInterpolation
+% properties
+% ----------
+% mesh 
+% element
+% quadRule
+% fixB
+% shift
+% freeDoFs
+%
+% public methods
+% ----------
+% setQuadRule / getQuadRule
+% evalFunction / evalReferenceMap / evalTrafoInfo
+% evalGlobalBasis / evalDoFVector
+% getDoFMap / getNDoF / extractDoFs / getBoundaryDoFs / getFreeDoFs
+% getL2Projection / getInterpolation
 %
 %     See also meshes/Mesh, elements/Element, quadrature/QuadRule.
 %
-% SOFE Toolbox.
-% Copyright 2017, Dr. Lars Ludwig
+%SOFE Toolbox.
+%Copyright 2017, Dr. Lars Ludwig
   properties
     mesh 
     element
