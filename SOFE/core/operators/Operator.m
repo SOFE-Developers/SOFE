@@ -4,8 +4,8 @@ classdef Operator < SOFE
     data, dataCache
     fesTrial, fesTest
     matrix
-    state, dState
     loc, idx
+    pde
   end
   methods % constructor
     function obj = Operator(data, fesTrial, varargin) % [fesTest loc]
@@ -32,8 +32,9 @@ classdef Operator < SOFE
       if nargin > 3
         obj.loc = varargin{2};
       end
+      obj.pde.state = []; obj.pde.dState = [];
     end
-    function notify(obj, varargin) % [time, state]
+    function notify(obj, varargin) % [time, state, dState]
       if nargin < 2
         obj.matrix = [];
         obj.idx = ':';
@@ -45,13 +46,16 @@ classdef Operator < SOFE
           elseif nargin(obj.dataCache) == 3 % f(x,t,U)
             obj.matrix = [];
             obj.data = @(x, U)obj.dataCache(x, varargin{1}, U);
-            obj.state = varargin{2};
           elseif nargin(obj.dataCache) == 4 % f(x,t,U,d)
               obj.matrix = [];
               obj.data = @(x, U, d)obj.dataCache(x, varargin{1}, U, d);
-              obj.state = varargin{2};
-              obj.dState = varargin{3};
           end
+        end
+        if nargin > 2
+          obj.pde.state = varargin{2};
+        end
+        if nargin > 3
+          obj.pde.dState = varargin{3};
         end
         if ~isempty(obj.loc)
           if nargin(obj.loc) > 1 % loc(x,t)
@@ -104,7 +108,7 @@ classdef Operator < SOFE
         if isnumeric(obj.data)
           coef = obj.fesTrial.evalDoFVector(obj.data, [], obj.codim, 0, {k}); % nExnPx(nD*nD)
         else
-          coef = obj.fesTrial.evalFunction(obj.data, [], obj.codim, obj.state, obj.dState, {k}); % nExnP
+          coef = obj.fesTrial.evalFunction(obj.data, [], obj.codim, obj.pde.state, obj.pde.dState, {k}); % nExnP
         end
       else, coef = 1;
       end

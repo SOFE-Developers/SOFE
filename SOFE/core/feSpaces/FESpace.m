@@ -10,15 +10,14 @@ classdef FESpace < SOFE
     cache
     isCaching = true;
     observers
-    nBlock = 1;
+    nBlock
   end
   methods % constructor, observer and caching.
     function obj = FESpace(mesh, element, varargin) % [fixB, shift]
       try
         if mesh.element.isSimplex ~= element.isSimplex || ...
          mesh.element.dimension ~= element.dimension
-        warning('! Mesh and Element are not compatible, continue? !');
-        keyboard
+          warning('! Mesh and Element are not compatible !');
         end
       end
       obj.mesh = mesh;
@@ -65,6 +64,8 @@ classdef FESpace < SOFE
         nB = obj.element.nB(end-1); nQ = numel(obj.quadRule{2}.weights);
         elPerBlock = SOFE.getElementsPerBlock(nB, nQ, nC, nD);
         obj.nBlock(2) = ceil(obj.mesh.topology.getNumber(nD-1)/elPerBlock);
+      else
+        obj.nBlock(2) = 1;
       end
     end
     function R = getBlock(obj, codim, varargin) % [k]
@@ -303,24 +304,19 @@ classdef FESpace < SOFE
       end
     end
     function R = evalDoFVector(obj, U, points, codim, order, varargin) % [{k} or I]
-      assert(size(U,1)==obj.getNDoF(), 'First argument must be DoFVector(s)!');
-      N = size(U,2);
-      R = cell(1,1,1,N);
-      for k = 1:N
-        if iscell(points)
-          R{1,1,1,k} = obj.evalDoFVectorGlobal(U(:,k), points, order);
-        else
-          R{1,1,1,k} = obj.evalDoFVectorLocal(U(:,k), points, codim, order, varargin{:});
-        end
+      assert(numel(U)==obj.getNDoF(), 'First argument must be DoFVector(s)!');
+      if iscell(points)
+        R = obj.evalDoFVectorGlobal(U, points, order);
+      else
+        R = obj.evalDoFVectorLocal(U, points, codim, order, varargin{:});
       end
-      R = cell2mat(R);
-      if size(R,3)==1, R = permute(R,[1 2 4 3]); end
     end
     function R = evalDoFVectorGlobal(obj, U, points, order)
       if numel(points) == 1
         points = obj.mesh.evalInversReferenceMap(points{1});
       end
       isValid = points{2}>0;
+      if ~any(isValid), R = nan(size(isValid)); return; end
       points{1} = points{1}(isValid,:); points{2} = points{2}(isValid);
       basis = obj.evalGlobalBasis(points, 0, order, []); % [1/nE]xnB[xnP]xnCx[nD]       
       dMap = abs(obj.getDoFMap(0, points{2})).'; % nExnB

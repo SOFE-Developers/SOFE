@@ -23,8 +23,17 @@ classdef PDE < SOFE
       obj.nEq = numel(rhs);
       obj.fesTrial = cell(obj.nEq, 1);
       obj.fesTest = cell(obj.nEq, 1);
+      R = 1; % maximal nargin of data(x,t,u,d)
       for i = 1:obj.nEq
+        for k = 1:numel(obj.rhs{i})
+          obj.rhs{i}{k}.pde = obj;
+          R = max(R, nargin(obj.rhs{i}{k}.dataCache));
+        end
         for j = 1:obj.nEq
+          for k = 1:numel(obj.lhs{i,j})
+            obj.lhs{i,j}{k}.pde = obj;
+            R = max(R, nargin(obj.lhs{i,j}{k}.dataCache));
+          end
           if ~isempty(obj.lhs{i,j})
             if isempty(obj.fesTrial{j})
               obj.fesTrial{j} = obj.lhs{i,j}{1}.fesTrial;
@@ -37,29 +46,11 @@ classdef PDE < SOFE
           end
         end
       end
-      obj.checkNarginData();
+      obj.narginData = R;
       obj.mesh = obj.fesTrial{1}.mesh;
       obj.setIndices();
       obj.setTime(0.0);
       obj.setState();
-    end
-    function R = checkNarginData(obj)
-      R = 1; % maximal nargin of data(x,t,u,d)
-      for k = 1:size(obj.lhs,1)
-        for l = 1:size(obj.lhs,2)
-          for j = 1:numel(obj.lhs{k,l})
-            try
-              R = max(R, nargin(obj.lhs{k,l}{j}.dataCache));
-            end
-            if (l==1)
-              try
-                R = max(R, nargin(obj.rhs{k}{j}.dataCache));
-              end
-            end
-          end
-        end
-      end
-      obj.narginData = R;
     end
     function setIndices(obj)
       dimTest = zeros(obj.nEq, 1); dimTrial = zeros(obj.nEq, 1);
@@ -81,21 +72,21 @@ classdef PDE < SOFE
       obj.setIndices(); obj.setState();
     end
     function setTime(obj, newTime)
+      obj.stateChanged = true;
       obj.time = newTime;
       for k = 1:obj.nEq
-        if isempty(obj.fesTrial{k}.shift) || nargin(obj.fesTrial{k}.shift) > 1
+        if ~isempty(obj.fesTrial{k}.shift) && nargin(obj.fesTrial{k}.shift) > 1
           obj.shift = [];
         end
-        if isempty(obj.fesTrial{k}.fixB) || nargin(obj.fesTrial{k}.fixB) > 1
+        if ~isempty(obj.fesTrial{k}.fixB) && nargin(obj.fesTrial{k}.fixB) > 1
           obj.fDoFsTrial = [];
         end
-        if isempty(obj.fesTest{k}.fixB) || nargin(obj.fesTest{k}.fixB) > 1
+        if ~isempty(obj.fesTest{k}.fixB) && nargin(obj.fesTest{k}.fixB) > 1
           obj.fDoFsTest = [];
         end
       end
-      obj.stateChanged = true;
     end
-    function setState(obj, varargin)
+    function setState(obj, varargin) % [U]
       obj.stateChanged = true;
       if obj.narginData < 3, return; end
       obj.state = cell(obj.nEq, 1); % {nEq}xnExnP
@@ -132,17 +123,22 @@ classdef PDE < SOFE
       t = tic; obj.output('Begin solve ...', 1);
       obj.solve();
       obj.output(['... solved (',num2str(toc(t)),' sec)'], 1);
-      obj.setState(obj.solution);
     end
     function assemble(obj)
-      if obj.stateChanged, obj.stateChanged = false; else, return; end
+      if ~isempty(obj.stiffMat)
+        if ~obj.stateChanged || obj.narginData < 2
+          obj.stateChanged = false;
+          return
+        end
+      end
+      obj.stateChanged = false;
       % lhs
       obj.stiffMat = sparse(obj.I{obj.nEq}(2), obj.J{obj.nEq}(2));
       for i = 1:obj.nEq
         for j = 1:obj.nEq
           if ~isempty(obj.lhs{i,j})
             for k = 1:numel(obj.lhs{i,j})
-              obj.lhs{i,j}{k}.notify(obj.time, obj.state, obj.dState);
+              obj.lhs{i,j}{k}.notify(obj.time);
               obj.lhs{i,j}{k}.assemble();
               %
               blk = obj.lhs{i,j}{k}.matrix;
@@ -161,7 +157,7 @@ classdef PDE < SOFE
       for i = 1:obj.nEq
         if ~isempty(obj.rhs{i})
           for k = 1:numel(obj.rhs{i})
-            obj.rhs{i}{k}.notify(obj.time, obj.state, obj.dState);
+            obj.rhs{i}{k}.notify(obj.time);
             obj.rhs{i}{k}.assemble();
             idx = obj.I{i}(1):obj.I{i}(2);
             obj.loadVec(idx,:) = obj.loadVec(idx,:) + obj.rhs{i}{k}.vector;
@@ -202,6 +198,9 @@ classdef PDE < SOFE
     end
     function R = getSolution(obj, idx)
       R = obj.solution(obj.J{idx}(1):obj.J{idx}(2));
+    end
+    function setSolution(obj, sol, idx)
+      obj.solution(obj.J{idx}(1):obj.J{idx}(2)) = sol;
     end
     function R = getStiffnessBlock(obj, idxI, idxJ)
       R = obj.stiffMat(obj.I{idxI},obj.J{idxJ});

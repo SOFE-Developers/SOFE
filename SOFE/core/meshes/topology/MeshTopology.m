@@ -8,14 +8,11 @@ classdef MeshTopology < SOFE
     observers
   end
   methods % constructor
-    function obj = MeshTopology(nodes, elem, dimP)
+    function obj = MeshTopology(nodes, dimP)
       obj.nodes = nodes;
       obj.dimW = size(nodes,2);
       obj.dimP = dimP;
-      obj.connectivity = cell(obj.dimP+1);
-      obj.connectivity{obj.dimP+1,1} = elem;
       obj.observers = {};
-      obj.buildGlobalSearcher();
     end
     function buildGlobalSearcher(obj)
       try
@@ -61,8 +58,8 @@ classdef MeshTopology < SOFE
         R = true(obj.getNumber(dim), 1);
       end
     end
-    function R = getNumber(obj, dim, varargin) % [I]
-      R = size(obj.getEntity(dim), 1, varargin{:});
+    function R = getNumber(obj, dim)
+      R = numel(obj.connectivity{dim+1, dim+1});
     end
     function R = getCenter(obj, dim, varargin) % [I]
       I = ':'; if nargin > 2, I = varargin{1}; end
@@ -107,6 +104,9 @@ classdef MeshTopology < SOFE
           R = sum(v.^2,2).^0.5;
        end
     end
+    function R = getDiam(obj)
+      R = [min(obj.nodes); max(obj.nodes)];
+    end
     function R = isBoundary(obj, varargin) % [loc]
       e2F = obj.getElem2Face(); % nExnF
       R = accumarray(e2F(e2F>0),1, [obj.getNumber(obj.dimP-1) 1])==1; % nFx1
@@ -136,6 +136,10 @@ classdef MeshTopology < SOFE
       I = hist(E2F(:),uE2F)==1;
       R = full(sparse(uE2F(I), 1, true, obj.getNumber(obj.dimP-1), 1));
     end
+    function R = isBoundaryNode(obj)
+      R = unique(obj.getEntity(1,obj.isBoundary()));
+      R = accumarray(R,1,[obj.getNumber(0) 1])>0;
+    end
   end
   methods % connectivity information
     function R = getElem2Face(obj, varargin)
@@ -145,28 +149,35 @@ classdef MeshTopology < SOFE
       end
     end
     function [R, type] = getFace2Elem(obj)
-      nE = obj.getNumber(obj.dimP); nF = obj.getNumber(obj.dimP-1);
-      orient = 0.5*(3-obj.getNormalOrientation());
-      R = full(sparse(obj.getElem2Face(), orient, repmat((1:nE)',1,size(orient,2)),nF,2));
-      type = full(sparse(obj.getElem2Face(), orient, ones(nE,1)*(1:size(orient,2)),nF,2));
+      if isempty(obj.connectivity{obj.dimP,obj.dimP+1})        
+        nE = obj.getNumber(obj.dimP); nF = obj.getNumber(obj.dimP-1);
+        orient = 0.5*(3-obj.getNormalOrientation());
+        obj.connectivity{obj.dimP,obj.dimP+1}{1} = full(sparse(obj.getElem2Face(), orient, repmat((1:nE)',1,size(orient,2)),nF,2));
+        obj.connectivity{obj.dimP,obj.dimP+1}{2} = full(sparse(obj.getElem2Face(), orient, ones(nE,1)*(1:size(orient,2)),nF,2));
+      end
+      R = obj.connectivity{obj.dimP,obj.dimP+1}{1};
+      type = obj.connectivity{obj.dimP,obj.dimP+1}{2};
     end
     function R = getNodePatch(obj, dim)
       if dim>0
-        nE = obj.getNumber(dim);
-        entity = obj.getEntity(dim);
-        idx = repmat((1:nE)', 1, size(entity,2));
-        entity = entity(:);
-        [~,I] = sort(entity);
-        count = accumarray(entity,1);
-        maxCount = max(count);
-        upperTri = triu(repmat((1:maxCount)',1,maxCount));
-        count = upperTri(:,count); count = count(:);
-        count(count==0) = [];
-        R = accumarray([entity(I), count], idx(I));
+        if isempty(obj.connectivity{1,dim+1})
+          nE = obj.getNumber(dim);
+          entity = obj.getEntity(dim);
+          idx = repmat((1:nE)', 1, size(entity,2));
+          entity = entity(:);
+          [~,I] = sort(entity);
+          count = accumarray(entity,1);
+          maxCount = max(count);
+          upperTri = triu(repmat((1:maxCount)',1,maxCount));
+          count = upperTri(:,count); count = count(:);
+          count(count==0) = [];
+          obj.connectivity{1,dim+1} = accumarray([entity(I), count], idx(I));
+        end
+        R = obj.connectivity{1,dim+1};
       else
         segm = obj.getEntity(1);
         if dim < 0 % on boundary
-          iB = obj.isBoundary;
+          iB = obj.isBoundary();
           segm = segm(iB,:);  
         end
         II = sparse(segm(:,[1 2]),segm(:,[2 1]),segm(:,[2 1]));

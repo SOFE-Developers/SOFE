@@ -7,6 +7,7 @@ classdef Mesh < SOFE
     function obj = Mesh(nodes, elem, varargin) % [dimP]
       if ~isempty(elem)
         obj.initMesh(nodes, elem, varargin{:});
+        obj.topology.buildGlobalSearcher();
       end
     end
     function initMesh(obj, nodes, elem, varargin)
@@ -24,6 +25,7 @@ classdef Mesh < SOFE
       end
       if iscell(points)
         I = points{2}; points = points{1};
+        if isempty(points), R = []; return; end
         pVecN = [1 3 4 5 2]; pVecB = [2 3 4 5 1];
       else
         pVecN = [1 4 3 5 2]; pVecB = [5 2 3 4 1];
@@ -100,7 +102,11 @@ classdef Mesh < SOFE
       end
     end
     function R = evalInversReferenceMap(obj, points, varargin) % [output flag]
-      armijo = false; armijoMax = 5; notFMax = 2; out = false;
+      out = false;
+      armijo = false; armijoMax = 100;
+      notFblMax = 3; 
+      TOLF = 1e-14;
+      %
       C = obj.topology.globalSearcher.findCandidates(points);
       [nP, nC] = size(C);
       H = zeros(nP,1); L = zeros(size(points)); Ic = (1:nP)';
@@ -108,17 +114,16 @@ classdef Mesh < SOFE
         Ic(C(Ic,i)==0) = [];
         if isempty(Ic), break; end
         In = (1:numel(Ic))';
-        InotF = zeros(size(In));
+        InotFbl = zeros(size(In));
         pLoc = repmat(obj.topology.getCenterLoc(), numel(Ic),1);
         for n = 1:10
           pLocN = pLoc(In,:);
-          Phi = obj.evalReferenceMap({pLocN, C(Ic(In),i)}, 0);
-          F = points(Ic(In),:) - Phi;
           % test for convergence
-          InotF = InotF + (~obj.topology.isFeasible(pLocN));
-          normF = sum(F.^2,2); del = normF<1e-32 | InotF>notFMax;
-          In(del) = []; F(del,:) = [];
-          normF(del) = []; InotF(del) = []; pLocN(del,:) = [];
+          F = points(Ic(In),:) - obj.evalReferenceMap({pLocN, C(Ic(In),i)},0);
+          InotFbl = InotFbl + ~obj.topology.isFeasible(pLocN);
+          normF = sum(F.^2,2); del = normF<TOLF^2 | InotFbl>notFblMax;
+          In(del) = []; InotFbl(del) = []; pLocN(del,:) = [];
+          F(del,:) = []; normF(del) = [];
           if isempty(In), break; end
           % Newton step
           [~, DPhiInv] = obj.evalTrafoInfo({pLocN, C(Ic(In),i)});
@@ -138,6 +143,7 @@ classdef Mesh < SOFE
               Is(normFTmp <= normF(Is)) = [];
               step = step/2;
             end
+            if cnt==armijoMax, warning('!armijoMax reached!'); end
             pLoc(In,:) = pLocTmp;
           end
           if out, fprintf('Cand=%d(#points:%d), nNewton=%d\n',i,numel(Ic),n); end %#ok<UNRCH>
@@ -169,8 +175,8 @@ classdef Mesh < SOFE
           if ~iscell(D); D = {D}; end % nExnPxnCxnD
           sz = size(D{1});
           for i = 1:numel(U)
-            U{i} = reshape(U{i}(I,:), [], sz(3));
-            D{i} = reshape(D{i}(I,:), [], sz(3), sz(4));
+            U{i} = reshape(U{i}(I,1:nP), [], sz(3));
+            D{i} = reshape(D{i}(I,1:nP,:), [], sz(3), sz(4));
           end
           R = reshape(F(P, U, D), nE, nP, []); % nExnPxnCxnD
       end
@@ -204,6 +210,36 @@ classdef Mesh < SOFE
       end
       hold off
       axis equal
+    end
+    function showMeshFunction(obj, F, dim)
+      if numel(F) ~= obj.topology.getNumber(dim)
+        error('F is not mesh function of dimension dim');
+      end
+      if obj.topology.dimP~=2
+        error('Mesh function supported for dim=2');
+      end
+      obj.topology.show(); hold on;
+      nodes = obj.topology.getEntity(0);
+      switch dim
+        case 0
+          plot3(nodes(:,1),nodes(:,2), F,'rx');
+        case 1
+          connect = obj.topology.connectivity{2,1}; nE = size(connect,1);
+          X = [reshape(nodes(connect,1),nE,[]) nan(nE,1)]';
+          Y = [reshape(nodes(connect,2),nE,[]) nan(nE,1)]';
+          F = [repmat(F,1,size(connect,2)) nan(nE,1)]';
+          plot3(X,Y,F,'r-')
+        case 2
+          connect = obj.topology.connectivity{3,1};
+          nE = size(connect,1);
+          X = reshape(nodes(connect,1),nE,[]);
+          X = [X X(:,1) nan(nE,1)]';
+          Y = reshape(nodes(connect,2),nE,[]);
+          Y = [Y Y(:,1) nan(nE,1)]';
+          F = [repmat(F,1,size(connect,2)+1) nan(nE,1)]';
+          plot3(X,Y,F,'r-');
+      end
+      hold off
     end
   end
   methods(Static = true)

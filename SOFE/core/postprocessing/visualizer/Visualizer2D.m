@@ -10,12 +10,12 @@ classdef Visualizer2D < Visualizer
       try n = varargin{1}.n; catch, n = 1; end
       try deform = varargin{1}.deform; catch, deform = false; end
       [Y,X] = meshgrid(linspace(0,1,n+1), linspace(0,1,n+1));
-      if obj.feSpace.element.isSimplex()
+      if obj.feSpace.mesh.element.isSimplex()
         idx = X(:)+Y(:)<=1;
         X = X(idx); Y = Y(idx);
       end
       nE = obj.feSpace.mesh.topology.getNumber(2);
-      if obj.feSpace.element.isSimplex()
+      if obj.feSpace.mesh.element.isSimplex()
         col = reshapeTop(n+1:-1:1, 1:(n+2)*(n+1)/2);
         col1 = col; col1(n+1:n:n^2+n+1) = 0; col1(col1 == 0) = [];
         col2 = col; col2(:,1) = []; col2(col2 == 0) = [];
@@ -53,13 +53,11 @@ classdef Visualizer2D < Visualizer
         if size(vertices,2)==2
           vertices = [vertices, value];
         end
-        h = patch('faces', reshape(elem, [], obj.feSpace.element.nV(end)), ...
+        h = patch('faces', reshape(elem, [], obj.feSpace.mesh.element.nV(end)), ...
                   'vertices', vertices , ... 
                   'facevertexcdata',value,'facecolor','interp', ...
                   'edgecolor','interp');
-        diam = obj.feSpace.mesh.topology.globalSearcher.diam';
-        axis(diam(:));
-        view(0,90), axis normal;
+        view(2);
       end
     end
     function h = surf(obj, U, varargin)
@@ -68,15 +66,18 @@ classdef Visualizer2D < Visualizer
       if numel(N) == 1, N = N*ones(2,1); end
       try deform = varargin{1}.deform; catch, deform = false; end
       try curl = varargin{1}.curl; catch, curl = 0; end
+      try factor = varargin{1}.factor; catch, factor = []; end
       try box = varargin{1}.box; catch, box = obj.feSpace.mesh.topology.globalSearcher.diam'; end
       [X,Y] = meshgrid(linspace(box(1), box(2), N(1)), ...
                        linspace(box(3), box(4), N(2)));
+      P = [X(:) Y(:)];
       if curl 
-        Z = obj.feSpace.evalDoFVector(U,{[X(:) Y(:)]}, [], 1); % nPxnCxnD
+        Z = obj.feSpace.evalDoFVector(U,{P}, [], 1); % nPxnCxnD
         Z = Z(:,2,1) - Z(:,1,2);
       else
-        Z = obj.feSpace.evalDoFVector(U,{[X(:) Y(:)]}, [], 0); % nPxnC
+        Z = obj.feSpace.evalDoFVector(U,{P}, [], 0); % nPxnC
       end
+      if ~isempty(factor), Z = bsxfun(@times, Z, factor(P)); end
       if size(Z,2) == 1
         h = surf(X,Y,reshape(Z,size(X))); shading interp
       else
@@ -106,8 +107,7 @@ classdef Visualizer2D < Visualizer
           end
         end
       end
-      diam = obj.feSpace.mesh.topology.globalSearcher.diam';
-      axis(diam(:)); view(0,90), axis normal; axis tight
+      axis(box(:)); view(2), axis normal; axis tight
     end
     function h = scatter(obj, U, varargin)
       obj.test(U);
@@ -162,13 +162,12 @@ classdef Visualizer2D < Visualizer
     function h = surfFH(obj, F, varargin)
       try N = varargin{1}.N; catch, N = 200; end
       if numel(N) == 1, N = N*ones(2,1); end
-      box = obj.feSpace.mesh.topology.globalSearcher.diam';
+      box = obj.feSpace.mesh.topology.getDiam();
       [X,Y] = meshgrid(linspace(box(1), box(2), N(1)), ...
                        linspace(box(3), box(4), N(2)));
       Z = F([X(:) Y(:)]); % nPx1
       h = surf(X,Y,reshape(Z,size(X))); shading interp
-      diam = obj.feSpace.mesh.topology.globalSearcher.diam';
-      axis(diam(:)); view(0,90), axis normal; axis tight
+      axis(box(:)); view(0,90), axis normal; axis tight
     end
   end
 end
