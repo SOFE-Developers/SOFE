@@ -1,34 +1,38 @@
 classdef FESpace < SOFE
 % FESpace Class representing the Finite Element Space
 %
-%     obj = FESpace(mesh, element[, fixB, shift])
+%   constructor
+%   -----------
+%     obj = FESpace(mesh, element [, fixB, shift])
 %
 %     where
 %     
-%     mesh ... class of type Mesh
-%   
+%     mesh ... (sub)class of type Mesh
+%     element --- (sub)class of type Element
+%     fixB ... function handle for location of Dirichlet boundary
+%     shift ... function handle for values of Dirichlet boundary
 %
-% properties
-% ----------
-% mesh 
-% element
-% quadRule
-% fixB
-% shift
-% freeDoFs
-%
-% public methods
-% ----------
-% setQuadRule / getQuadRule
-% evalFunction / evalReferenceMap / evalTrafoInfo
-% evalGlobalBasis / evalDoFVector
-% getDoFMap / getNDoF / extractDoFs / getBoundaryDoFs / getFreeDoFs
-% getL2Projection / getInterpolation
+%   properties
+%   ----------
+%     mesh 
+%     element
+%     quadRule
+%     fixB
+%     shift
+%     freeDoFs
+% 
+%   public methods
+%   --------------
+%     setQuadRule / getQuadRule
+%     evalFunction / evalReferenceMap / evalTrafoInfo
+%     evalGlobalBasis / evalDoFVector
+%     getDoFMap / getNDoF / extractDoFs / getBoundaryDoFs / getFreeDoFs
+%     getL2Projection / getInterpolation
 %
 %     See also meshes/Mesh, elements/Element, quadrature/QuadRule.
 %
-%SOFE Toolbox.
-%Copyright 2017, Dr. Lars Ludwig
+% SOFE Toolbox.
+% Copyright 2017, Dr. Lars Ludwig
   properties
     mesh 
     element
@@ -128,11 +132,22 @@ classdef FESpace < SOFE
   end
   methods % quadrature.
     function setQuadRule(obj, quadRule)
-      % test
+      % setQuadRule(quadRule) sets the quadrature rule
+      %
+      % Input
+      % -----
+      % quadRule ... (sub)class of type QuadRule
+      %
       obj.quadRule = quadRule;
       obj.resetCache('Do not reset DoFMaps');
     end
     function [Rp, Rw] = getQuadData(obj, codim)
+      % getQuadData(codim) returns quadrature points and weights
+      %
+      % Input
+      % -----
+      % quadRule ... (sub)class of type QuadRule
+      %
       Rp = obj.quadRule{codim+1}.points;
       Rw = obj.quadRule{codim+1}.weights;
     end

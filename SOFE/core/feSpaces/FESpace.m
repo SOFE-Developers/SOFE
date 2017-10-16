@@ -132,11 +132,27 @@ classdef FESpace < SOFE
   end
   methods % quadrature.
     function setQuadRule(obj, quadRule)
-      % test
+      % setQuadRule(quadRule) sets the quadrature rule
+      %
+      % Input
+      % -----
+      % quadRule ... (sub)class of type QuadRule
+      %
       obj.quadRule = quadRule;
       obj.resetCache('Do not reset DoFMaps');
     end
     function [Rp, Rw] = getQuadData(obj, codim)
+      % getQuadData(codim) returns quadrature points and weights
+      %
+      % Input
+      % -----
+      % codim ... codimension of quadrature rule
+      %
+      % Output
+      % -----
+      % Rp ... quadrature points
+      % Rw ... quadrature weights
+      %
       Rp = obj.quadRule{codim+1}.points;
       Rw = obj.quadRule{codim+1}.weights;
     end
