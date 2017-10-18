@@ -198,18 +198,10 @@ classdef Mesh < SOFE
       obj.topology.notifyObservers();
     end
   end
-  methods % display
-    function show(obj, type, varargin) % [type]
-      obj.topology.show(varargin{:}); axis equal
-      if nargin < 2 || isempty(type)
-        return
-      end
-      hold on;
-      for i = 1:numel(type)
-        obj.topology.showEntity(str2double(type(i)));
-      end
-      hold off
-      axis equal
+  methods % mesh functions
+    function R = getEntityLoc(obj, f, dim)
+      cc = obj.topology.getCenter(dim);
+      R = f(cc);
     end
     function showMeshFunction(obj, F, dim)
       if numel(F) ~= obj.topology.getNumber(dim)
@@ -237,9 +229,28 @@ classdef Mesh < SOFE
           Y = reshape(nodes(connect,2),nE,[]);
           Y = [Y Y(:,1) nan(nE,1)]';
           F = [repmat(F,1,size(connect,2)+1) nan(nE,1)]';
+          if ~obj.element.isSimplex()
+            X([3 4],:) = X([4 3],:);
+            Y([3 4],:) = Y([4 3],:);
+            F([3 4],:) = F([4 3],:);
+          end
           plot3(X,Y,F,'r-');
       end
       hold off
+    end
+  end
+  methods % display
+    function show(obj, type, varargin) % [type]
+      obj.topology.show(varargin{:}); axis equal
+      if nargin < 2 || isempty(type)
+        return
+      end
+      hold on;
+      for i = 1:numel(type)
+        obj.topology.showEntity(str2double(type(i)));
+      end
+      hold off
+      axis equal
     end
   end
   methods(Static = true)

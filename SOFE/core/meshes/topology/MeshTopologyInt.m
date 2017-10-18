@@ -22,9 +22,6 @@ classdef MeshTopologyInt < MeshTopology
           plot3(obj.nodes(:,1), obj.nodes(:,2), obj.nodes(:,3), '*');
       end
     end
-    function showNodeVector(obj, U)
-      plot(obj.nodes, U(1:obj.getNumber(0)));
-    end
   end
   methods % refinement
     function uniformRefine(obj)

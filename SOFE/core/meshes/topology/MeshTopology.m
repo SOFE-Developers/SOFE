@@ -112,11 +112,9 @@ classdef MeshTopology < SOFE
       R = accumarray(e2F(e2F>0),1, [obj.getNumber(obj.dimP-1) 1])==1; % nFx1
       if nargin > 1
         if ~isempty(varargin{1})
-          R = find(R); % nBFx1
-          I = varargin{1}(obj.getCenter(obj.dimP-1, R)); nC = size(I,2); % nBFxnC
-          R = repmat(R, 1, nC); % nBFxnC
-          col = ones(size(R,1),1)*[1 2 3]; % nBFxnC
-          R = accumarray([R(I), col(I)], 1, [obj.getNumber(obj.dimP-1), nC])>0; % nFxnC
+          I = varargin{1}(obj.getCenter(obj.dimP-1, R));
+          R = repmat(R, 1, size(I,2));
+          R(R(:,1)>0,:) = I;
         else
           R = [];
           return

@@ -166,18 +166,6 @@ classdef MeshTopologyTet < MeshTopology
       end
       text(center(I,1), center(I,2), center(I,3), num2str(I(:)),'Color',color,'FontSize', 18);
     end
-    function showNodeVector(obj, U, varargin)
-      fc = obj.getEntity(2);
-      if nargin > 2
-        I = obj.isSurface(varargin{1});
-      else
-        I = obj.isBoundary();
-      end
-      nodes = obj.getEntity(0);
-      h = trimesh(fc(I,:),nodes(:,1),nodes(:,2),nodes(:,3), U(1:obj.getNumber(0)));
-      set(h,'facecolor','interp','edgecolor','k');
-      axis equal, axis tight
-    end
   end
   methods(Static = true)
     function R = getQuadRule(order)
