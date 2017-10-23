@@ -33,7 +33,7 @@ classdef MeshTopologyTri < MeshTopology
       R(:,3) = -R(:,3);
     end
   end
-  methods % refinement
+  methods % refinement & manipulation
     function P = uniformRefine(obj)
       el = obj.getEntity(2);
       nF = obj.getNumber(1); nN = obj.getNumber(0);
@@ -45,6 +45,16 @@ classdef MeshTopologyTri < MeshTopology
       el = [el newIndices(obj.connectivity{3,2})];
       el = [el(:,[1 4 6]);el(:,[4 2 5]);el(:,[6 5 3]);el(:,[5 6 4])];
       obj.updateConnectivity(el);
+    end
+    function flipFace(obj, I)
+      [f2e, type] = obj.getFace2Elem();
+      elem = obj.getEntity(2);
+      face = obj.getEntity(1,I);
+      idxL = elem(f2e(I,1) + size(elem,1)*mod(type(I,1)-1+2,3));
+      idxR = elem(f2e(I,2) + size(elem,1)*mod(type(I,2)-1+2,3));
+      elem(f2e(I,1),:) = [idxR, idxL, face(:,1)];
+      elem(f2e(I,2),:) = [idxL, idxR, face(:,2)];
+      obj.updateConnectivity(elem);
     end
   end
   methods % display
