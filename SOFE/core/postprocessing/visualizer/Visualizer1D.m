@@ -14,7 +14,12 @@ classdef Visualizer1D < Visualizer
     function h = surf(obj, U, varargin)
       obj.test(U);
       try N = varargin{1}.N; catch, N = 200; end
-      try box = varargin{1}.box; catch, box = obj.feSpace.mesh.topology.globalSearcher.diam'; end
+      try
+        box = varargin{1}.box;
+      catch
+        gs = obj.feSpace.mesh.topology.getGlobalSearcher();
+        box = gs.diam';
+      end
       X = linspace(box(1), box(2), N)';
       Y = obj.feSpace.evalDoFVector(U, {X}, [], 0);
       h = plot(X,Y);

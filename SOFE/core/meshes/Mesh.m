@@ -6,14 +6,10 @@ classdef Mesh < SOFE
   methods % constructor & more
     function obj = Mesh(nodes, elem, varargin) % [dimP]
       if ~isempty(elem)
-        obj.initMesh(nodes, elem, varargin{:});
-        obj.topology.buildGlobalSearcher();
+        if nargin > 3, dimP = varargin{1}; else, dimP = size(nodes, 2); end
+        obj.element = obj.getShapeElement(size(elem,2), dimP);
+        obj.topology = obj.getTopology(nodes, elem, dimP);
       end
-    end
-    function initMesh(obj, nodes, elem, varargin)
-      if nargin > 3, dimP = varargin{:}; else, dimP = size(nodes, 2); end
-      obj.element = obj.getShapeElement(size(elem,2), dimP);
-      obj.topology = obj.getTopology(nodes, elem, dimP);
     end
   end
   methods % reference map
@@ -107,7 +103,8 @@ classdef Mesh < SOFE
       notFblMax = 3; 
       TOLF = 1e-14;
       %
-      C = obj.topology.globalSearcher.findCandidates(points);
+      gs = obj.topology.getGlobalSearcher();
+      C = gs.findCandidates(points);
       [nP, nC] = size(C);
       H = zeros(nP,1); L = zeros(size(points)); Ic = (1:nP)';
       for i = 1:nC
@@ -198,10 +195,107 @@ classdef Mesh < SOFE
       obj.topology.notifyObservers();
     end
   end
+  methods % mesh operations
+    function rotate(obj, alpha)
+      if obj.topology.dimW ~= 2, error('!Dimension must be 2!'); end
+      A = [cos(alpha) -sin(alpha); sin(alpha) cos(alpha)];
+      obj.applyLinearMap(A);
+    end
+    function scale(obj, a)
+      A = diag(a)*eye(obj.topology.dimW);
+      obj.applyLinearMap(A);
+    end
+    function translate(obj, vec)
+      obj.topology.nodes = bsxfun(@plus, obj.topology.nodes, vec(:)');
+      obj.topology.notifyObservers();
+    end
+    function applyLinearMap(obj, A)
+      obj.topology.nodes = (A*obj.topology.nodes')';
+      obj.topology.notifyObservers();
+    end
+  end
+  methods % mesh information
+    function R = getMeasure(obj, dim, varargin)
+      I = ':'; if nargin > 2, I = varargin{1}; end
+      ee = obj.topology.getEntity(dim); ee = ee(I,:);
+      nodes = obj.topology.nodes;
+      switch dim
+        case 3
+          v1 = nodes(ee(:,2),:) - nodes(ee(:,1),:);
+          v2 = nodes(ee(:,3),:) - nodes(ee(:,1),:);
+          v3 = nodes(ee(:,4+(size(ee,2)==8)),:) - nodes(ee(:,1),:);
+          R = ((v1(:,1).*v2(:,2).*v3(:,3) + v1(:,2).*v2(:,3).*v3(:,1)+v1(:,3).*v2(:,1).*v3(:,2)) ...
+          - (v1(:,3).*v2(:,2).*v3(:,1)+v1(:,2).*v2(:,1).*v3(:,3)+v1(:,1).*v2(:,3).*v3(:,2)));
+          if size(ee,2)==4
+            R = R/6;  
+          else
+            if all(all(nodes(ee(:,1),:) + v1+v2+v3 - nodes(ee(:,8),:)>1e-12))
+              warning('! Volume only valid for parallelepiped !');
+            end
+          end
+        case 2
+          v1 = nodes(ee(:,2),:) - nodes(ee(:,1),:);
+          v2 = nodes(ee(:,3),:) - nodes(ee(:,1),:);
+          R = abs(v1(:,1).*v2(:,2) - v1(:,2).*v2(:,1));
+          if size(ee,2)==3
+            R = R/2;
+          else
+            if all(all(nodes(ee(:,1),:) + v1+v2 - nodes(ee(:,4),:)>1e-12))
+              warning('! Area only valid for parallelograms !');
+            end
+          end
+        case 1
+          v = nodes(ee(:,2),:) - nodes(ee(:,1),:);
+          R = sum(v.^2,2).^0.5;
+       end
+    end
+    function R = getCenter(obj, dim, varargin) % [I]
+      I = ':'; if nargin > 2, I = varargin{1}; end
+      if dim == 0
+        R = obj.topology.nodes(I,:);
+        return;
+      end
+      R = obj.topology.getEntity(dim); R = R(I,:);
+      [nE, nV] = size(R);
+      R = permute(mean(reshape(obj.topology.nodes(R,:), nE, nV, []),2),[1 3 2]);
+    end
+    function R = getDiam(obj)
+      R = [min(obj.topology.nodes); max(obj.topology.nodes)];
+    end
+    function R = findEntity(obj, dim, varargin) % [loc]
+      if nargin > 2
+        loc = varargin{1};
+        entity = obj.topology.getEntity(dim);
+        nodes = obj.topology.nodes(entity,:);
+        R = any(reshape(loc(nodes), size(entity,1), []), 2);
+      else
+        R = true(obj.topology.getNumber(dim), 1);
+      end
+    end
+    function R = findEntityC(obj, dim, varargin) % [loc]
+      if nargin > 2
+        R = varargin{1}(obj.getCenter(dim)); % nE
+      else
+        R = true(obj.topology.getNumber(dim), 1);
+      end
+    end
+    function R = isBoundary(obj, varargin) % [loc]
+      R = obj.topology.isBoundary();
+      if nargin > 1
+        if ~isempty(varargin{1})
+          I = varargin{1}(obj.getCenter(obj.topology.dimP-1, R));
+          R = repmat(R, 1, size(I,2));
+          R(R(:,1)>0,:) = I;
+        else
+          R = [];
+          return
+        end
+      end
+    end
+  end
   methods % mesh functions
-    function R = getEntityLoc(obj, f, dim)
-      cc = obj.topology.getCenter(dim);
-      R = f(cc);
+    function R = getLocation(obj, dim, loc)
+      R = loc(obj.getCenter(dim));
     end
     function showMeshFunction(obj, F, dim)
       if numel(F) ~= obj.topology.getNumber(dim)

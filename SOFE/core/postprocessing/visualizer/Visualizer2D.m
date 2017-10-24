@@ -67,7 +67,12 @@ classdef Visualizer2D < Visualizer
       try deform = varargin{1}.deform; catch, deform = false; end
       try curl = varargin{1}.curl; catch, curl = 0; end
       try factor = varargin{1}.factor; catch, factor = []; end
-      try box = varargin{1}.box; catch, box = obj.feSpace.mesh.topology.globalSearcher.diam'; end
+      try
+        box = varargin{1}.box;
+      catch
+        gs = obj.feSpace.mesh.topology.getGlobalSearcher();
+        box = gs.diam';
+      end
       [X,Y] = meshgrid(linspace(box(1), box(2), N(1)), ...
                        linspace(box(3), box(4), N(2)));
       P = [X(:) Y(:)];
@@ -162,7 +167,7 @@ classdef Visualizer2D < Visualizer
     function h = surfFH(obj, F, varargin)
       try N = varargin{1}.N; catch, N = 200; end
       if numel(N) == 1, N = N*ones(2,1); end
-      box = obj.feSpace.mesh.topology.getDiam();
+      box = obj.feSpace.mesh.getDiam();
       [X,Y] = meshgrid(linspace(box(1), box(2), N(1)), ...
                        linspace(box(3), box(4), N(2)));
       Z = F([X(:) Y(:)]); % nPx1

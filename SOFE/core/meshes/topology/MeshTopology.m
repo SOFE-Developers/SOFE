@@ -14,12 +14,11 @@ classdef MeshTopology < SOFE
       obj.dimP = dimP;
       obj.observers = {};
     end
-    function buildGlobalSearcher(obj)
-      try
+    function R = getGlobalSearcher(obj)
+      if isempty(obj.globalSearcher)
         obj.globalSearcher = GlobalSearcher(obj);
-      catch
-        fprintf('Building GlobalSearcher failed\n');
       end
+      R = obj.globalSearcher;
     end
   end
   methods % obj is observed
@@ -27,7 +26,7 @@ classdef MeshTopology < SOFE
       obj.observers = [obj.observers, {observer}];
     end
     function notifyObservers(obj)
-      obj.buildGlobalSearcher();
+      obj.globalSearcher = [];
       for i = 1:numel(obj.observers)
         obj.observers{i}.notify();
       end
@@ -36,29 +35,15 @@ classdef MeshTopology < SOFE
   methods % mesh information
     function R = getEntity(obj, dim, varargin) % [I]
       I = ':'; if nargin > 2, I = varargin{1}; end
+      if ischar(dim), dim  = obj.dimP - str2double(dim); end % dim to codim
       if dim == 0
         R = obj.nodes(I,:);
       else
         R = obj.connectivity{dim+1}(I,:);
       end
     end
-    function R = findEntity(obj, dim, varargin) % [loc]
-      if nargin > 2
-        loc = varargin{1};
-        R = any(reshape(loc(obj.nodes(obj.getEntity(dim),:)), obj.getNumber(dim), []), 2);
-      else
-        R = true(obj.getNumber(dim), 1);
-      end
-    end
-    function R = findEntityC(obj, dim, varargin) % [loc]
-      if nargin > 2
-        loc = varargin{1};        
-        R = loc(obj.getCenter(dim)); % nE
-      else
-        R = true(obj.getNumber(dim), 1);
-      end
-    end
     function R = getNumber(obj, dim)
+      if ischar(dim), dim  = obj.dimP - str2double(dim); end % dim to codim
       R = numel(obj.connectivity{dim+1, dim+1});
     end
     function R = getCenter(obj, dim, varargin) % [I]
@@ -71,45 +56,9 @@ classdef MeshTopology < SOFE
       [nE, nV] = size(R);
       R = permute(mean(reshape(obj.nodes(R,:), nE, nV, []),2),[1 3 2]);
     end
-    function R = getMeasure(obj, dim, varargin)
-      I = ':'; if nargin > 2, I = varargin{1}; end
-      ee = obj.getEntity(dim); ee = ee(I,:);
-      switch dim
-        case 3
-          v1 = obj.nodes(ee(:,2),:) - obj.nodes(ee(:,1),:);
-          v2 = obj.nodes(ee(:,3),:) - obj.nodes(ee(:,1),:);
-          v3 = obj.nodes(ee(:,4+(size(ee,2)==8)),:) - obj.nodes(ee(:,1),:);
-          R = ((v1(:,1).*v2(:,2).*v3(:,3) + v1(:,2).*v2(:,3).*v3(:,1)+v1(:,3).*v2(:,1).*v3(:,2)) ...
-          - (v1(:,3).*v2(:,2).*v3(:,1)+v1(:,2).*v2(:,1).*v3(:,3)+v1(:,1).*v2(:,3).*v3(:,2)));
-          if size(ee,2)==4
-            R = R/6;  
-          else
-            if all(all(obj.nodes(ee(:,1),:) + v1+v2+v3 - obj.nodes(ee(:,8),:)>1e-12))
-              warning('! Volume only valid for parallelepiped !');
-            end
-          end
-        case 2
-          v1 = obj.nodes(ee(:,2),:) - obj.nodes(ee(:,1),:);
-          v2 = obj.nodes(ee(:,3),:) - obj.nodes(ee(:,1),:);
-          R = abs(v1(:,1).*v2(:,2) - v1(:,2).*v2(:,1));
-          if size(ee,2)==3
-            R = R/2;
-          else
-            if all(all(obj.nodes(ee(:,1),:) + v1+v2 - obj.nodes(ee(:,4),:)>1e-12))
-              warning('! Area only valid for parallelograms !');
-            end
-          end
-        case 1
-          v = obj.nodes(ee(:,2),:) - obj.nodes(ee(:,1),:);
-          R = sum(v.^2,2).^0.5;
-       end
-    end
-    function R = getDiam(obj)
-      R = [min(obj.nodes); max(obj.nodes)];
-    end
     function R = isBoundary(obj, varargin) % [loc]
       e2F = obj.getElem2Face(); % nExnF
-      R = accumarray(e2F(e2F>0),1, [obj.getNumber(obj.dimP-1) 1])==1; % nFx1
+      R = accumarray(e2F(e2F>0),1, [obj.getNumber('1') 1])==1; % nFx1
       if nargin > 1
         if ~isempty(varargin{1})
           I = varargin{1}(obj.getCenter(obj.dimP-1, R));
@@ -121,22 +70,34 @@ classdef MeshTopology < SOFE
         end
       end
     end
+    function R = getBoundary(obj, varargin) % [loc]
+      R = obj.isBoundary(varargin{:});
+      R = obj.getEntity(1,R);
+    end
+    function R = isBoundaryNode(obj, varargin) % [loc]
+      R = unique(obj.getEntity(1,obj.isBoundary(varargin{:})));
+      R = accumarray(R,1,[obj.getNumber(0) 1])>0;
+    end
+    function R = getBoundaryNode(obj, varargin) % [loc]
+      R = obj.isBoundaryNode(varargin{:});
+      R = obj.getEntity(0,R);
+    end
     function R = isSurface(obj, varargin) % [loc]
       if nargin > 1 && ~ischar(varargin{1})
-        idx = find(varargin{:}(obj.getEntity(0)));
+        idx = find(varargin{:}(obj.nodes));
       else
         idx = 1:obj.getNumber(0);
       end
-      goodElem = any(ismember(obj.getEntity(obj.dimP), idx),2); % feasible elements
+      goodElem = any(ismember(obj.getEntity('0'), idx),2); % feasible elements
       E2F = obj.getElem2Face();
       E2F = E2F(goodElem,:);
       uE2F = unique(E2F(:));
       I = hist(E2F(:),uE2F)==1;
-      R = full(sparse(uE2F(I), 1, true, obj.getNumber(obj.dimP-1), 1));
+      R = full(sparse(uE2F(I), 1, true, obj.getNumber('1'), 1));
     end
-    function R = isBoundaryNode(obj)
-      R = unique(obj.getEntity(1,obj.isBoundary()));
-      R = accumarray(R,1,[obj.getNumber(0) 1])>0;
+    function R = getSurface(obj, varargin) % [loc]
+      R = obj.isSurface(varargin{:});
+      R = obj.getEntity(1,R);
     end
   end
   methods % connectivity information
@@ -148,7 +109,7 @@ classdef MeshTopology < SOFE
     end
     function [R, type] = getFace2Elem(obj)
       if isempty(obj.connectivity{obj.dimP,obj.dimP+1})        
-        nE = obj.getNumber(obj.dimP); nF = obj.getNumber(obj.dimP-1);
+        nE = obj.getNumber('0'); nF = obj.getNumber('1');
         orient = 0.5*(3-obj.getNormalOrientation());
         obj.connectivity{obj.dimP,obj.dimP+1}{1} = full(sparse(obj.getElem2Face(), orient, repmat((1:nE)',1,size(orient,2)),nF,2));
         obj.connectivity{obj.dimP,obj.dimP+1}{2} = full(sparse(obj.getElem2Face(), orient, ones(nE,1)*(1:size(orient,2)),nF,2));
@@ -187,25 +148,6 @@ classdef MeshTopology < SOFE
         end
         R(R(:,1)==0,:) = [];
       end
-    end
-  end
-  methods % mesh operations
-    function rotate(obj, alpha)
-      if obj.dimW ~= 2, error('!Dimension must be 2!'); end
-      A = [cos(alpha) -sin(alpha); sin(alpha) cos(alpha)];
-      obj.applyLinearMap(A);
-    end
-    function scale(obj, a)
-      A = diag(a)*eye(obj.dimW);
-      obj.applyLinearMap(A);
-    end
-    function shift(obj, vec)
-      obj.nodes = bsxfun(@plus, obj.nodes, vec(:)');
-      obj.notifyObservers();
-    end
-    function applyLinearMap(obj, A)
-      obj.nodes = (A*obj.nodes')';
-      obj.notifyObservers();
     end
   end
 end

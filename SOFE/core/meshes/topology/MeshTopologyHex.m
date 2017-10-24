@@ -130,9 +130,14 @@ classdef MeshTopologyHex < MeshTopology
   methods % refine
     function uniformRefine(obj)
       el = obj.getEntity(3);
+      faces = obj.getEntity(2);
+      edges = obj.getEntity(1);
       nN = obj.getNumber(0); nEd = obj.getNumber(1);
       nF = obj.getNumber(2); nE = obj.getNumber(3);
-      obj.nodes = [obj.nodes; obj.getCenter(1); obj.getCenter(2); obj.getCenter(3)];
+      P = [eye(nN); sparse(repmat((1:nEd)',1,2), edges, 0.5); ...
+                    sparse(repmat((1:nF)',1,4), faces, 0.25); ...
+                    sparse(repmat((1:nE)',1,8), el, 0.125)];
+      obj.nodes = P*obj.nodes;
       newIndicesEd = (nN+1 : nN+nEd);
       newIndicesF = (nN+nEd+1 : nN+nEd+nF);
       newIndicesE = (nN+nEd+nF+1 : nN+nEd+nF+nE)';

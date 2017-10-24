@@ -19,7 +19,7 @@ classdef MeshTopologyTri < MeshTopology
   end
   methods % connectivity information
     function R = getOrientation(obj, varargin)
-      e = obj.getEntity(obj.dimP);
+      e = obj.getEntity('0');
       R = ones(size(e));
       R(e(:,1)>e(:,2),1) = -1;
       R(e(:,2)>e(:,3),2) = -1;
@@ -37,9 +37,8 @@ classdef MeshTopologyTri < MeshTopology
     function P = uniformRefine(obj)
       el = obj.getEntity(2);
       nF = obj.getNumber(1); nN = obj.getNumber(0);
-      faces = obj.connectivity{2,1};
-      P = sparse(repmat((1:size(faces,1))',1,2), faces, 0.5);
-      P = [eye(obj.getNumber(0)); P];
+      faces = obj.getEntity(1);
+      P = [eye(nN); sparse(repmat((1:nF)',1,2), faces, 0.5)];
       obj.nodes = P*obj.nodes;
       newIndices = nN + (1:nF);
       el = [el newIndices(obj.connectivity{3,2})];
@@ -59,7 +58,7 @@ classdef MeshTopologyTri < MeshTopology
   end
   methods % display
     function show(obj)
-      elem = obj.getEntity(obj.dimP);
+      elem = obj.getEntity('0');
       if size(obj.nodes, 2) == 2
         h = trisurf(elem, obj.nodes(:,1), obj.nodes(:,2), zeros(size(obj.nodes,1),1));
         view(0,90);

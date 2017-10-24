@@ -102,7 +102,7 @@ classdef FESpace < SOFE
       end
     end
     function R = getBlock(obj, codim, varargin) % [k]
-      nE = obj.mesh.topology.getNumber(obj.mesh.topology.dimP - codim);
+      nE = obj.mesh.topology.getNumber(num2str(codim));
       if obj.nBlock(codim+1)>nE, error('!Number of blocks exceeds number of elements!'); end
       R = unique(floor(linspace(0,nE,obj.nBlock(codim+1)+1)));
       R = [R(1:end-1)+1; R(2:end)];

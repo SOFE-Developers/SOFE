@@ -24,10 +24,11 @@ classdef MeshTopologyInt < MeshTopology
     end
   end
   methods % refinement
-    function uniformRefine(obj)
+    function P = uniformRefine(obj)
       el = obj.getEntity(1);
-      nE = obj.getNumber(1); nN = obj.getNumber(0);
-      obj.nodes = [obj.nodes; obj.getCenter(1)];
+      nE = obj.getNumber(1); nN = obj.getNumber(0);     
+      P = [eye(nN); sparse(repmat((1:nE)',1,2), el, 0.5)];
+      obj.nodes = P*obj.nodes;
       newIndices = nN + (1:nE);
       el = [el newIndices'];
       el = [el(:,[1 3]); el(:,[3 2])];

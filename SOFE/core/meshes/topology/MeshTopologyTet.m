@@ -95,9 +95,12 @@ classdef MeshTopologyTet < MeshTopology
     end
   end
   methods % refinement
-    function uniformRefine(obj)
-      el = obj.getEntity(3); nN = obj.getNumber(0);
-      obj.nodes = [obj.nodes; obj.getCenter(1)];
+    function P = uniformRefine(obj)
+      edges = obj.getEntity(1);
+      el = obj.getEntity(3);
+      nEd = obj.getNumber(1); nN = obj.getNumber(0);
+      P = [eye(nN); sparse(repmat((1:nEd)',1,2), edges, 0.5)];
+      obj.nodes = P*obj.nodes;
       newIndices = (nN+1 : nN+obj.getNumber(1));
       el = [el newIndices(obj.connectivity{4,2})];
       el = [el(:,[1 5 7 8]); el(:,[2 6 5 9]); ...

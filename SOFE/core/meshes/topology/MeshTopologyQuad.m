@@ -18,7 +18,7 @@ classdef MeshTopologyQuad < MeshTopology
   end
   methods % connectivity information   
     function R = getOrientation(obj, varargin)
-      e = obj.getEntity(obj.dimP);
+      e = obj.getEntity('0');
       R = ones(size(e));
       R(e(:,1)>e(:,2),1) = -1;
       R(e(:,3)>e(:,4),2) = -1;
@@ -34,10 +34,13 @@ classdef MeshTopologyQuad < MeshTopology
     end
   end
   methods % refinement
-    function uniformRefine(obj)
+    function P = uniformRefine(obj)
+      faces = obj.getEntity(1);
       el = obj.getEntity(2);
       nE = obj.getNumber(2); nF = obj.getNumber(1); nN = obj.getNumber(0);
-      obj.nodes = [obj.nodes; obj.getCenter(1); obj.getCenter(2)];
+      P = [eye(nN); sparse(repmat((1:nF)',1,2), faces, 0.5); ...
+                    sparse(repmat((1:nE)',1,4), el, 0.25)];
+      obj.nodes = P*obj.nodes;
       newIndicesF = nN + (1:nF);
       newIndicesE = nN + nF + (1:nE)';
       el = [el newIndicesF(obj.connectivity{3,2}) newIndicesE];
@@ -47,7 +50,7 @@ classdef MeshTopologyQuad < MeshTopology
   end
   methods % display
     function show(obj)
-      elem = obj.getEntity(obj.dimP);
+      elem = obj.getEntity('0');
       if size(obj.nodes, 2) == 2
         h = trisurf(elem(:,[1 2 4 3]), obj.nodes(:,1), obj.nodes(:,2), zeros(size(obj.nodes,1),1));
         view(0,90);

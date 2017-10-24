@@ -94,7 +94,7 @@ classdef PDE < SOFE
         [~, w] = obj.fesTrial{j}.getQuadData(0);
         nD = obj.fesTrial{j}.element.dimension;
         nC = size(obj.fesTrial{j}.element.evalBasis(zeros(1,nD),0),3);
-        nE = obj.mesh.topology.getNumber(obj.mesh.topology.dimP);
+        nE = obj.mesh.topology.getNumber('0');
         obj.state{j} = zeros(nE, numel(w), nC);
         if nargin < 2, continue; end
         U = varargin{1}(obj.J{j}(1):obj.J{j}(2));
@@ -106,7 +106,7 @@ classdef PDE < SOFE
         [~, w] = obj.fesTrial{j}.getQuadData(0);
         nD = obj.fesTrial{j}.element.dimension;
         nC = size(obj.fesTrial{j}.element.evalBasis(zeros(1,nD),0),3);
-        nE = obj.mesh.topology.getNumber(obj.mesh.topology.dimP);
+        nE = obj.mesh.topology.getNumber('0');
         obj.dState{j} = zeros(nE, numel(w), nC, nD);
         if nargin < 2, continue; end
         U = varargin{1}(obj.J{j}(1):obj.J{j}(2));
