@@ -6,7 +6,7 @@ classdef Mesh < SOFE
   methods % constructor & more
     function obj = Mesh(nodes, elem, varargin) % [dimP]
       if ~isempty(elem)
-        if nargin > 3, dimP = varargin{1}; else, dimP = size(nodes, 2); end
+        if nargin > 2, dimP = varargin{1}; else, dimP = size(nodes, 2); end
         obj.element = obj.getShapeElement(size(elem,2), dimP);
         obj.topology = obj.getTopology(nodes, elem, dimP);
       end
