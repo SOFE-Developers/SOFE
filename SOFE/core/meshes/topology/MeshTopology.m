@@ -83,12 +83,8 @@ classdef MeshTopology < SOFE
       R = obj.getEntity(0,R);
     end
     function R = isSurface(obj, varargin) % [loc]
-      if nargin > 1 && ~ischar(varargin{1})
-        idx = find(varargin{:}(obj.nodes));
-      else
-        idx = 1:obj.getNumber(0);
-      end
-      goodElem = any(ismember(obj.getEntity('0'), idx),2); % feasible elements
+      if nargin < 2, R = obj.isBoundary(); return; end
+      goodElem = varargin{1}(obj.getCenter(obj.dimP));
       E2F = obj.getElem2Face();
       E2F = E2F(goodElem,:);
       uE2F = unique(E2F(:));

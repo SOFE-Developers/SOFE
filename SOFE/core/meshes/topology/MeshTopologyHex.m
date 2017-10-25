@@ -149,40 +149,6 @@ classdef MeshTopologyHex < MeshTopology
       obj.updateConnectivity(el);
     end
   end
-  methods % display
-    function show(obj, varargin)
-      c = caxis();
-      fc = obj.getEntity(2);
-      Ib = obj.isBoundary(varargin{:});
-      Is = obj.isSurface(varargin{:}) & ~Ib;
-      h = trimesh(fc(Is,[1 2 4 3]), obj.nodes(:,1), obj.nodes(:,2), obj.nodes(:,3));
-      set(h,'facecolor',[0.5 0.7 0.2],'edgecolor','k');
-      hold on
-      h = trimesh(fc(Ib,[1 2 4 3]), obj.nodes(:,1), obj.nodes(:,2), obj.nodes(:,3));
-      hold off
-      set(h,'facecolor',[0.5 0.8 0.5],'edgecolor','k');
-      axis equal, axis tight, caxis(c);
-    end
-    function showEntity(obj, dim)
-      center = obj.getCenter(dim);
-      if dim == 0
-        nE = size(obj.nodes, 1);
-      else
-        nE = obj.getNumber(dim);
-      end
-      switch dim
-        case 3
-          color = [1 0 1];
-        case 2
-          color = [0.1 0.1 0.1];
-        case 1
-          color = [0 0.5 1];
-        case 0
-          color = [0 1 0.5];
-      end
-      text(center(:,1), center(:,2), center(:,3), num2str((1:nE)'),'Color',color,'FontSize', 18);
-    end
-  end
   methods(Static = true)
     function R = getQuadRule(order)
       R{4} = GaussPoint();
