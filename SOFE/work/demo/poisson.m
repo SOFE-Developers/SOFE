@@ -1,5 +1,5 @@
 % PARAMETERS
-dim = 3; N = 10; order = 1; isTri = 1;
+dim = 2; N = 100; order = 1; isTri = 1;
 % DATA
 clear data;
 data.a = 1;

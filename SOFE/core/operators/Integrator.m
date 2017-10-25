@@ -12,8 +12,8 @@ classdef Integrator < SOFE
       obj.massOp = massOp;
       obj.statOp = statOp;
       obj.mesh = mesh;
-      obj.dt = diff(mesh.topology.nodes);
-      obj.nT = numel(mesh.topology.nodes);
+      obj.dt = diff(mesh.nodes);
+      obj.nT = numel(mesh.nodes);
       if nargin > 3
         obj.initCond = varargin{1};
         if ~iscell(obj.initCond), obj.initCond = {obj.initCond}; end

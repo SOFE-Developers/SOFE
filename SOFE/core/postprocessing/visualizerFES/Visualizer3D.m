@@ -168,7 +168,7 @@ classdef Visualizer3D < Visualizer
       W = reshape(F(P), size(A)); % nPxnC
       P = reshape(P, [size(A) 3]);
       h = surf(P(:,:,1), P(:,:,2), P(:,:,3), W); shading interp;
-      gs = obj.feSpace.mesh.topology.getGlobalSearcher();
+      gs = obj.feSpace.mesh.getGlobalSearcher();
       diam = gs.diam';
       axis(diam(:)); axis equal;
     end

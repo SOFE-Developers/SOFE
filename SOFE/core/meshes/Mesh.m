@@ -2,21 +2,32 @@ classdef Mesh < SOFE
   properties
     element
     topology
+    nodes
+    dimW
+    globalSearcher
   end
-  methods % constructor & more
+  methods % constructor & globalsearcher
     function obj = Mesh(nodes, elem, varargin) % [dimP]
       if ~isempty(elem)
         if nargin > 2, dimP = varargin{1}; else, dimP = size(nodes, 2); end
         obj.element = obj.getShapeElement(size(elem,2), dimP);
         obj.topology = obj.getTopology(nodes, elem, dimP);
+        obj.nodes = nodes;
+        obj.dimW = size(nodes,2);
       end
+    end
+    function R = getGlobalSearcher(obj)
+      if isempty(obj.globalSearcher)
+        obj.globalSearcher = GlobalSearcher(obj);
+      end
+      R = obj.globalSearcher;
     end
   end
   methods % reference map
     function R = evalReferenceMap(obj, points, order, varargin) % [I]
       I = ':'; if nargin > 3, I = varargin{1}; end
       if isempty(points)
-        R = permute(obj.topology.nodes(I,:), [1 3 2]); % nEx1xnW
+        R = permute(obj.nodes(I,:), [1 3 2]); % nEx1xnW
         return;
       end
       if iscell(points)
@@ -28,12 +39,12 @@ classdef Mesh < SOFE
       end
       entity = obj.topology.getEntity(size(points,2), I); % nExnB
       B = obj.element.evalBasis(points, order); % nBxnPx1[xnD]
-      N = reshape(obj.topology.nodes(entity(:),:),[],size(B,1),obj.topology.dimW); % nExnBxnW
+      N = reshape(obj.nodes(entity(:),:),[],size(B,1),obj.dimW); % nExnBxnW
       R = sum(bsxfun(@times, permute(N,pVecN), permute(B,pVecB)),5); % nExnPxnW[xnD] or nExnW[xnD]
     end
     function [R, invR, jacR] = evalTrafoInfo(obj, points, varargin) % [I]
       R = obj.evalReferenceMap(points, 1, varargin{:}); % nExnPxnWxnD or nExnWxnD
-      nW = obj.topology.dimW;
+      nW = obj.dimW;
       if iscell(points)
         nD = size(points{1}, 2); nP = -1;
       else
@@ -103,7 +114,7 @@ classdef Mesh < SOFE
       notFblMax = 3; 
       TOLF = 1e-14;
       %
-      gs = obj.topology.getGlobalSearcher();
+      gs = obj.getGlobalSearcher();
       C = gs.findCandidates(points);
       [nP, nC] = size(C);
       H = zeros(nP,1); L = zeros(size(points)); Ic = (1:nP)';
@@ -190,27 +201,27 @@ classdef Mesh < SOFE
   methods % refinement
     function uniformRefine(obj, N)
       for i = 1:N
-        obj.topology.uniformRefine();
+        obj.nodes = obj.topology.uniformRefine()*obj.nodes;
       end
       obj.topology.notifyObservers();
     end
   end
   methods % mesh operations
     function rotate(obj, alpha)
-      if obj.topology.dimW ~= 2, error('!Dimension must be 2!'); end
+      if obj.dimW ~= 2, error('!Dimension must be 2!'); end
       A = [cos(alpha) -sin(alpha); sin(alpha) cos(alpha)];
       obj.applyLinearMap(A);
     end
     function scale(obj, a)
-      A = diag(a)*eye(obj.topology.dimW);
+      A = diag(a)*eye(obj.dimW);
       obj.applyLinearMap(A);
     end
     function translate(obj, vec)
-      obj.topology.nodes = bsxfun(@plus, obj.topology.nodes, vec(:)');
+      obj.nodes = bsxfun(@plus, obj.nodes, vec(:)');
       obj.topology.notifyObservers();
     end
     function applyLinearMap(obj, A)
-      obj.topology.nodes = (A*obj.topology.nodes')';
+      obj.nodes = (A*obj.nodes')';
       obj.topology.notifyObservers();
     end
   end
@@ -218,55 +229,54 @@ classdef Mesh < SOFE
     function R = getMeasure(obj, dim, varargin)
       I = ':'; if nargin > 2, I = varargin{1}; end
       ee = obj.topology.getEntity(dim); ee = ee(I,:);
-      nodes = obj.topology.nodes;
       switch dim
         case 3
-          v1 = nodes(ee(:,2),:) - nodes(ee(:,1),:);
-          v2 = nodes(ee(:,3),:) - nodes(ee(:,1),:);
-          v3 = nodes(ee(:,4+(size(ee,2)==8)),:) - nodes(ee(:,1),:);
+          v1 = obj.nodes(ee(:,2),:) - obj.nodes(ee(:,1),:);
+          v2 = obj.nodes(ee(:,3),:) - obj.nodes(ee(:,1),:);
+          v3 = obj.nodes(ee(:,4+(size(ee,2)==8)),:) - obj.nodes(ee(:,1),:);
           R = ((v1(:,1).*v2(:,2).*v3(:,3) + v1(:,2).*v2(:,3).*v3(:,1)+v1(:,3).*v2(:,1).*v3(:,2)) ...
           - (v1(:,3).*v2(:,2).*v3(:,1)+v1(:,2).*v2(:,1).*v3(:,3)+v1(:,1).*v2(:,3).*v3(:,2)));
           if size(ee,2)==4
             R = R/6;  
           else
-            if all(all(nodes(ee(:,1),:) + v1+v2+v3 - nodes(ee(:,8),:)>1e-12))
+            if all(all(obj.nodes(ee(:,1),:) + v1+v2+v3 - obj.nodes(ee(:,8),:)>1e-12))
               warning('! Volume only valid for parallelepiped !');
             end
           end
         case 2
-          v1 = nodes(ee(:,2),:) - nodes(ee(:,1),:);
-          v2 = nodes(ee(:,3),:) - nodes(ee(:,1),:);
+          v1 = obj.nodes(ee(:,2),:) - obj.nodes(ee(:,1),:);
+          v2 = obj.nodes(ee(:,3),:) - obj.nodes(ee(:,1),:);
           R = abs(v1(:,1).*v2(:,2) - v1(:,2).*v2(:,1));
           if size(ee,2)==3
             R = R/2;
           else
-            if all(all(nodes(ee(:,1),:) + v1+v2 - nodes(ee(:,4),:)>1e-12))
+            if all(all(obj.nodes(ee(:,1),:) + v1+v2 - obj.nodes(ee(:,4),:)>1e-12))
               warning('! Area only valid for parallelograms !');
             end
           end
         case 1
-          v = nodes(ee(:,2),:) - nodes(ee(:,1),:);
+          v = obj.nodes(ee(:,2),:) - obj.nodes(ee(:,1),:);
           R = sum(v.^2,2).^0.5;
        end
     end
     function R = getCenter(obj, dim, varargin) % [I]
       I = ':'; if nargin > 2, I = varargin{1}; end
       if dim == 0
-        R = obj.topology.nodes(I,:);
+        R = obj.nodes(I,:);
         return;
       end
       R = obj.topology.getEntity(dim); R = R(I,:);
       [nE, nV] = size(R);
-      R = permute(mean(reshape(obj.topology.nodes(R,:), nE, nV, []),2),[1 3 2]);
+      R = permute(mean(reshape(obj.nodes(R,:), nE, nV, []),2),[1 3 2]);
     end
     function R = getDiam(obj)
-      R = [min(obj.topology.nodes); max(obj.topology.nodes)];
+      R = [min(obj.nodes); max(obj.nodes)];
     end
     function R = findEntity(obj, dim, varargin) % [loc]
       if nargin > 2
         loc = varargin{1};
         entity = obj.topology.getEntity(dim);
-        nodes = obj.topology.nodes(entity,:);
+        nodes = obj.nodes(entity,:);
         R = any(reshape(loc(nodes), size(entity,1), []), 2);
       else
         R = true(obj.topology.getNumber(dim), 1);
@@ -373,17 +383,19 @@ classdef Mesh < SOFE
     function R = getTopology(nodes, elem, dimP)
       switch size(elem, 2)
         case 2
-          R = MeshTopologyInt(nodes, elem, dimP);
+          R = MeshTopologyInt(elem, dimP);
         case 3
-          R = MeshTopologyTri(nodes, elem, dimP);
+          elem = MeshTopologyTri.renumber(nodes, elem);
+          R = MeshTopologyTri(elem, dimP);
         case 4
           if dimP == 2
-            R = MeshTopologyQuad(nodes, elem, dimP);
+            R = MeshTopologyQuad(elem, dimP);
           else
-            R = MeshTopologyTet(nodes, elem, dimP);
+            elem = MeshTopologyTet.renumber(nodes, elem);
+            R = MeshTopologyTet(elem, dimP);
           end
         case 8
-          R = MeshTopologyHex(nodes, elem, dimP);
+          R = MeshTopologyHex(elem, dimP);
       end
     end
     function R = getShapeElement(N, dimP)

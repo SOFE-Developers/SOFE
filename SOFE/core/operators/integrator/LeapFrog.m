@@ -22,7 +22,7 @@ classdef LeapFrog < Integrator
       M = obj.massOp.stiffMat;
       for k = 2:obj.nT-1
         tt = tic;
-        obj.statOp.setTime(obj.mesh.topology.nodes(k+1));
+        obj.statOp.setTime(obj.mesh.nodes(k+1));
         obj.statOp.assemble();
         iTest = obj.statOp.fDoFsTest; iTrial = obj.statOp.fDoFsTrial;
         b = obj.dt(k)^2*(obj.statOp.loadVec - obj.statOp.stiffMat*obj.solution{k}) + ...

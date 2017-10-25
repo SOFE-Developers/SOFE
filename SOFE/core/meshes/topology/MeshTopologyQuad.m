@@ -1,7 +1,7 @@
 classdef MeshTopologyQuad < MeshTopology
   methods % constructor
-    function obj = MeshTopologyQuad(nodes, elem, dimP)
-      obj = obj@MeshTopology(nodes, dimP);
+    function obj = MeshTopologyQuad(elem, dimP)
+      obj = obj@MeshTopology(dimP);
       obj.updateConnectivity(elem);
     end
     function updateConnectivity(obj, elem)
@@ -11,7 +11,7 @@ classdef MeshTopologyQuad < MeshTopology
       [obj.connectivity{2,1}, ~, e2F] = unique(sort(obj.connectivity{2,1},2),'rows'); 
       obj.connectivity{3,2} = reshape(e2F, size(elem,1), []);
       %
-      obj.connectivity{1,1} = (1:size(obj.nodes,1))';
+      obj.connectivity{1,1} = (1:max(obj.connectivity{2,1}(:)))';
       obj.connectivity{2,2} = (1:size(obj.connectivity{2,1},1))';
       obj.connectivity{3,3} = (1:size(obj.connectivity{3,1},1))';
     end
@@ -40,7 +40,6 @@ classdef MeshTopologyQuad < MeshTopology
       nE = obj.getNumber(2); nF = obj.getNumber(1); nN = obj.getNumber(0);
       P = [eye(nN); sparse(repmat((1:nF)',1,2), faces, 0.5); ...
                     sparse(repmat((1:nE)',1,4), el, 0.25)];
-      obj.nodes = P*obj.nodes;
       newIndicesF = nN + (1:nF);
       newIndicesE = nN + nF + (1:nE)';
       el = [el newIndicesF(obj.connectivity{3,2}) newIndicesE];

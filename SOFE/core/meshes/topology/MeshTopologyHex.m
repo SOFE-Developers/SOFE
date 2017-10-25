@@ -1,7 +1,7 @@
 classdef MeshTopologyHex < MeshTopology
   methods % constructor
-    function obj = MeshTopologyHex(nodes, elem, dimP)
-      obj = obj@MeshTopology(nodes, dimP);
+    function obj = MeshTopologyHex(elem, dimP)
+      obj = obj@MeshTopology(dimP);
       obj.updateConnectivity(elem);
     end
     function updateConnectivity(obj, elem)
@@ -24,7 +24,7 @@ classdef MeshTopologyHex < MeshTopology
       obj.connectivity{4,3} = reshape(e2F, [], 6);
       obj.connectivity{4,2} = reshape(e2Ed, [], 12);
       %
-      obj.connectivity{1,1} = (1:size(obj.nodes,1))';
+      obj.connectivity{1,1} = (1:max(obj.connectivity{3,1}(:)))';
       obj.connectivity{2,2} = (1:size(obj.connectivity{2,1},1))';
       obj.connectivity{3,3} = (1:size(obj.connectivity{3,1},1))';
       obj.connectivity{4,4} = (1:size(obj.connectivity{4,1},1))';
@@ -128,7 +128,7 @@ classdef MeshTopologyHex < MeshTopology
     end
   end
   methods % refine
-    function uniformRefine(obj)
+    function P = uniformRefine(obj)
       el = obj.getEntity(3);
       faces = obj.getEntity(2);
       edges = obj.getEntity(1);
@@ -137,7 +137,6 @@ classdef MeshTopologyHex < MeshTopology
       P = [eye(nN); sparse(repmat((1:nEd)',1,2), edges, 0.5); ...
                     sparse(repmat((1:nF)',1,4), faces, 0.25); ...
                     sparse(repmat((1:nE)',1,8), el, 0.125)];
-      obj.nodes = P*obj.nodes;
       newIndicesEd = (nN+1 : nN+nEd);
       newIndicesF = (nN+nEd+1 : nN+nEd+nF);
       newIndicesE = (nN+nEd+nF+1 : nN+nEd+nF+nE)';

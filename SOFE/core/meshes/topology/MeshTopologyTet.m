@@ -1,8 +1,7 @@
 classdef MeshTopologyTet < MeshTopology
   methods % constructor
-    function obj = MeshTopologyTet(nodes, elem, dimP)
-      elem = MeshTopologyTet.renumber(nodes, elem);
-      obj = obj@MeshTopology(nodes, dimP);
+    function obj = MeshTopologyTet(elem, dimP)
+      obj = obj@MeshTopology(dimP);
       obj.updateConnectivity(elem);
     end
     function updateConnectivity(obj, elem)
@@ -17,7 +16,7 @@ classdef MeshTopologyTet < MeshTopology
       obj.connectivity{4,3} = reshape(e2F,[], 4);
       obj.connectivity{4,2} = reshape(e2Ed,[], 6);
       %
-      obj.connectivity{1,1} = (1:size(obj.nodes,1))';
+      obj.connectivity{1,1} = (1:max(obj.connectivity{3,1}(:)))';
       obj.connectivity{2,2} = (1:size(obj.connectivity{2,1},1))';
       obj.connectivity{3,3} = (1:size(obj.connectivity{3,1},1))';
       obj.connectivity{4,4} = (1:size(obj.connectivity{4,1},1))';
@@ -100,7 +99,6 @@ classdef MeshTopologyTet < MeshTopology
       el = obj.getEntity(3);
       nEd = obj.getNumber(1); nN = obj.getNumber(0);
       P = [eye(nN); sparse(repmat((1:nEd)',1,2), edges, 0.5)];
-      obj.nodes = P*obj.nodes;
       newIndices = (nN+1 : nN+obj.getNumber(1));
       el = [el newIndices(obj.connectivity{4,2})];
       el = [el(:,[1 5 7 8]); el(:,[2 6 5 9]); ...
@@ -124,10 +122,10 @@ classdef MeshTopologyTet < MeshTopology
     function R = getCenterLoc()
       R = [1 1 1]/4;
     end
-    function R = renumber(nodes, elem)
-      v1 = nodes(elem(:,2),:) - nodes(elem(:,1),:);
-      v2 = nodes(elem(:,3),:) - nodes(elem(:,1),:);
-      v3 = nodes(elem(:,4),:) - nodes(elem(:,1),:);
+    function R = renumber(node, elem)
+      v1 = node(elem(:,2),:) - node(elem(:,1),:);
+      v2 = node(elem(:,3),:) - node(elem(:,1),:);
+      v3 = node(elem(:,4),:) - node(elem(:,1),:);
       I = ((v1(:,1).*v2(:,2).*v3(:,3) + v1(:,2).*v2(:,3).*v3(:,1)+v1(:,3).*v2(:,1).*v3(:,2)) ...
       - (v1(:,3).*v2(:,2).*v3(:,1)+v1(:,2).*v2(:,1).*v3(:,3)+v1(:,1).*v2(:,3).*v3(:,2)))/6;
       I = I<0;

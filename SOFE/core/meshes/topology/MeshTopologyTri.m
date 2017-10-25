@@ -1,8 +1,7 @@
 classdef MeshTopologyTri < MeshTopology
   methods % constructor
-    function obj = MeshTopologyTri(nodes, elem, dimP)
-      elem = MeshTopologyTri.renumber(nodes, elem);
-      obj = obj@MeshTopology(nodes, dimP);
+    function obj = MeshTopologyTri(elem, dimP)
+      obj = obj@MeshTopology(dimP);
       obj.updateConnectivity(elem);
     end
     function updateConnectivity(obj, elem)
@@ -39,7 +38,6 @@ classdef MeshTopologyTri < MeshTopology
       nF = obj.getNumber(1); nN = obj.getNumber(0);
       faces = obj.getEntity(1);
       P = [eye(nN); sparse(repmat((1:nF)',1,2), faces, 0.5)];
-      obj.nodes = P*obj.nodes;
       newIndices = nN + (1:nF);
       el = [el newIndices(obj.connectivity{3,2})];
       el = [el(:,[1 4 6]);el(:,[4 2 5]);el(:,[6 5 3]);el(:,[5 6 4])];
@@ -57,11 +55,11 @@ classdef MeshTopologyTri < MeshTopology
     end
   end
   methods(Static = true)
-    function R = renumber(nodes, elem)
+    function R = renumber(node, elem)
       % positive jacobian
       if isempty(elem), R = []; return; end
-      v1 = nodes(elem(:,2),:) - nodes(elem(:,1),:);
-      v2 = nodes(elem(:,3),:) - nodes(elem(:,1),:);
+      v1 = node(elem(:,2),:) - node(elem(:,1),:);
+      v2 = node(elem(:,3),:) - node(elem(:,1),:);
       I = v1(:,1).*v2(:,2) - v1(:,2).*v2(:,1);
       I = I<0;
       if any(I)

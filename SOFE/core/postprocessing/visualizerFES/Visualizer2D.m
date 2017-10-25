@@ -70,7 +70,7 @@ classdef Visualizer2D < Visualizer
       try
         box = varargin{1}.box;
       catch
-        gs = obj.feSpace.mesh.topology.getGlobalSearcher();
+        gs = obj.feSpace.mesh.getGlobalSearcher();
         box = gs.diam';
       end
       [X,Y] = meshgrid(linspace(box(1), box(2), N(1)), ...

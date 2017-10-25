@@ -1,24 +1,13 @@
 classdef MeshTopology < SOFE
   properties
-    dimW
     dimP
-    nodes
     connectivity
-    globalSearcher
     observers
   end
   methods % constructor
-    function obj = MeshTopology(nodes, dimP)
-      obj.nodes = nodes;
-      obj.dimW = size(nodes,2);
+    function obj = MeshTopology(dimP)
       obj.dimP = dimP;
       obj.observers = {};
-    end
-    function R = getGlobalSearcher(obj)
-      if isempty(obj.globalSearcher)
-        obj.globalSearcher = GlobalSearcher(obj);
-      end
-      R = obj.globalSearcher;
     end
   end
   methods % obj is observed
@@ -26,7 +15,7 @@ classdef MeshTopology < SOFE
       obj.observers = [obj.observers, {observer}];
     end
     function notifyObservers(obj)
-      obj.globalSearcher = [];
+%      obj.globalSearcher = []; % move to Mesh class
       for i = 1:numel(obj.observers)
         obj.observers{i}.notify();
       end
@@ -36,11 +25,7 @@ classdef MeshTopology < SOFE
     function R = getEntity(obj, dim, varargin) % [I]
       I = ':'; if nargin > 2, I = varargin{1}; end
       if ischar(dim), dim  = obj.dimP - str2double(dim); end % dim to codim
-      if dim == 0
-        R = obj.nodes(I,:);
-      else
-        R = obj.connectivity{dim+1}(I,:);
-      end
+      R = obj.connectivity{dim+1}(I,:);
     end
     function R = getNumber(obj, dim)
       if ischar(dim), dim  = obj.dimP - str2double(dim); end % dim to codim

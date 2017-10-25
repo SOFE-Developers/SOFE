@@ -20,7 +20,7 @@ classdef EulerImplicit < Integrator
       obj.massOp.assemble();
       for k = 1:obj.nT-1
         tt = tic;
-        obj.statOp.setTime(obj.mesh.topology.nodes(k+1));
+        obj.statOp.setTime(obj.mesh.nodes(k+1));
         obj.statOp.setState(obj.solution{k});
         % assemble
         obj.statOp.assemble();

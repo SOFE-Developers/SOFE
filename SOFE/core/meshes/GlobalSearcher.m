@@ -1,6 +1,6 @@
 classdef GlobalSearcher < SOFE
   properties
-    topology
+    mesh
     nodes % nExnN
     dim
     bgMesh
@@ -9,13 +9,13 @@ classdef GlobalSearcher < SOFE
     nBlockGS = 1;
   end
   methods % constructor
-    function obj = GlobalSearcher(topology)
-      obj.topology = topology;
-      obj.dim = topology.dimP;
+    function obj = GlobalSearcher(mesh)
+      obj.mesh = mesh;
+      obj.dim = mesh.topology.dimP;
       obj.notify();
     end
     function R = getBlock(obj, varargin) % [I]
-      nE = obj.topology.getNumber('0');
+      nE = obj.mesh.topology.getNumber('0');
       if obj.nBlockGS>nE, error('!Number of blocks exceeds number of elements!'); end
       R = unique(floor(linspace(0,nE,obj.nBlockGS+1)));
       R = [R(1:end-1)+1; R(2:end)];
@@ -25,8 +25,8 @@ classdef GlobalSearcher < SOFE
     end
     function notify(obj, varargin) % [nodes]
       if nargin < 2
-        N = obj.topology.nodes;
-        elem = obj.topology.getEntity('0'); % nExnV
+        N = obj.mesh.nodes;
+        elem = obj.mesh.topology.getEntity('0'); % nExnV
         I = (elem>0);
         obj.nodes = nan([numel(elem) obj.dim]);
         obj.nodes(I,:) = N(elem(I),:);
@@ -37,7 +37,7 @@ classdef GlobalSearcher < SOFE
       obj.diam(:,1) = min(reshape(obj.nodes,[],obj.dim)); % nWx2
       obj.diam(:,2) = max(reshape(obj.nodes,[],obj.dim)); % nWx2
       range = diff(obj.diam');
-      obj.NVec = 5*obj.topology.getNumber('0')/2^obj.dim; % number of bins
+      obj.NVec = 5*obj.mesh.topology.getNumber('0')/2^obj.dim; % number of bins
       if obj.dim == 2
         obj.NVec = [obj.NVec*range(1)/range(2) ...
                     obj.NVec*range(2)/range(1)].^(1/2);
