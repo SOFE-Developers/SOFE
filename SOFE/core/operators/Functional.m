@@ -51,10 +51,10 @@ classdef Functional < SOFE
         if ~isempty(obj.loc)
           if nargin(obj.loc) > 1 % loc(x,t)
             obj.vector = [];
-            obj.idx = obj.fes.mesh.topology.isBoundary(@(x)obj.loc(x, varargin{1}));
+            obj.idx = obj.fes.mesh.isBoundary(@(x)obj.loc(x, varargin{1}));
           else
             if strcmp(obj.idx, ':')
-              obj.idx = obj.fes.mesh.topology.isBoundary(@(x)obj.loc(x));
+              obj.idx = obj.fes.mesh.isBoundary(@(x)obj.loc(x));
             end
           end
         end

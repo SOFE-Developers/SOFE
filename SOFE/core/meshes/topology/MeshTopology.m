@@ -46,54 +46,9 @@ classdef MeshTopology < SOFE
       if ischar(dim), dim  = obj.dimP - str2double(dim); end % dim to codim
       R = numel(obj.connectivity{dim+1, dim+1});
     end
-    function R = getCenter(obj, dim, varargin) % [I]
-      I = ':'; if nargin > 2, I = varargin{1}; end
-      if dim == 0
-        R = obj.nodes(I,:);
-        return;
-      end
-      R = obj.getEntity(dim); R = R(I,:);
-      [nE, nV] = size(R);
-      R = permute(mean(reshape(obj.nodes(R,:), nE, nV, []),2),[1 3 2]);
-    end
-    function R = isBoundary(obj, varargin) % [loc]
+    function R = isBoundary(obj)
       e2F = obj.getElem2Face(); % nExnF
       R = accumarray(e2F(e2F>0),1, [obj.getNumber('1') 1])==1; % nFx1
-      if nargin > 1
-        if ~isempty(varargin{1})
-          I = varargin{1}(obj.getCenter(obj.dimP-1, R));
-          R = repmat(R, 1, size(I,2));
-          R(R(:,1)>0,:) = I;
-        else
-          R = [];
-          return
-        end
-      end
-    end
-    function R = getBoundary(obj, varargin) % [loc]
-      R = obj.isBoundary(varargin{:});
-      R = obj.getEntity(1,R);
-    end
-    function R = isBoundaryNode(obj, varargin) % [loc]
-      R = unique(obj.getEntity(1,obj.isBoundary(varargin{:})));
-      R = accumarray(R,1,[obj.getNumber(0) 1])>0;
-    end
-    function R = getBoundaryNode(obj, varargin) % [loc]
-      R = obj.isBoundaryNode(varargin{:});
-      R = obj.getEntity(0,R);
-    end
-    function R = isSurface(obj, varargin) % [loc]
-      if nargin < 2, R = obj.isBoundary(); return; end
-      goodElem = varargin{1}(obj.getCenter(obj.dimP));
-      E2F = obj.getElem2Face();
-      E2F = E2F(goodElem,:);
-      uE2F = unique(E2F(:));
-      I = hist(E2F(:),uE2F)==1;
-      R = full(sparse(uE2F(I), 1, true, obj.getNumber('1'), 1));
-    end
-    function R = getSurface(obj, varargin) % [loc]
-      R = obj.isSurface(varargin{:});
-      R = obj.getEntity(1,R);
     end
   end
   methods % connectivity information

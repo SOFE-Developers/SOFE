@@ -613,7 +613,7 @@ classdef FESpace < SOFE
       R = accumarray(tmp(:), 1, [nDoF 1])>0;
     end
     function R = getBoundaryDoFs(obj, varargin) % [loc]
-      R = obj.extractDoFs(1, obj.mesh.topology.isBoundary(varargin{:}));
+      R = obj.extractDoFs(1, obj.mesh.isBoundary(varargin{:}));
     end
     function R = getFreeDoFs(obj)
       if ~isempty(obj.freeDoFs)
@@ -640,7 +640,7 @@ classdef FESpace < SOFE
         if obj.mesh.element.dimension == 1
           R = obj.getInterpolation(func, 0); % nDoFx1
         else
-          R = obj.getInterpolation(func, 1, obj.mesh.topology.isBoundary()); % nDoFx1
+          R = obj.getInterpolation(func, 1, obj.mesh.isBoundary()); % nDoFx1
         end
       end
     end

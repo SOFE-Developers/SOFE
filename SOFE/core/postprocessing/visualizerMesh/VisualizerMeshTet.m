@@ -9,8 +9,8 @@ classdef VisualizerMeshTet < VisualizerMesh
       top = obj.mesh.topology;
       c = caxis();
       fc = top.getEntity(2);
-      Ib = top.isBoundary(varargin{:});
-      Is = top.isSurface(varargin{:}) & ~Ib;
+      Ib = obj.mesh.isBoundary(varargin{:});
+      Is = obj.mesh.isSurface(varargin{:}) & ~Ib;
       h = trimesh(fc(Is,:), top.nodes(:,1), top.nodes(:,2), top.nodes(:,3));
       set(h,'facecolor',[0.5 0.7 0.2],'edgecolor','k');
       hold on
@@ -50,7 +50,7 @@ classdef VisualizerMeshTet < VisualizerMesh
     function showEntity(obj, dim, varargin)
       top = obj.mesh.topology;
       if nargin < 3, I = (1:top.getNumber(dim))'; else, I = varargin{1}; end
-      center = top.getCenter(dim);
+      center = obj.mesh.getCenter(dim);
       switch dim
         case 3
           color = [1 0 1];

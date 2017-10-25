@@ -60,10 +60,10 @@ classdef Operator < SOFE
         if ~isempty(obj.loc)
           if nargin(obj.loc) > 1 % loc(x,t)
             obj.matrix = [];
-            obj.idx = obj.fesTrial.mesh.topology.isBoundary(@(x)obj.loc(x, varargin{1}));
+            obj.idx = obj.fesTrial.mesh.isBoundary(@(x)obj.loc(x, varargin{1}));
           else
             if strcmp(obj.idx, ':')
-              obj.idx = obj.fesTrial.mesh.topology.isBoundary(@(x)obj.loc(x));
+              obj.idx = obj.fesTrial.mesh.isBoundary(@(x)obj.loc(x));
             end
           end
         end

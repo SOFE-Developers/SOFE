@@ -10,7 +10,7 @@ classdef Visualizer3D < Visualizer
       try n = varargin{1}.n; catch, n = 1; end
       try deform = varargin{1}.deform; catch, deform = false; end
       try I = varargin{1}.loc; catch, I = ':'; end
-      I = obj.feSpace.mesh.topology.isSurface(I);
+      I = obj.feSpace.mesh.isSurface(I);
       [Y,X] = meshgrid(linspace(0,1,n+1));
       if obj.feSpace.element.isSimplex()
         idx = X(:)+Y(:)<=1;
@@ -121,7 +121,7 @@ classdef Visualizer3D < Visualizer
       obj.test(U);
       isT = obj.feSpace.element.isSimplex();
       try I = varargin{1}.loc; catch, I = ':'; end
-      I = obj.feSpace.mesh.topology.isSurface(I);
+      I = obj.feSpace.mesh.isSurface(I);
       try
         N = varargin{1}.N/sqrt(sum(I)*0.5^isT);
       catch

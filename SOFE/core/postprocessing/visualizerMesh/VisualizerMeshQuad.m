@@ -18,7 +18,7 @@ classdef VisualizerMeshQuad < VisualizerMesh
     end
     function showEntity(obj, dim)
       top = obj.mesh.topology;
-      center = top.getCenter(dim);
+      center = obj.mesh.getCenter(dim);
       nE = top.getNumber(dim);
       switch dim
         case 2

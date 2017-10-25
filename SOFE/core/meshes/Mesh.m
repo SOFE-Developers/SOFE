@@ -292,6 +292,28 @@ classdef Mesh < SOFE
         end
       end
     end
+    function R = getBoundary(obj, varargin) % [loc]
+      R = obj.topology.getEntity('1', obj.isBoundary(varargin{:}));
+    end
+    function R = isSurface(obj, varargin) % [loc]
+      if nargin < 2, R = obj.isBoundary(); return; end
+      goodElem = obj.findEntity('0', varargin{:});
+      E2F = obj.topology.getElem2Face();
+      E2F = E2F(goodElem,:);
+      uE2F = unique(E2F(:));
+      I = hist(E2F(:),uE2F)==1;
+      R = full(sparse(uE2F(I), 1, true, obj.topology.getNumber('1'), 1));
+    end
+    function R = getSurface(obj, varargin) % [loc]
+      R = obj.topology.getEntity(1, obj.isSurface(varargin{:}));
+    end
+    function R = isBoundaryNode(obj, varargin) % [loc]
+      R = unique(obj.getBoundary(varargin{:}));
+      R = accumarray(R,1,[obj.topology.getNumber(0) 1])>0;
+    end
+    function R = getBoundaryNode(obj, varargin) % [loc]
+      R = obj.topology.getEntity(0, obj.isBoundaryNode(varargin{:}));
+    end
   end
   methods % mesh functions
     function R = getLocation(obj, dim, loc)
