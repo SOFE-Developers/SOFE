@@ -9,9 +9,9 @@ classdef VisualizerMesh < SOFE
   end
   methods(Static = true)
     function R = create(mesh)
-      name = class(mesh.topology);
-      name = name(13:end);
-      eval(['R = VisualizerMesh' name '(mesh);']);
+      R = [];
+      dim = mesh.dimW;
+      eval(['R = VisualizerMesh' num2str(dim) 'D(mesh);']);
     end
   end
 end

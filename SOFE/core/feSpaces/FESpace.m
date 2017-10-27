@@ -57,7 +57,7 @@ classdef FESpace < SOFE
       obj.element = element;
       obj.quadRule = obj.mesh.topology.getQuadRule(max(2*(obj.element.order),1));
       obj.setBlocking();
-      obj.mesh.topology.register(obj);
+      obj.mesh.register(obj);
       obj.observers = {};
       obj.resetCache();
       obj.fixB = @(x)false(size(x,1),1);

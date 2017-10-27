@@ -12,7 +12,7 @@ classdef GlobalSearcher < SOFE
     function obj = GlobalSearcher(mesh)
       obj.mesh = mesh;
       obj.dim = mesh.topology.dimP;
-      obj.notify();
+      obj.update();
     end
     function R = getBlock(obj, varargin) % [I]
       nE = obj.mesh.topology.getNumber('0');
@@ -23,7 +23,7 @@ classdef GlobalSearcher < SOFE
         R = R(:,varargin{1});
       end
     end
-    function notify(obj, varargin) % [nodes]
+    function update(obj, varargin) % [nodes]
       if nargin < 2
         N = obj.mesh.nodes;
         elem = obj.mesh.topology.getEntity('0'); % nExnV
@@ -102,7 +102,7 @@ classdef GlobalSearcher < SOFE
   end
   methods % global search
     function R = findCandidates(obj, points)
-      if isempty(obj.diam), obj.notify(); end
+      if isempty(obj.diam), obj.update(); end
       [~,L] = obj.getBin(points);
       I = L>0 & L<=prod(obj.NVec);
       R = cell(1,obj.nBlockGS);

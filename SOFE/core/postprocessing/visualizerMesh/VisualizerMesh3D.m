@@ -1,44 +1,44 @@
-classdef VisualizerMeshTet < VisualizerMesh
+classdef VisualizerMesh3D < VisualizerMesh
   methods % constructor
-    function obj = VisualizerMeshTet(mesh)
+    function obj = VisualizerMesh3D(mesh)
       obj = obj@VisualizerMesh(mesh);
     end
   end
   methods % display
     function show(obj, varargin) % [loc]
-      top = obj.mesh.topology;
       c = caxis();
-      fc = top.getEntity(2);
+      fc = obj.mesh.topology.getEntity(2);
       Ib = obj.mesh.isBoundary(varargin{:});
       Is = obj.mesh.isSurface(varargin{:}) & ~Ib;
-      h = trimesh(fc(Is,:), top.nodes(:,1), top.nodes(:,2), top.nodes(:,3));
+      h = trimesh(fc(Is,:), obj.mesh.nodes(:,1), obj.mesh.nodes(:,2), obj.mesh.nodes(:,3));
       set(h,'facecolor',[0.5 0.7 0.2],'edgecolor','k');
       hold on
-      h = trimesh(fc(Ib,:), top.nodes(:,1), top.nodes(:,2), top.nodes(:,3));
+      if obj.mesh.topology.isSimplex, I = [1 2 3]; else, I = [1 2 4 3]; end
+      h = trimesh(fc(Ib,I), obj.mesh.nodes(:,1), obj.mesh.nodes(:,2), obj.mesh.nodes(:,3));
       hold off
       set(h,'facecolor',[0.5 0.8 0.5],'edgecolor','k');
       axis equal, axis tight, caxis(c);
     end
     function showInner(obj)
-      top = obj.mesh.topology;
-      nodes = top.getEntity(0);
-      elem = top.getEntity(2);
-      h = trimesh(elem, nodes(:,1), nodes(:,2), nodes(:,3));
+      nodes = obj.mesh.nodes;
+      elem = obj.mesh.topology.getEntity(2);
+      if obj.mesh.topology.isSimplex, I = [1 2 3]; else, I = [1 2 4 3]; end
+      h = trimesh(elem(:,I), nodes(:,1), nodes(:,2), nodes(:,3));
       set(h,'facecolor','none','edgecolor','k');
     end
     function showCells(obj, I, flag)
-      top = obj.mesh.topology;
-      e2F = top.getElem2Face();
-      e2Ed = top.getElem2Edge();
-      elem = top.getEntity(3);
+      e2F = obj.mesh.getElem2Face();
+      e2Ed = obj.mesh.getElem2Edge();
+      elem = obj.mesh.topology.getEntity(3);
       II = cell(4,1);
       II{4} = I;
       II{3} = unique(e2F(I,:));
       II{2} = unique(e2Ed(I,:));
       II{1} = unique(elem(I,:));
-      face = top.getEntity(2);
-      nodes = top.getEntity(0);
-      h = trimesh(face(II{3},:),nodes(:,1),nodes(:,2),nodes(:,3));
+      face = obj.mesh.topology.getEntity(2);
+      nodes = obj.mesh.nodes;
+      if obj.mesh.topology.isSimplex, I = [1 2 3]; else, I = [1 2 4 3]; end
+      h = trimesh(face(II{3},I),nodes(:,1),nodes(:,2),nodes(:,3));
       set(h,'facecolor','none','edgecolor','k');
       if flag
         for i = 1:numel(flag)
@@ -48,8 +48,7 @@ classdef VisualizerMeshTet < VisualizerMesh
       end
     end
     function showEntity(obj, dim, varargin)
-      top = obj.mesh.topology;
-      if nargin < 3, I = (1:top.getNumber(dim))'; else, I = varargin{1}; end
+      if nargin < 3, I = (1:obj.mesh.getNumber(dim))'; else, I = varargin{1}; end
       center = obj.mesh.getCenter(dim);
       switch dim
         case 3

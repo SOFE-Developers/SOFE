@@ -1,25 +1,23 @@
-classdef VisualizerMeshInt < VisualizerMesh
+classdef VisualizerMesh1D < VisualizerMesh
   methods % constructor
-    function obj = VisualizerMeshInt(mesh)
+    function obj = VisualizerMesh1D(mesh)
       obj = obj@VisualizerMesh(mesh);
     end
   end
   methods % display
     function show(obj)
-      top = obj.mesh.topology;
-      switch size(top.nodes, 2)
+      switch size(obj.mesh.nodes, 2)
         case 1
-          plot(top.nodes, zeros(top.getNumber(0),1), '*');
+          plot(obj.mesh.nodes, zeros(obj.mesh.getNumber(0),1), '*');
         case 2
-          plot(top.nodes(:,1), top.nodes(:,2), '*');
+          plot(obj.mesh.nodes(:,1), obj.mesh.nodes(:,2), '*');
         case 3
-          plot3(top.nodes(:,1), top.nodes(:,2), top.nodes(:,3), '*');
+          plot3(obj.mesh.nodes(:,1), obj.mesh.nodes(:,2), obj.mesh.nodes(:,3), '*');
       end
     end
     function showEntity(obj, dim)
-      top = obj.mesh.topology;
       center = obj.mesh.getCenter(dim);
-      nE = top.getNumber(dim);
+      nE = obj.mesh.getNumber(dim);
       switch dim
         case 1
           color = [0 1 0];

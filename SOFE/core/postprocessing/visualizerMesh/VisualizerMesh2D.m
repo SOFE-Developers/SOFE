@@ -1,25 +1,25 @@
-classdef VisualizerMeshTri < VisualizerMesh
+classdef VisualizerMesh2D < VisualizerMesh
   methods % constructor
-    function obj = VisualizerMeshTri(mesh)
+    function obj = VisualizerMesh2D(mesh)
       obj = obj@VisualizerMesh(mesh);
     end
   end
   methods % display
     function show(obj)
-      top = obj.mesh.topology;
-      elem = top.getEntity('0');
-      if size(top.nodes, 2) == 2
-        h = trisurf(elem, top.nodes(:,1), top.nodes(:,2), zeros(size(top.nodes,1),1));
+      elem = obj.mesh.topology.getEntity('0');
+      if obj.mesh.topology.isSimplex, I = [1 2 3]; else, I = [1 2 4 3]; end
+      if size(obj.mesh.nodes, 2) == 2
+        h = trisurf(elem(:,I), obj.mesh.nodes(:,1), obj.mesh.nodes(:,2), zeros(size(obj.mesh.nodes,1),1));
         view(0,90);
       else
-        h = trimesh(elem, top.nodes(:,1), top.nodes(:,2), top.nodes(:,3));
+        h = trimesh(elem(:,I), obj.mesh.nodes(:,1), obj.mesh.nodes(:,2), obj.mesh.nodes(:,3));
       end
       set(h,'facecolor',[0.5 0.8 0.5], 'edgecolor', 'k');
+      axis equal
     end
     function showEntity(obj, dim)
-      top = obj.mesh.topology;
       center = obj.mesh.getCenter(dim);
-      nE = top.getNumber(dim);
+      nE = obj.mesh.topology.getNumber(dim);
       switch dim
         case 2
           color = [1 0 1];

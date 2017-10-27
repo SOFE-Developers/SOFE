@@ -34,14 +34,9 @@ classdef Visualizer < SOFE
   end
   methods(Static = true)
     function R = create(fes)
-      switch fes.element.dimension
-        case 1
-          R = Visualizer1D(fes);
-        case 2
-          R = Visualizer2D(fes);
-        case 3
-          R = Visualizer3D(fes);
-      end
+      R = [];
+      dim = fes.mesh.topology.dimP;
+      eval(['R = Visualizer' num2str(dim) 'D(fes);']);
     end
   end
 end

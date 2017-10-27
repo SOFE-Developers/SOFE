@@ -5,6 +5,7 @@ classdef Mesh < SOFE
     nodes
     dimW
     globalSearcher
+    observers
   end
   methods % constructor & globalsearcher
     function obj = Mesh(nodes, elem, varargin) % [dimP]
@@ -21,6 +22,20 @@ classdef Mesh < SOFE
         obj.globalSearcher = GlobalSearcher(obj);
       end
       R = obj.globalSearcher;
+    end
+  end
+  methods % obj is observed
+    function register(obj, observer)
+      obj.observers = [obj.observers, {observer}];
+    end
+    function notify(obj)
+      obj.globalSearcher = [];
+      obj.notifyObservers();
+    end
+    function notifyObservers(obj)
+      for i = 1:numel(obj.observers)
+        obj.observers{i}.notify();
+      end
     end
   end
   methods % reference map
@@ -203,7 +218,7 @@ classdef Mesh < SOFE
       for i = 1:N
         obj.nodes = obj.topology.uniformRefine()*obj.nodes;
       end
-      obj.topology.notifyObservers();
+      obj.notifyObservers();
     end
   end
   methods % mesh operations
@@ -218,11 +233,11 @@ classdef Mesh < SOFE
     end
     function translate(obj, vec)
       obj.nodes = bsxfun(@plus, obj.nodes, vec(:)');
-      obj.topology.notifyObservers();
+      obj.notifyObservers();
     end
     function applyLinearMap(obj, A)
       obj.nodes = (A*obj.nodes')';
-      obj.topology.notifyObservers();
+      obj.notifyObservers();
     end
   end
   methods % mesh information
@@ -276,8 +291,7 @@ classdef Mesh < SOFE
       if nargin > 2
         loc = varargin{1};
         entity = obj.topology.getEntity(dim);
-        nodes = obj.nodes(entity,:);
-        R = any(reshape(loc(nodes), size(entity,1), []), 2);
+        R = any(reshape(loc(obj.nodes(entity,:)), size(entity,1), []), 2);
       else
         R = true(obj.topology.getNumber(dim), 1);
       end
@@ -336,23 +350,23 @@ classdef Mesh < SOFE
       if obj.topology.dimP~=2
         error('Mesh function supported for dim=2');
       end
-      obj.topology.show(); hold on;
-      nodes = obj.topology.getEntity(0);
+      obj.show(); hold on;
+      coord = obj.nodes;
       switch dim
         case 0
-          plot3(nodes(:,1),nodes(:,2), F,'rx');
+          plot3(coord(:,1),coord(:,2), F,'rx');
         case 1
           connect = obj.topology.connectivity{2,1}; nE = size(connect,1);
-          X = [reshape(nodes(connect,1),nE,[]) nan(nE,1)]';
-          Y = [reshape(nodes(connect,2),nE,[]) nan(nE,1)]';
+          X = [reshape(coord(connect,1),nE,[]) nan(nE,1)]';
+          Y = [reshape(coord(connect,2),nE,[]) nan(nE,1)]';
           F = [repmat(F,1,size(connect,2)) nan(nE,1)]';
           plot3(X,Y,F,'r-')
         case 2
           connect = obj.topology.connectivity{3,1};
           nE = size(connect,1);
-          X = reshape(nodes(connect,1),nE,[]);
+          X = reshape(coord(connect,1),nE,[]);
           X = [X X(:,1) nan(nE,1)]';
-          Y = reshape(nodes(connect,2),nE,[]);
+          Y = reshape(coord(connect,2),nE,[]);
           Y = [Y Y(:,1) nan(nE,1)]';
           F = [repmat(F,1,size(connect,2)+1) nan(nE,1)]';
           if ~obj.element.isSimplex()
@@ -366,14 +380,13 @@ classdef Mesh < SOFE
     end
   end
   methods % display
-    function show(obj, type, varargin) % [type]
-      obj.topology.show(varargin{:}); axis equal
-      if nargin < 2 || isempty(type)
-        return
-      end
+    function show(obj, varargin) % [type]
+      v = VisualizerMesh.create(obj);
+      v.show();
+      if nargin < 2, return; end
       hold on;
-      for i = 1:numel(type)
-        obj.topology.showEntity(str2double(type(i)));
+      for i = 1:numel(varargin{1})
+        v.showEntity(str2double(varargin{1}(i)));
       end
       hold off
       axis equal
@@ -387,15 +400,19 @@ classdef Mesh < SOFE
         case 3
           elem = MeshTopologyTri.renumber(nodes, elem);
           R = MeshTopologyTri(elem, dimP);
+          R.isSimplex = 1;
         case 4
           if dimP == 2
             R = MeshTopologyQuad(elem, dimP);
+            R.isSimplex = 0;
           else
             elem = MeshTopologyTet.renumber(nodes, elem);
             R = MeshTopologyTet(elem, dimP);
+            R.isSimplex = 1;
           end
         case 8
           R = MeshTopologyHex(elem, dimP);
+          R.isSimplex = 0;
       end
     end
     function R = getShapeElement(N, dimP)

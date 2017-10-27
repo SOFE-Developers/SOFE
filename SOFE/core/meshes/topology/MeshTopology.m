@@ -2,23 +2,11 @@ classdef MeshTopology < SOFE
   properties
     dimP
     connectivity
-    observers
+    isSimplex
   end
   methods % constructor
     function obj = MeshTopology(dimP)
       obj.dimP = dimP;
-      obj.observers = {};
-    end
-  end
-  methods % obj is observed
-    function register(obj, observer)
-      obj.observers = [obj.observers, {observer}];
-    end
-    function notifyObservers(obj)
-%      obj.globalSearcher = []; % move to Mesh class
-      for i = 1:numel(obj.observers)
-        obj.observers{i}.notify();
-      end
     end
   end
   methods % mesh information

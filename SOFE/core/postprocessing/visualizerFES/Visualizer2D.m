@@ -41,7 +41,7 @@ classdef Visualizer2D < Visualizer
         h = patch('faces', reshape(elem, [], size(elem,3)), 'vertices', [vertices height], ... 
                   'facevertexcdata',value,'facecolor','interp', ...
                   'edgecolor','interp');
-        view(0,90), axis normal;
+        view(2), axis equal;
       else
         value = obj.feSpace.evalDoFVector(U,[X(:) Y(:)],[],0); % nExnPxnC
         if size(value,3)>1
@@ -89,7 +89,7 @@ classdef Visualizer2D < Visualizer
         if deform
           absZ = reshape(sum(Z.^2, 2).^0.5, size(X));
           h = surf(X+reshape(Z(:,1),size(X)), Y+reshape(Z(:,2),size(X)), absZ); shading interp;
-          view(0,90), axis normal; return
+          view(2), axis equal; return
         else
           try scale = varargin{1}.scale; catch, scale = 1.0; end
           try width = varargin{1}.width; catch, width = 4; end
@@ -112,7 +112,7 @@ classdef Visualizer2D < Visualizer
           end
         end
       end
-      axis(box(:)); view(2), axis normal; axis tight
+      axis(box(:)); view(2), axis equal; axis tight
     end
     function h = scatter(obj, U, varargin)
       obj.test(U);
@@ -147,7 +147,7 @@ classdef Visualizer2D < Visualizer
           P = reshape(P + Z, [], size(P,3)); % (nE*nP)xnW
           Z = sum(Z.^2,3).^0.5;
           plot3k([P(:,1), P(:,2), Z(:)]);
-          view(0,90), axis normal; return
+          view(2), axis equal; return
         else
           try scale = varargin{1}.scale; catch, scale = 1.0; end
           try width = varargin{1}.width; catch, width = 4; end
@@ -162,7 +162,7 @@ classdef Visualizer2D < Visualizer
           hold off
         end
       end
-      view(0,90), axis normal; axis tight
+      view(2), axis equal; axis tight
     end
     function h = surfFH(obj, F, varargin)
       try N = varargin{1}.N; catch, N = 200; end
@@ -172,7 +172,7 @@ classdef Visualizer2D < Visualizer
                        linspace(box(3), box(4), N(2)));
       Z = F([X(:) Y(:)]); % nPx1
       h = surf(X,Y,reshape(Z,size(X))); shading interp
-      axis(box(:)); view(0,90), axis normal; axis tight
+      axis(box(:)); view(2), axis equal; axis tight
     end
   end
 end
