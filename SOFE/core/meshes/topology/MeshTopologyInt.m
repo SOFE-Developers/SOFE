@@ -2,9 +2,9 @@ classdef MeshTopologyInt < MeshTopology
   methods % constructor
     function obj = MeshTopologyInt(elem, dimP)
       obj = obj@MeshTopology(dimP);
-      obj.updateConnectivity(elem);
+      obj.update(elem);
     end
-    function updateConnectivity(obj, elem)
+    function update(obj, elem)
       obj.connectivity = cell(obj.dimP+1);
       obj.connectivity{obj.dimP+1,1} = elem;
       obj.connectivity{1,1} = (1:max(obj.connectivity{2,1}(:)))';
@@ -19,7 +19,7 @@ classdef MeshTopologyInt < MeshTopology
       newIndices = nN + (1:nE);
       el = [el newIndices'];
       el = [el(:,[1 3]); el(:,[3 2])];
-      obj.updateConnectivity(el);
+      obj.update(el);
     end
   end
   methods(Static = true)

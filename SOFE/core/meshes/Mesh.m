@@ -137,15 +137,17 @@ classdef Mesh < SOFE
         Ic(C(Ic,i)==0) = [];
         if isempty(Ic), break; end
         In = (1:numel(Ic))';
-        InotFbl = zeros(size(In));
+        cntNotFbl = zeros(size(In));
         pLoc = repmat(obj.topology.getCenterLoc(), numel(Ic),1);
-        for n = 1:10
+        maxIt = 10;
+        for n = 1:maxIt
           pLocN = pLoc(In,:);
           % test for convergence
           F = points(Ic(In),:) - obj.evalReferenceMap({pLocN, C(Ic(In),i)},0);
-          InotFbl = InotFbl + ~obj.topology.isFeasible(pLocN);
-          normF = sum(F.^2,2); del = normF<TOLF^2 | InotFbl>notFblMax;
-          In(del) = []; InotFbl(del) = []; pLocN(del,:) = [];
+          cntNotFbl = cntNotFbl + ~obj.topology.isFeasible(pLocN);
+          normF = sum(F.^2,2);
+          del = normF<TOLF^2 | cntNotFbl>notFblMax;
+          In(del) = []; cntNotFbl(del) = []; pLocN(del,:) = [];
           F(del,:) = []; normF(del) = [];
           if isempty(In), break; end
           % Newton step

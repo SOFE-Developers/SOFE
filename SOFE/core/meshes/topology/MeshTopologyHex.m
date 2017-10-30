@@ -2,9 +2,9 @@ classdef MeshTopologyHex < MeshTopology
   methods % constructor
     function obj = MeshTopologyHex(elem, dimP)
       obj = obj@MeshTopology(dimP);
-      obj.updateConnectivity(elem);
+      obj.update(elem);
     end
-    function updateConnectivity(obj, elem)
+    function update(obj, elem)
       obj.connectivity = cell(obj.dimP+1);
       obj.connectivity{obj.dimP+1,1} = elem;
       obj.connectivity{3,1} = [elem(:,[1,2,3,4]); elem(:,[5,6,7,8]); ...
@@ -145,7 +145,7 @@ classdef MeshTopologyHex < MeshTopology
             el(:,[13 21 3 10 23 27 19 26]); el(:,[21 15 10 4 27 24 26 20]); ...
             el(:,[17 25 23 27 5 11 14 22]); el(:,[25 18 27 24 11 6 22 16]); ...
             el(:,[23 27 19 26 14 22 7 12]); el(:,[27 24 26 20 22 16 12 8])];
-      obj.updateConnectivity(el);
+      obj.update(el);
     end
   end
   methods(Static = true)

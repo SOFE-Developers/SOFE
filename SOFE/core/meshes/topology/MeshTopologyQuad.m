@@ -2,9 +2,9 @@ classdef MeshTopologyQuad < MeshTopology
   methods % constructor
     function obj = MeshTopologyQuad(elem, dimP)
       obj = obj@MeshTopology(dimP);
-      obj.updateConnectivity(elem);
+      obj.update(elem);
     end
-    function updateConnectivity(obj, elem)
+    function update(obj, elem)
       obj.connectivity = cell(obj.dimP+1);
       obj.connectivity{obj.dimP+1,1} = elem;
       obj.connectivity{2,1} = [elem(:,[1,2]); elem(:,[3,4]); elem(:,[1,3]); elem(:,[2,4])];
@@ -44,7 +44,7 @@ classdef MeshTopologyQuad < MeshTopology
       newIndicesE = nN + nF + (1:nE)';
       el = [el newIndicesF(obj.connectivity{3,2}) newIndicesE];
       el = [el(:,[1 5 7 9]);el(:,[5 2 9 8]);el(:,[7 9 3 6]);el(:,[9 8 6 4])];
-      obj.updateConnectivity(el);
+      obj.update(el);
     end
   end
   methods(Static = true)

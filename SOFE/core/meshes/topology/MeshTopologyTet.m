@@ -2,9 +2,9 @@ classdef MeshTopologyTet < MeshTopology
   methods % constructor
     function obj = MeshTopologyTet(elem, dimP)
       obj = obj@MeshTopology(dimP);
-      obj.updateConnectivity(elem);
+      obj.update(elem);
     end
-    function updateConnectivity(obj, elem)
+    function update(obj, elem)
       obj.connectivity = cell(obj.dimP+1);
       obj.connectivity{obj.dimP+1,1} = elem;
       obj.connectivity{3,1} = [elem(:,[1,2,3]); elem(:,[1,2,4]); ...
@@ -105,7 +105,7 @@ classdef MeshTopologyTet < MeshTopology
             el(:,[3 7 6 10]); el(:,[4 9 8 10]); ...
             el(:,[5 6 7 9]); el(:,[5 7 8 9]); ...
             el(:,[7 8 9 10]); el(:,[7 9 6 10])];
-      obj.updateConnectivity(el);
+      obj.update(el);
     end
   end
   methods(Static = true)

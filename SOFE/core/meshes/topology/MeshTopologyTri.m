@@ -2,9 +2,9 @@ classdef MeshTopologyTri < MeshTopology
   methods % constructor
     function obj = MeshTopologyTri(elem, dimP)
       obj = obj@MeshTopology(dimP);
-      obj.updateConnectivity(elem);
+      obj.update(elem);
     end
-    function updateConnectivity(obj, elem)
+    function update(obj, elem)
       obj.connectivity = cell(obj.dimP+1);
       obj.connectivity{obj.dimP+1,1} = elem;
       obj.connectivity{2,1} = [elem(:,[1,2]); elem(:,[2,3]); elem(:,[1,3])];
@@ -41,7 +41,7 @@ classdef MeshTopologyTri < MeshTopology
       newIndices = nN + (1:nF);
       el = [el newIndices(obj.connectivity{3,2})];
       el = [el(:,[1 4 6]);el(:,[4 2 5]);el(:,[6 5 3]);el(:,[5 6 4])];
-      obj.updateConnectivity(el);
+      obj.update(el);
     end
     function flipFace(obj, I)
       [f2e, type] = obj.getFace2Elem();
@@ -51,7 +51,7 @@ classdef MeshTopologyTri < MeshTopology
       idxR = elem(f2e(I,2) + size(elem,1)*mod(type(I,2)-1+2,3));
       elem(f2e(I,1),:) = [idxR, idxL, face(:,1)];
       elem(f2e(I,2),:) = [idxL, idxR, face(:,2)];
-      obj.updateConnectivity(elem);
+      obj.update(elem);
     end
   end
   methods(Static = true)
