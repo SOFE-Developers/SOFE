@@ -1,8 +1,9 @@
 classdef MeshTopologyHex < MeshTopology
   methods % constructor
-    function obj = MeshTopologyHex(elem, dimP)
-      obj = obj@MeshTopology(dimP);
+    function obj = MeshTopologyHex(elem)
+      obj = obj@MeshTopology(3);
       obj.update(elem);
+      R.isSimplex = 0;
     end
     function update(obj, elem)
       obj.connectivity = cell(obj.dimP+1);

@@ -1,8 +1,9 @@
 classdef MeshTopologyTet < MeshTopology
   methods % constructor
-    function obj = MeshTopologyTet(elem, dimP)
-      obj = obj@MeshTopology(dimP);
+    function obj = MeshTopologyTet(elem)
+      obj = obj@MeshTopology(3);
       obj.update(elem);
+      R.isSimplex = 1;
     end
     function update(obj, elem)
       obj.connectivity = cell(obj.dimP+1);

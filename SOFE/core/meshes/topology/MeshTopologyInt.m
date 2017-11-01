@@ -1,7 +1,7 @@
 classdef MeshTopologyInt < MeshTopology
   methods % constructor
-    function obj = MeshTopologyInt(elem, dimP)
-      obj = obj@MeshTopology(dimP);
+    function obj = MeshTopologyInt(elem)
+      obj = obj@MeshTopology(1);
       obj.update(elem);
     end
     function update(obj, elem)

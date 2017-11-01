@@ -1,8 +1,9 @@
 classdef MeshTopologyQuad < MeshTopology
   methods % constructor
-    function obj = MeshTopologyQuad(elem, dimP)
-      obj = obj@MeshTopology(dimP);
+    function obj = MeshTopologyQuad(elem)
+      obj = obj@MeshTopology(2);
       obj.update(elem);
+      R.isSimplex = 0;
     end
     function update(obj, elem)
       obj.connectivity = cell(obj.dimP+1);
