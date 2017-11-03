@@ -8,7 +8,7 @@ classdef VisualizerMesh1D < VisualizerMesh
     function show(obj)
       switch size(obj.mesh.nodes, 2)
         case 1
-          plot(obj.mesh.nodes, zeros(obj.mesh.getNumber(0),1), '*');
+          plot(obj.mesh.nodes, zeros(obj.mesh.topology.getNumber(0),1), '*');
         case 2
           plot(obj.mesh.nodes(:,1), obj.mesh.nodes(:,2), '*');
         case 3

@@ -491,9 +491,8 @@ classdef Mesh < SOFE
           elem{i+N(1)*(j-1)} = ee + cnt*size(nn,1);
         end
       end
-      [nodes, ~, J] = uniquetol(cell2mat(nodes),1e-6,'byrows',1);
+      nodes = uniquetol(cell2mat(nodes));
       elem = cell2mat(elem);
-      elem = J(elem);
     end
   end
 end
