@@ -9,8 +9,15 @@ classdef OpCurlCurl < Operator % ( c*Curl(U), Curl(V) )
       dBasisI = obj.fesTest.evalGlobalBasis([], 0, 1, {k});
       dBasisJ = obj.fesTrial.evalGlobalBasis([], 0, 1, {k}); % nExnBxnPxnCxnD
       if obj.fesTrial.element.dimension == 2
-        curlBasisI = dBasisI(:,:,:,2,1) - dBasisI(:,:,:,1,2); % nExnBxnP
-        curlBasisJ = dBasisJ(:,:,:,2,1) - dBasisJ(:,:,:,1,2); % nExnBxnP
+        try
+          curlBasisI = dBasisI(:,:,:,2,1) - dBasisI(:,:,:,1,2); % nExnBxnP
+          curlBasisJ = dBasisJ(:,:,:,2,1) - dBasisJ(:,:,:,1,2); % nExnBxnP
+        catch
+          curlBasisI(:,:,:,1) = dBasisI(:,:,:,1,2); % nExnBxnP
+          curlBasisI(:,:,:,2) = -dBasisI(:,:,:,1,1); % nExnBxnP
+          curlBasisJ(:,:,:,1) = dBasisJ(:,:,:,1,2); % nExnBxnP
+          curlBasisJ(:,:,:,2) = -dBasisJ(:,:,:,1,1); % nExnBxnP
+        end
       else
         curlBasisI(:,:,:,1) = dBasisI(:,:,:,3,2) - dBasisI(:,:,:,2,3); % nExnBxnP
         curlBasisI(:,:,:,2) = dBasisI(:,:,:,1,3) - dBasisI(:,:,:,3,1); % nExnBxnP
