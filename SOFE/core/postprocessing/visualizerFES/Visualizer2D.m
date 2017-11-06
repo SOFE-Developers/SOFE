@@ -9,7 +9,7 @@ classdef Visualizer2D < Visualizer
       obj.test(U);
       try n = varargin{1}.n; catch, n = 1; end
       try deform = varargin{1}.deform; catch, deform = false; end
-      [Y,X] = meshgrid(linspace(0,1,n+1), linspace(0,1,n+1));
+      delta = 1e-6; [Y,X] = meshgrid(linspace(delta,1-delta,n+1));
       if obj.feSpace.mesh.element.isSimplex()
         idx = X(:)+Y(:)<=1;
         X = X(idx); Y = Y(idx);
@@ -57,7 +57,7 @@ classdef Visualizer2D < Visualizer
                   'vertices', vertices , ... 
                   'facevertexcdata',value,'facecolor','interp', ...
                   'edgecolor','interp');
-        view(2);
+        view(2); axis equal
       end
     end
     function h = surf(obj, U, varargin)
