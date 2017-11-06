@@ -57,7 +57,7 @@ classdef Visualizer2D < Visualizer
                   'vertices', vertices , ... 
                   'facevertexcdata',value,'facecolor','interp', ...
                   'edgecolor','interp');
-        view(2); axis equal
+        view(2), axis equal; axis tight, grid off
       end
     end
     function h = surf(obj, U, varargin)
@@ -89,7 +89,6 @@ classdef Visualizer2D < Visualizer
         if deform
           absZ = reshape(sum(Z.^2, 2).^0.5, size(X));
           h = surf(X+reshape(Z(:,1),size(X)), Y+reshape(Z(:,2),size(X)), absZ); shading interp;
-          view(2), axis equal; return
         else
           try scale = varargin{1}.scale; catch, scale = 1.0; end
           try width = varargin{1}.width; catch, width = 4; end
@@ -112,7 +111,7 @@ classdef Visualizer2D < Visualizer
           end
         end
       end
-      axis(box(:)); view(2), axis equal; axis tight
+      view(2), axis equal; axis tight, grid off
     end
     function h = scatter(obj, U, varargin)
       obj.test(U);
@@ -147,7 +146,6 @@ classdef Visualizer2D < Visualizer
           P = reshape(P + Z, [], size(P,3)); % (nE*nP)xnW
           Z = sum(Z.^2,3).^0.5;
           plot3k([P(:,1), P(:,2), Z(:)]);
-          view(2), axis equal; return
         else
           try scale = varargin{1}.scale; catch, scale = 1.0; end
           try width = varargin{1}.width; catch, width = 4; end
@@ -162,7 +160,7 @@ classdef Visualizer2D < Visualizer
           hold off
         end
       end
-      view(2), axis equal; axis tight
+      view(2), axis equal; axis tight, grid off
     end
     function h = surfFH(obj, F, varargin)
       try N = varargin{1}.N; catch, N = 200; end
