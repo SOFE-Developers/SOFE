@@ -140,14 +140,12 @@ classdef PDE < SOFE
             for k = 1:numel(obj.lhs{i,j})
               obj.lhs{i,j}{k}.notify(obj.time);
               obj.lhs{i,j}{k}.assemble();
-              %
-              blk = obj.lhs{i,j}{k}.matrix;
-              blk = [sparse(obj.I{i}(1)-1, size(blk,2)); blk]; %#ok<AGROW>
-              blk(obj.I{i}(2)+1:obj.I{obj.nEq}(2),:) = 0;
-              blk = [sparse(size(blk,1), obj.J{j}(1)-1), blk]; %#ok<AGROW>
-              blk(:,obj.J{j}(2)+1:obj.J{obj.nEq}(2)) = 0;
-              %
-              obj.stiffMat = obj.stiffMat + blk;
+              obj.stiffMat = obj.stiffMat + ...
+                     [sparse(obj.I{obj.nEq}(2), obj.J{j}(1)-1), ...
+                      [sparse(obj.I{i}(1)-1, obj.J{j}(2)-obj.J{j}(1)+1); ...
+                                    obj.lhs{i,j}{k}.matrix; ...
+                       sparse(obj.I{obj.nEq}(2)-obj.I{i}(2), obj.J{j}(2)-obj.J{j}(1)+1)], ...
+                      sparse(obj.I{obj.nEq}(2), obj.J{obj.nEq}(2)-obj.J{j}(2))];
             end
           end
         end

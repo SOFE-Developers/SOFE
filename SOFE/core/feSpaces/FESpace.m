@@ -52,6 +52,7 @@ classdef FESpace < SOFE
          mesh.element.dimension ~= element.dimension
           warning('! Mesh and Element are not compatible !');
         end
+      catch
       end
       obj.mesh = mesh;
       obj.element = element;

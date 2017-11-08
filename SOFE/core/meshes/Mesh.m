@@ -52,8 +52,8 @@ classdef Mesh < SOFE
       else
         pVecN = [1 4 3 5 2]; pVecB = [5 2 3 4 1];
       end
-      entity = obj.topology.getEntity(size(points,2), I); % nExnB
       B = obj.element.evalBasis(points, order); % nBxnPx1[xnD]
+      entity = obj.topology.getEntity(size(points,2), I); % nExnB
       N = reshape(obj.nodes(entity(:),:),[],size(B,1),obj.dimW); % nExnBxnW
       R = sum(bsxfun(@times, permute(N,pVecN), permute(B,pVecB)),5); % nExnPxnW[xnD] or nExnW[xnD]
     end
