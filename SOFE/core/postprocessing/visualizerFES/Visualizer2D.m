@@ -148,16 +148,28 @@ classdef Visualizer2D < Visualizer
           plot3k([P(:,1), P(:,2), Z(:)]);
         else
           try scale = varargin{1}.scale; catch, scale = 1.0; end
-          try width = varargin{1}.width; catch, width = 4; end
+          try width = varargin{1}.width; catch, width = 1; end
+          try normalize = varargin{1}.normalize; catch, normalize = true; end
+          try vectors = varargin{1}.vectors; catch, vectors = true; end
+          try abs = varargin{1}.abs; catch, abs = true; end
           try n = varargin{1}.n/sqrt(nN*0.5^isT); catch, n = 50/sqrt(nN*0.5^isT); end
           absZ = sum(Z.^2, 3).^0.5;
-          Z = bsxfun(@rdivide, Z, absZ); Z(Z==Inf) = 0;
-          h = plot3k([reshape(P,[],2), zeros(size(P,1)*size(P,2),1)], 'ColorData', absZ(:));
-          P = reshape(P(:,1:ceil(N/n)^2:end,:), [], size(P,3)); % (nE*nP)xnW
-          Z = reshape(Z(:,1:ceil(N/n)^2:end,:), [], size(Z,3)); % (nE*nP)xnW
-          hold on
-          quiver(P(:,1),P(:,2),Z(:,1),Z(:,2), scale, 'linewidth', width);
-          hold off
+          h = [];
+          if abs
+            if size(P,3) == 2
+              h = plot3k([reshape(P,[],size(P,3)), zeros(size(P,1)*size(P,2),1)], 'ColorData', absZ(:));
+            else
+              h = plot3k(reshape(P,[],size(P,3)), 'ColorData', absZ(:));
+            end
+          end
+          if vectors
+            if normalize, Z = bsxfun(@rdivide, Z, absZ); Z(Z==Inf) = 0; end
+            P = reshape(P(:,1:ceil(N/n)^2:end,:), [], size(P,3)); % (nE*nP)xnW
+            Z = reshape(Z(:,1:ceil(N/n)^2:end,:), [], size(Z,3)); % (nE*nP)xnW
+            hold on
+            quiver(P(:,1),P(:,2),Z(:,1),Z(:,2), scale, 'linewidth', width);
+            hold off
+          end
         end
       end
       view(2), axis equal; axis tight, grid off
