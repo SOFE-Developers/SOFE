@@ -91,7 +91,7 @@ classdef Visualizer2D < Visualizer
           h = surf(X+reshape(Z(:,1),size(X)), Y+reshape(Z(:,2),size(X)), absZ); shading interp;
         else
           try scale = varargin{1}.scale; catch, scale = 1.0; end
-          try width = varargin{1}.width; catch, width = 4; end
+          try width = varargin{1}.width; catch, width = 1; end
           try normalize = varargin{1}.normalize; catch, normalize = true; end
           try vectors = varargin{1}.vectors; catch, vectors = true; end
           try n = varargin{1}.n; catch, n = 40; end
