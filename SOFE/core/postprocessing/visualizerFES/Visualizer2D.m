@@ -167,7 +167,11 @@ classdef Visualizer2D < Visualizer
             P = reshape(P(:,1:ceil(N/n)^2:end,:), [], size(P,3)); % (nE*nP)xnW
             Z = reshape(Z(:,1:ceil(N/n)^2:end,:), [], size(Z,3)); % (nE*nP)xnW
             hold on
-            quiver(P(:,1),P(:,2),Z(:,1),Z(:,2), scale, 'linewidth', width);
+            if size(Z,2)==2
+              quiver(P(:,1),P(:,2),Z(:,1),Z(:,2), scale, 'linewidth', width);
+            else
+              quiver3(P(:,1),P(:,2),P(:,3),Z(:,1),Z(:,2),Z(:,3), scale, 'linewidth', width);
+            end
             hold off
           end
         end
