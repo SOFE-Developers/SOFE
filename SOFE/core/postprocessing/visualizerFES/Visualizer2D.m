@@ -94,20 +94,27 @@ classdef Visualizer2D < Visualizer
           try width = varargin{1}.width; catch, width = 1; end
           try normalize = varargin{1}.normalize; catch, normalize = true; end
           try vectors = varargin{1}.vectors; catch, vectors = true; end
+          try abs = varargin{1}.abs; catch, abs = true; end
           try n = varargin{1}.n; catch, n = 40; end
           if numel(n) == 1, n = n*ones(2,1); end
           absZ = sum(Z.^2, 2).^0.5;
-          h = surf(X,Y,0*X,reshape(absZ,size(X))); shading interp
+          h = [];
+          if abs
+            h = surf(X,Y,0*X,reshape(absZ,size(X))); shading interp
+          end
           if vectors
             if normalize, Z = bsxfun(@rdivide, Z, absZ); Z(Z==Inf) = 0; end
+            try color = varargin{1}.color; catch, color = 'b'; end
             Z = reshape(Z, size(X,1), size(X,2), []);
             filter = ceil(N./n);
             X = X(1:filter(1):end, 1:filter(2):end);
             Y = Y(1:filter(1):end, 1:filter(2):end);
             Z = Z(1:filter(1):end, 1:filter(2):end,:);
             hold on
-            h = quiver(X,Y,Z(:,:,1),Z(:,:,2), scale, 'linewidth', width);
+            h = quiver(X,Y,Z(:,:,1),Z(:,:,2), scale, 'linewidth', width,'color',color);
             hold off
+          else
+            h = surf(X,Y,reshape(absZ,size(X))); shading interp
           end
         end
       end
@@ -164,11 +171,12 @@ classdef Visualizer2D < Visualizer
           end
           if vectors
             if normalize, Z = bsxfun(@rdivide, Z, absZ); Z(Z==Inf) = 0; end
+            try color = varargin{1}.color; catch, color = 'b'; end
             P = reshape(P(:,1:ceil(N/n)^2:end,:), [], size(P,3)); % (nE*nP)xnW
             Z = reshape(Z(:,1:ceil(N/n)^2:end,:), [], size(Z,3)); % (nE*nP)xnW
             hold on
             if size(Z,2)==2
-              quiver(P(:,1),P(:,2),Z(:,1),Z(:,2), scale, 'linewidth', width);
+              quiver(P(:,1),P(:,2),Z(:,1),Z(:,2), scale, 'linewidth', width, 'color',color);
             else
               quiver3(P(:,1),P(:,2),P(:,3),Z(:,1),Z(:,2),Z(:,3), scale, 'linewidth', width);
             end

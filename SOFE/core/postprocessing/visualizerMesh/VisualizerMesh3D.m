@@ -8,8 +8,11 @@ classdef VisualizerMesh3D < VisualizerMesh
     function show(obj, varargin) % [loc]
       c = caxis();
       fc = obj.mesh.topology.getEntity(2);
-      Ib = obj.mesh.isBoundary(varargin{:});
-      Is = obj.mesh.isSurface(varargin{:}) & ~Ib;
+      Ib = ':'; Is = ':';
+      if obj.mesh.topology.dimP==3
+        Ib = obj.mesh.isBoundary(varargin{:});
+        Is = obj.mesh.isSurface(varargin{:}) & ~Ib;
+      end
       if obj.mesh.topology.isSimplex, I = [1 2 3]; else, I = [1 2 4 3]; end
       h = trimesh(fc(Is,I), obj.mesh.nodes(:,1), obj.mesh.nodes(:,2), obj.mesh.nodes(:,3));
       set(h,'facecolor',[0.5 0.7 0.2],'edgecolor','k');

@@ -286,6 +286,27 @@ classdef Mesh < SOFE
       [nE, nV] = size(R);
       R = permute(mean(reshape(obj.nodes(R,:), nE, nV, []),2),[1 3 2]);
     end
+    function R = getOuterNormal(obj, points)
+      assert(obj.dimW==2);
+      I = obj.isBoundary(); % bFace
+      f2e = obj.topology.getFace2Elem(); f2e = f2e(I,:);
+      R = obj.evalReferenceMap(points, 1, I); % nExnPx2
+      R = reshape(([0 1;-1 0]*reshape(R,[],2)')',size(R));
+      I = (f2e(:,1)==0);
+      R(I,:,:) = -R(I,:,:); % nExnPx2
+      R = bsxfun(@rdivide, R, sum(R.^2,3).^0.5); % nExnPx2
+    end
+    function R = getOuterNormal2(obj, element)
+      fes = FESpace(obj, element);
+      R = cell(1,obj.dimW);
+      for k = 1:obj.dimW
+        fc = FcDk(1,k,fes);
+        fc.assemble();
+        R{k} = fc.vector();
+      end
+      R = cell2mat(R);
+      R = bsxfun(@rdivide,R, sum(R.^2,2).^0.5);
+    end
     function R = getDiam(obj)
       R = [min(obj.nodes); max(obj.nodes)];
     end

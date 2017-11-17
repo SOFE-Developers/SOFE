@@ -3,7 +3,7 @@ classdef MeshTopologyQuad < MeshTopology
     function obj = MeshTopologyQuad(elem)
       obj = obj@MeshTopology(2);
       obj.update(elem);
-      R.isSimplex = 0;
+      obj.isSimplex = 0;
     end
     function update(obj, elem)
       obj.connectivity = cell(obj.dimP+1);

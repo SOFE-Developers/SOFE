@@ -3,7 +3,7 @@ classdef MeshTopologyTet < MeshTopology
     function obj = MeshTopologyTet(elem)
       obj = obj@MeshTopology(3);
       obj.update(elem);
-      R.isSimplex = 1;
+      obj.isSimplex = 1;
     end
     function update(obj, elem)
       obj.connectivity = cell(obj.dimP+1);
@@ -99,7 +99,7 @@ classdef MeshTopologyTet < MeshTopology
       edges = obj.getEntity(1);
       el = obj.getEntity(3);
       nEd = obj.getNumber(1); nN = obj.getNumber(0);
-      P = [eye(nN); sparse(repmat((1:nEd)',1,2), edges, 0.5)];
+      P = [speye(nN); sparse(repmat((1:nEd)',1,2), edges, 0.5)];
       newIndices = (nN+1 : nN+obj.getNumber(1));
       el = [el newIndices(obj.connectivity{4,2})];
       el = [el(:,[1 5 7 8]); el(:,[2 6 5 9]); ...

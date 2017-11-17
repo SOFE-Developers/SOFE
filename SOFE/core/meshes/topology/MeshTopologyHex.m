@@ -3,7 +3,7 @@ classdef MeshTopologyHex < MeshTopology
     function obj = MeshTopologyHex(elem)
       obj = obj@MeshTopology(3);
       obj.update(elem);
-      R.isSimplex = 0;
+      obj.isSimplex = 0;
     end
     function update(obj, elem)
       obj.connectivity = cell(obj.dimP+1);
@@ -135,7 +135,7 @@ classdef MeshTopologyHex < MeshTopology
       edges = obj.getEntity(1);
       nN = obj.getNumber(0); nEd = obj.getNumber(1);
       nF = obj.getNumber(2); nE = obj.getNumber(3);
-      P = [eye(nN); sparse(repmat((1:nEd)',1,2), edges, 0.5); ...
+      P = [speye(nN); sparse(repmat((1:nEd)',1,2), edges, 0.5); ...
                     sparse(repmat((1:nF)',1,4), faces, 0.25); ...
                     sparse(repmat((1:nE)',1,8), el, 0.125)];
       newIndicesEd = (nN+1 : nN+nEd);

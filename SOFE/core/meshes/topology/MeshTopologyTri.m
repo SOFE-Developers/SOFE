@@ -38,7 +38,7 @@ classdef MeshTopologyTri < MeshTopology
       el = obj.getEntity(2);
       nF = obj.getNumber(1); nN = obj.getNumber(0);
       faces = obj.getEntity(1);
-      P = [eye(nN); sparse(repmat((1:nF)',1,2), faces, 0.5)];
+      P = [speye(nN); sparse(repmat((1:nF)',1,2), faces, 0.5)];
       newIndices = nN + (1:nF);
       el = [el newIndices(obj.connectivity{3,2})];
       el = [el(:,[1 4 6]);el(:,[4 2 5]);el(:,[6 5 3]);el(:,[5 6 4])];
