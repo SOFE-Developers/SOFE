@@ -29,7 +29,7 @@ classdef MeshTopologyQuad < MeshTopology
         R = R(varargin{3},:);
       end
     end
-    function R = getNormalOrientation(obj, varargin)
+    function R = getNormalOrientation(obj)
       R = obj.getOrientation();
       R(:,[2 3]) = -R(:,[2 3]);
     end

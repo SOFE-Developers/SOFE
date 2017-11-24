@@ -44,6 +44,7 @@ classdef FESpace < SOFE
     isCaching = true;
     observers
     nBlock
+    nBlockGlobal
   end
   methods % constructor, observer and caching.
     function obj = FESpace(mesh, element, varargin) % [fixB, shift]
@@ -89,17 +90,25 @@ classdef FESpace < SOFE
         obj.freeDoFs = [];
       end
     end
+    function setBlockingGlobal(obj, N)
+      obj.nBlockGlobal = N;
+      obj.setBlocking();
+    end
     function setBlocking(obj)
-      nC = obj.element.getNC(); nD = obj.element.dimension;
-      nB = obj.element.nB(end); nQ = numel(obj.quadRule{1}.weights);
-      elPerBlock = SOFE.getElementsPerBlock(nB, nQ, nC, nD);
-      obj.nBlock = ceil(obj.mesh.topology.getNumber(nD)/elPerBlock);
-      if obj.mesh.topology.dimP > 1
-        nB = obj.element.nB(end-1); nQ = numel(obj.quadRule{2}.weights);
-        elPerBlock = SOFE.getElementsPerBlock(nB, nQ, nC, nD);
-        obj.nBlock(2) = ceil(obj.mesh.topology.getNumber(nD-1)/elPerBlock);
+      if ~isempty(obj.nBlockGlobal)
+        obj.nBlock = obj.nBlockGlobal;
       else
-        obj.nBlock(2) = 1;
+        nC = obj.element.getNC(); nD = obj.element.dimension;
+        nB = obj.element.nB(end); nQ = numel(obj.quadRule{1}.weights);
+        elPerBlock = SOFE.getElementsPerBlock(nB, nQ, nC, nD);
+        obj.nBlock = ceil(obj.mesh.topology.getNumber(nD)/elPerBlock);
+        if obj.mesh.topology.dimP > 1
+          nB = obj.element.nB(end-1); nQ = numel(obj.quadRule{2}.weights);
+          elPerBlock = SOFE.getElementsPerBlock(nB, nQ, nC, nD);
+          obj.nBlock(2) = ceil(obj.mesh.topology.getNumber(nD-1)/elPerBlock);
+        else
+          obj.nBlock(2) = 1;
+        end
       end
     end
     function R = getBlock(obj, codim, varargin) % [k]
@@ -593,7 +602,7 @@ classdef FESpace < SOFE
         R = tmp; % nDoFLocx(nESub*nE)
       end
       if dim == obj.element.dimension && d == dim-1 && strcmp(obj.element.conformity, 'HDiv')
-        orient = reshape(obj.mesh.topology.getNormalOrientation(dim, d).',1,[]); % 1x(nESub*nE)
+        orient = reshape(obj.mesh.topology.getNormalOrientation().',1,[]); % 1x(nESub*nE)
         R = bsxfun(@times, R, orient); % nDoFLocx(nESub*nE)
       end
     end

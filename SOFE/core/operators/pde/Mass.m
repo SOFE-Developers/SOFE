@@ -11,7 +11,7 @@ classdef Mass < PDE
       for i = 1:nD
         for j = 1:nD
           if ~isempty(c{i,j})
-            op{i,j} = {OpIdId(c{i,j}, 0, fes{i}, fes{j})};
+            op{i,j} = {OpIdId(c{i,j}, 0, fes{j}, fes{i})};
           end
         end
       end

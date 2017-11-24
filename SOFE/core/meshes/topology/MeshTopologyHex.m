@@ -123,7 +123,7 @@ classdef MeshTopologyHex < MeshTopology
           R = permute(R,[2 3 1]);
       end
     end
-    function R = getNormalOrientation(obj, varargin)
+    function R = getNormalOrientation(obj)
       R = prod(obj.getOrientation([], 2), 3); % nExnF
       R(:,[1 3 5]) = -R(:,[1 3 5]);
     end
