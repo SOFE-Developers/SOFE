@@ -13,7 +13,7 @@ classdef IterativeSolver < Solver
     end
   end
   methods % solve
-    function R = solve(obj, A, b)
+    function R = solve(obj, A, b, varargin) % [x0]
       switch obj.precon
         case 'diag'
           M1 = spdiags(diag(A), 0, size(A,1), size(A,1));
@@ -29,7 +29,7 @@ classdef IterativeSolver < Solver
           warning('Unknown preconditioner');
       end
       try
-        eval(['R = ' obj.type '(A, b, obj.tol, obj.maxit, M1, M2);']);
+        eval(['R = ' obj.type '(A, b, obj.tol, obj.maxit, M1, M2, varargin{:});']);
       catch
         warning('Solving failed!');
         R = zeros(size(b));

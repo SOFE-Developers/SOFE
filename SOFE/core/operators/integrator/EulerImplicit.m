@@ -31,7 +31,7 @@ classdef EulerImplicit < Integrator
         obj.solution{k+1} = zeros(size(obj.solution{k}));
         obj.solution{k+1}(~iTrial) = obj.statOp.shift(~iTrial);
         obj.solution{k+1}(iTrial) = obj.statOp.shift(iTrial) + ...
-          obj.solver.solve(S(iTest, iTrial), b(iTest));
+          obj.solver.solve(S(iTest, iTrial), b(iTest), obj.solution{k}(iTrial));
         fprintf('timestep: %d / %d: %f sec\n', k, obj.nT-1, toc(tt));
       end
     end
