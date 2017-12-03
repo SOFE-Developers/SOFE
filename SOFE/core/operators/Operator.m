@@ -91,7 +91,11 @@ classdef Operator < SOFE
           end
         end
         I = (r.*c==0); if any(I(:)), r(I) = []; c(I) = []; e(I) = []; end %#ok<AGROW>
-        obj.matrix = obj.matrix + sparse(r(:), c(:), e(:), M, N);
+        try
+          obj.matrix = obj.matrix + fsparse(r(:), c(:), e(:), [M, N]);
+        catch
+          obj.matrix = obj.matrix + sparse(r(:), c(:), e(:), M, N);
+        end
         if k>1
           if k>2
             fprintf(repmat('\b',1,length(s)));
@@ -114,11 +118,27 @@ classdef Operator < SOFE
       end
       dX = bsxfun(@times, abs(jac).*coef, weights'); % nExnP
       nE = size(basisI, 1); nBI = size(basisI, 2); nBJ = size(basisJ,2); nP = size(basisI,3);
-      basisI = reshape(basisI, nE, nBI, nP, []);
-      basisJ = reshape(basisJ, nE, nBJ, nP, []);
-      R = sum(bsxfun(@times, permute(basisI, [1 2 5 3 4]), ...
-                             permute(basisJ, [1 5 2 3 4])), 5); % nExnBIxnBJxnPx(nC*nD)
-      R = sum(bsxfun(@times, R, permute(dX, [1 3 4 2])), 4); % nExnBIxnBJ
+      % mod1
+%      tic
+%      R = tprod(reshape(basisI,nE,nBI,[]), ...
+%                reshape(basisJ,nE,nBJ,[]), [1 2 -1], [1 3 -1]).*dX(:,1); % nExnBIxnBJ
+%      R = bsxfun(@times, R, dX(:,1));
+%      toc
+      % mod2
+%      tic
+      basisI = bsxfun(@times, basisI, permute(dX,[1 3 2]));
+      R = tprod(reshape(basisI,nE,nBI,[]), ...
+                reshape(basisJ,nE,nBJ,[]), [1 2 -1], [1 3 -1]);
+%      toc
+      % (original)
+%      tic
+%      basisI = reshape(basisI, nE, nBI, nP, []);
+%      basisJ = reshape(basisJ, nE, nBJ, nP, []);
+%      R = sum(bsxfun(@times, permute(basisI, [1 2 5 3 4]), ...
+%                             permute(basisJ, [1 5 2 3 4])), 5); % nExnBIxnBJxnPx(nC*nD)
+%      R = sum(bsxfun(@times, R, permute(dX, [1 3 4 2])), 4); % nExnBIxnBJ
+%      toc
+%      %
     end
   end
 end
