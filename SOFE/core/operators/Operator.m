@@ -92,9 +92,12 @@ classdef Operator < SOFE
         end
         I = (r.*c==0); if any(I(:)), r(I) = []; c(I) = []; e(I) = []; end %#ok<AGROW>
         try
+          fsparse(0);
           obj.matrix = obj.matrix + fsparse(r(:), c(:), e(:), [M, N]);
-        catch
-          obj.matrix = obj.matrix + sparse(r(:), c(:), e(:), M, N);
+        catch err
+%           fprintf(['fsparse:' err.message '\n']);
+          S = sparse(r(:), c(:), e(:), M, N);
+          obj.matrix = obj.matrix + S;
         end
         if k>1
           if k>2
@@ -118,27 +121,19 @@ classdef Operator < SOFE
       end
       dX = bsxfun(@times, abs(jac).*coef, weights'); % nExnP
       nE = size(basisI, 1); nBI = size(basisI, 2); nBJ = size(basisJ,2); nP = size(basisI,3);
-      % mod1
-%      tic
-%      R = tprod(reshape(basisI,nE,nBI,[]), ...
-%                reshape(basisJ,nE,nBJ,[]), [1 2 -1], [1 3 -1]).*dX(:,1); % nExnBIxnBJ
-%      R = bsxfun(@times, R, dX(:,1));
-%      toc
-      % mod2
-%      tic
-      basisI = bsxfun(@times, basisI, permute(dX,[1 3 2]));
-      R = tprod(reshape(basisI,nE,nBI,[]), ...
-                reshape(basisJ,nE,nBJ,[]), [1 2 -1], [1 3 -1]);
-%      toc
-      % (original)
-%      tic
-%      basisI = reshape(basisI, nE, nBI, nP, []);
-%      basisJ = reshape(basisJ, nE, nBJ, nP, []);
-%      R = sum(bsxfun(@times, permute(basisI, [1 2 5 3 4]), ...
-%                             permute(basisJ, [1 5 2 3 4])), 5); % nExnBIxnBJxnPx(nC*nD)
-%      R = sum(bsxfun(@times, R, permute(dX, [1 3 4 2])), 4); % nExnBIxnBJ
-%      toc
-%      %
+      try
+        tprod(1,1,1,1);
+        basisI = bsxfun(@times, basisI, permute(dX,[1 3 2]));
+        R = tprod(reshape(basisI,nE,nBI,[]), ...
+                  reshape(basisJ,nE,nBJ,[]), [1 2 -1], [1 3 -1]);
+      catch err
+%         fprintf(['tprod:' err.message '\n']);
+        basisI = reshape(basisI, nE, nBI, nP, []);
+        basisJ = reshape(basisJ, nE, nBJ, nP, []);
+        R = sum(bsxfun(@times, permute(basisI, [1 2 5 3 4]), ...
+                               permute(basisJ, [1 5 2 3 4])), 5); % nExnBIxnBJxnPx(nC*nD)
+        R = sum(bsxfun(@times, R, permute(dX, [1 3 4 2])), 4); % nExnBIxnBJ
+      end
     end
   end
 end

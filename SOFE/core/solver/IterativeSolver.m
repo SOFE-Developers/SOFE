@@ -35,5 +35,10 @@ classdef IterativeSolver < Solver
         R = zeros(size(b));
       end
     end
+    function R = solve2(obj, b, freeI, freeJ)
+      afun = @(x)obj.pde.applySystem(x, freeI, freeJ);
+      R = bicgstab(afun, b, obj.tol, 74);
+      R = R(freeI);
+    end
   end
 end

@@ -41,7 +41,7 @@ classdef FESpace < SOFE
     shift
     freeDoFs
     cache
-    isCaching = true;
+    isCaching = false;
     observers
     nBlock
     nBlockGlobal
@@ -61,7 +61,6 @@ classdef FESpace < SOFE
       obj.setBlocking();
       obj.mesh.register(obj);
       obj.observers = {};
-      obj.resetCache();
       obj.fixB = @(x)false(size(x,1),1);
       obj.shift = [];
       if nargin > 2
@@ -110,6 +109,7 @@ classdef FESpace < SOFE
           obj.nBlock(2) = 1;
         end
       end
+      obj.resetCache();
     end
     function R = getBlock(obj, codim, varargin) % [k]
       nE = obj.mesh.topology.getNumber(num2str(codim));

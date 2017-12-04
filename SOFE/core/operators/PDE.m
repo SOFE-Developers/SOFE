@@ -142,9 +142,9 @@ classdef PDE < SOFE
               obj.lhs{i,j}{k}.assemble();
               obj.stiffMat = obj.stiffMat + ...
                      [sparse(obj.I{obj.nEq}(2), obj.J{j}(1)-1), ...
-                      [sparse(obj.I{i}(1)-1, obj.J{j}(2)-obj.J{j}(1)+1); ...
+                     [sparse(obj.I{i}(1)-1, obj.J{j}(2)-obj.J{j}(1)+1); ...
                                     obj.lhs{i,j}{k}.matrix; ...
-                       sparse(obj.I{obj.nEq}(2)-obj.I{i}(2), obj.J{j}(2)-obj.J{j}(1)+1)], ...
+                      sparse(obj.I{obj.nEq}(2)-obj.I{i}(2), obj.J{j}(2)-obj.J{j}(1)+1)], ...
                       sparse(obj.I{obj.nEq}(2), obj.J{obj.nEq}(2)-obj.J{j}(2))];
             end
           end
@@ -174,15 +174,102 @@ classdef PDE < SOFE
         end
       end
     end
+    %
+    function assemble2(obj)
+      if ~isempty(obj.stiffMat)
+        if ~obj.stateChanged || obj.narginData < 2
+          obj.stateChanged = false;
+          return
+        end
+      end
+      obj.stateChanged = false;
+      % lhs
+      for i = 1:obj.nEq
+        for j = 1:obj.nEq
+          if ~isempty(obj.lhs{i,j})
+            for k = 1:numel(obj.lhs{i,j})
+              obj.lhs{i,j}{k}.notify(obj.time);
+              obj.lhs{i,j}{k}.assemble();
+            end
+          end
+        end
+      end
+      if nnz(obj.stiffMat)==0
+        obj.createSystem(); % TODO: only if time changed and time dependence
+      end
+      % rhs
+      obj.loadVec = zeros(obj.I{obj.nEq}(2), 1);
+      for i = 1:obj.nEq
+        if ~isempty(obj.rhs{i})
+          for k = 1:numel(obj.rhs{i})
+            obj.rhs{i}{k}.notify(obj.time);
+            obj.rhs{i}{k}.assemble();
+            idx = obj.I{i}(1):obj.I{i}(2);
+            obj.loadVec(idx,:) = obj.loadVec(idx,:) + obj.rhs{i}{k}.vector;
+          end
+        end
+      end
+      % freeDofs
+      if isempty(obj.shift)
+        obj.fDoFsTest = true(obj.I{obj.nEq}(2), 1);
+        obj.fDoFsTrial = true(obj.J{obj.nEq}(2), 1);
+        obj.shift = zeros(obj.J{obj.nEq}(2), 1);      
+        for j = 1:obj.nEq
+          obj.shift(obj.J{j}(1):obj.J{j}(2),1) = obj.fesTrial{j}.getShiftVector(obj.time);
+          obj.fDoFsTest(obj.I{j}(1):obj.I{j}(2),1) = obj.fesTest{j}.getFreeDoFs();
+          obj.fDoFsTrial(obj.J{j}(1):obj.J{j}(2),1) = obj.fesTrial{j}.getFreeDoFs();
+        end
+      end
+    end
+    function createSystem(obj)
+      obj.stiffMat = sparse(obj.I{obj.nEq}(2), obj.J{obj.nEq}(2));
+      for i = 1:obj.nEq
+        for j = 1:obj.nEq
+          if ~isempty(obj.lhs{i,j})
+            for k = 1:numel(obj.lhs{i,j})
+              obj.stiffMat = obj.stiffMat + ...
+                     [sparse(obj.I{obj.nEq}(2), obj.J{j}(1)-1), ...
+                     [sparse(obj.I{i}(1)-1, obj.J{j}(2)-obj.J{j}(1)+1); ...
+                                    obj.lhs{i,j}{k}.matrix; ...
+                      sparse(obj.I{obj.nEq}(2)-obj.I{i}(2), obj.J{j}(2)-obj.J{j}(1)+1)], ...
+                      sparse(obj.I{obj.nEq}(2), obj.J{obj.nEq}(2)-obj.J{j}(2))];
+            end
+          end
+        end
+      end
+    end
+    function R = applySystem(obj, x, varargin) % [freeI, freeJ]
+      if isempty(varargin)
+        freeI = obj.fDoFsTest; freeJ = obj.fDoFsTrial;
+      else
+        freeI = varargin{1}; freeJ = varargin{2};
+      end
+      R = zeros(size(x));
+      for i = 1:obj.nEq
+        for j = 1:obj.nEq
+          if ~isempty(obj.lhs{i,j})
+            for k = 1:numel(obj.lhs{i,j})
+              II = obj.I{i}(1):obj.I{i}(2);
+              ii = freeI(II)>0;
+              II(~freeI(II)) = [];
+              JJ = obj.J{j}(1):obj.J{j}(2);
+              jj = freeJ(JJ)>0;
+              JJ(~freeJ(JJ)) = [];
+              R(II) = R(II) + obj.lhs{i,j}{k}.matrix(ii,jj)*x(JJ);
+            end
+          end
+        end
+      end
+    end
+    %
     function solve(obj)
       obj.solution = zeros(size(obj.loadVec));
       for k = 1:size(obj.loadVec,2)
         b = obj.loadVec(:,k);
         b = b - obj.stiffMat*obj.shift; 
         obj.solution(~obj.fDoFsTrial, k) = obj.shift(~obj.fDoFsTrial);
-        A = obj.stiffMat(obj.fDoFsTest,obj.fDoFsTrial);
-        b = b(obj.fDoFsTest);
-        x = obj.solver.solve(A, b);
+        A = obj.stiffMat(obj.fDoFsTest, obj.fDoFsTrial);
+        x = obj.solver.solve(A, b(obj.fDoFsTest));
         obj.solution(obj.fDoFsTrial, k) = obj.shift(obj.fDoFsTrial) + x;
       end
     end
