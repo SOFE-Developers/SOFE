@@ -1,7 +1,8 @@
-classdef PDE < SOFE
+classdef PDE2 < SOFE
   properties
     nEq
-    lhs, rhs
+    opList, opFactor, adjFlag
+    fcList, fcFactor
     %
     stiffMat, loadVec, solution
     shift, fDoFsTrial, fDoFsTest
@@ -17,7 +18,7 @@ classdef PDE < SOFE
     solver = DirectSolver([]);
   end
   methods % constructor & more
-    function obj = PDE(lhs, rhs)
+    function obj = PDE2(lhs, rhs)
       obj.lhs = lhs;
       obj.rhs = rhs;
       obj.nEq = numel(rhs);
@@ -127,27 +128,17 @@ classdef PDE < SOFE
       obj.output(['... solved (',num2str(toc(t)),' sec)'], 1);
     end
     function assemble(obj)
-      if ~isempty(obj.stiffMat)
-        if ~obj.stateChanged || obj.narginData < 2
-          obj.stateChanged = false;
-          return
-        end
-      end
       obj.stateChanged = false;
+      if ~isempty(obj.stiffMat) && (~obj.stateChanged || obj.narginData < 2)
+        return
+      end
       % lhs
-      obj.stiffMat = sparse(obj.I{obj.nEq}(2), obj.J{obj.nEq}(2));
       for i = 1:obj.nEq
         for j = 1:obj.nEq
           if ~isempty(obj.lhs{i,j})
             for k = 1:numel(obj.lhs{i,j})
               obj.lhs{i,j}{k}.notify(obj.time);
               obj.lhs{i,j}{k}.assemble();
-              obj.stiffMat = obj.stiffMat + ...
-                     [sparse(obj.I{obj.nEq}(2), obj.J{j}(1)-1), ...
-                     [sparse(obj.I{i}(1)-1, obj.J{j}(2)-obj.J{j}(1)+1); ...
-                                    obj.lhs{i,j}{k}.matrix; ...
-                      sparse(obj.I{obj.nEq}(2)-obj.I{i}(2), obj.J{j}(2)-obj.J{j}(1)+1)], ...
-                      sparse(obj.I{obj.nEq}(2), obj.J{obj.nEq}(2)-obj.J{j}(2))];
             end
           end
         end
@@ -176,7 +167,54 @@ classdef PDE < SOFE
         end
       end
     end
+    function createSystem(obj)
+      if ~isempty(obj.stiffMat)
+        fprintf('System already created\n');
+        keyboard
+        return;
+      end
+      obj.stiffMat = sparse(obj.I{obj.nEq}(2), obj.J{obj.nEq}(2));
+      for i = 1:obj.nEq
+        for j = 1:obj.nEq
+          if ~isempty(obj.lhs{i,j})
+            for k = 1:numel(obj.lhs{i,j})
+              obj.stiffMat = obj.stiffMat + ...
+                     [sparse(obj.I{obj.nEq}(2), obj.J{j}(1)-1), ...
+                     [sparse(obj.I{i}(1)-1, obj.J{j}(2)-obj.J{j}(1)+1); ...
+                                    obj.lhs{i,j}{k}.matrix; ...
+                      sparse(obj.I{obj.nEq}(2)-obj.I{i}(2), obj.J{j}(2)-obj.J{j}(1)+1)], ...
+                      sparse(obj.I{obj.nEq}(2), obj.J{obj.nEq}(2)-obj.J{j}(2))];
+            end
+          end
+        end
+      end
+    end
+    function R = applySystem(obj, x, varargin) % [freeI, freeJ]
+      if isempty(varargin)
+        freeI = obj.fDoFsTest; freeJ = obj.fDoFsTrial;
+      else
+        freeI = varargin{1}; freeJ = varargin{2};
+      end
+      R = zeros(size(x));
+      for i = 1:obj.nEq
+        for j = 1:obj.nEq
+          if ~isempty(obj.lhs{i,j})
+            for k = 1:numel(obj.lhs{i,j})
+              II = obj.I{i}(1):obj.I{i}(2);
+              ii = freeI(II)>0;
+              II(~freeI(II)) = [];
+              JJ = obj.J{j}(1):obj.J{j}(2);
+              jj = freeJ(JJ)>0;
+              JJ(~freeJ(JJ)) = [];
+              R(II) = R(II) + obj.lhs{i,j}{k}.matrix(ii,jj)*x(JJ);
+            end
+          end
+        end
+      end
+    end
+    %
     function solve(obj)
+      obj.createSystem();
       obj.solution = zeros(size(obj.loadVec));
       for k = 1:size(obj.loadVec,2)
         b = obj.loadVec(:,k);

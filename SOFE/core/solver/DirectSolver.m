@@ -13,7 +13,7 @@ classdef DirectSolver < Solver
     end
   end
   methods % solve
-    function R = solve(obj, A, b)
+    function R = solve(obj, A, b, varargin)
       if obj.isLU
         if isempty(obj.matDecomp)
           [obj.matDecomp.L,obj.matDecomp.U,obj.matDecomp.P,obj.matDecomp.Q,obj.matDecomp.R] = lu(A);
