@@ -204,7 +204,7 @@ classdef PDE2 < SOFE
             for k = 1:numel(obj.lhs.sys{i,j})
               II = obj.I{i}(1):obj.I{i}(2); JJ = obj.J{j}(1):obj.J{j}(2);
               ii = freeI(II)>0; jj = freeJ(JJ)>0;
-              II(~freeI(II)) = []; JJ(~freeJ(JJ)) = [];
+              II(~freeI(II)) = [];
               R(II) = R(II) + obj.lhs{i,j}{k}.matrix(ii,jj)*x(JJ);
             end
           end
