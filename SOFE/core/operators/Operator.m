@@ -96,8 +96,7 @@ classdef Operator < SOFE
           obj.matrix = obj.matrix + fsparse(r(:), c(:), e(:), [M, N]);
         catch err
 %           fprintf(['fsparse:' err.message '\n']);
-          S = sparse(r(:), c(:), e(:), M, N);
-          obj.matrix = obj.matrix + S;
+          obj.matrix = obj.matrix + sparse(r(:), c(:), e(:), M, N);
         end
         if k>1
           if k>2

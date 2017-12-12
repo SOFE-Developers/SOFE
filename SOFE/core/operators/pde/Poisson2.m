@@ -4,7 +4,7 @@ classdef Poisson2 < PDE2
       if ~isempty(varargin), fesTest = varargin{:}; else, fesTest = fesTrial; end
       opList = {OpGradGrad(data.a, fesTrial, varargin{:}), ...
                 FcId(data.f, fesTest, 0)};
-      lhs.sys = {{1}}; 
+      lhs.sys = {{1}};
       rhs.sys = {{2}};
       obj = obj@PDE2(opList, lhs, rhs);
     end
