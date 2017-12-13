@@ -24,7 +24,7 @@ classdef IterativeSolver < Solver
           M1 = ichol(A,struct('michol','on'));
           M2 = M1'; %#ok<NASGU>
         case 'none'
-          M1 = speye(size(A,1)); M2 = M1; %#ok<NASGU>
+          M1 = []; M2 = []; %#ok<NASGU>
         otherwise
           warning('Unknown preconditioner');
       end

@@ -7,13 +7,14 @@ classdef PDE2 < SOFE
     shift, fDoFsTrial, fDoFsTest
     %
     mesh
-    fesTest,fesTrial
+    fesTest, fesTrial
     I,J, nDoF
     %
     time, state, dState
     narginData
     stateChanged
     %
+    createSys = true;
     solver = DirectSolver([]);
   end
   methods % constructor & more
@@ -120,14 +121,14 @@ classdef PDE2 < SOFE
   methods % assemble, apply & solve
     function compute(obj)
       t = tic; obj.output('Begin assemble ...', 1);
-      obj.assemble(1);
+      obj.assemble();
       fprintf('%d DoFs\n', sum(obj.fDoFsTrial));
       obj.output(['... assembled (',num2str(toc(t)),' sec)'], 1);      
       t = tic; obj.output('Begin solve ...', 1);
       obj.solve();
       obj.output(['... solved (',num2str(toc(t)),' sec)'], 1);
     end
-    function compute2(obj)
+    function compute2_(obj)
       t = tic; obj.output('Begin assemble ...', 1);
       obj.assemble();
       fprintf('%d DoFs\n', sum(obj.fDoFsTrial));
@@ -137,7 +138,7 @@ classdef PDE2 < SOFE
       obj.output(['... solved (',num2str(toc(t)),' sec)'], 1);
     end
     %
-    function assemble(obj, varargin) % [create stiffMat]
+    function assemble(obj)
       obj.stateChanged = false;
       if ~isempty(obj.stiffMat) && (~obj.stateChanged || obj.narginData < 2)
         return
@@ -158,9 +159,9 @@ classdef PDE2 < SOFE
           obj.fDoFsTrial(obj.J{j}(1):obj.J{j}(2),1) = obj.fesTrial{j}.getFreeDoFs();
         end
       end
-      obj.createSystem(varargin{:});
+      obj.createSystem();
     end
-    function createSystem(obj, varargin) % [create stiffMat]
+    function createSystem(obj)
       if nnz(obj.stiffMat)>0
         fprintf('System already created\n');
         keyboard
@@ -170,7 +171,7 @@ classdef PDE2 < SOFE
       obj.loadVec = zeros(obj.I{obj.nEq}(2), 1);
       for i = 1:obj.nEq
         % rhs
-        if ~isempty(obj.rhs.sys{i})
+        if ~isempty(obj.rhs.sys{i}) 
           for k = 1:numel(obj.rhs.sys{i})
             b = obj.list{obj.rhs.sys{i}{k}}.vector;
             try b = obj.rhs.coeff{i}{k}*b; catch, end
@@ -179,7 +180,7 @@ classdef PDE2 < SOFE
           end
         end
         % lhs
-        if ~isempty(varargin)
+        if obj.createSys
           for j = 1:obj.nEq
             if ~isempty(obj.lhs.sys{i,j})
               for k = 1:numel(obj.lhs.sys{i,j})
@@ -235,19 +236,22 @@ classdef PDE2 < SOFE
     %
     function solve(obj) % create and apply
       obj.solution = zeros(size(obj.loadVec));
-      for k = 1:size(obj.loadVec,2)
-        b = obj.loadVec(:,k) - obj.stiffMat*obj.shift; 
-        obj.solution(~obj.fDoFsTrial, k) = obj.shift(~obj.fDoFsTrial);
+      if obj.createSys 
+        b = obj.loadVec - obj.stiffMat*obj.shift; 
         A = obj.stiffMat(obj.fDoFsTest, obj.fDoFsTrial);
-        obj.solution(obj.fDoFsTrial, k) = obj.solver.solve(A, b(obj.fDoFsTest));
+      else
+        b = obj.loadVec - obj.applySystem(obj.shift); 
+        A = @(x)obj.applySystem(x, 1);
       end
+      obj.solution(~obj.fDoFsTrial) = obj.shift(~obj.fDoFsTrial);
+      obj.solution(obj.fDoFsTrial) = obj.solver.solve(A, b(obj.fDoFsTest));
     end
     function solve2(obj) % apply only
       obj.solution = zeros(size(obj.fDoFsTrial));
       b = obj.loadVec - obj.applySystem(obj.shift); 
+      A = @(x)obj.applySystem(x, 1);
       obj.solution(~obj.fDoFsTrial) = obj.shift(~obj.fDoFsTrial);
-      afun = @(x)obj.applySystem(x, 1);
-      obj.solution(obj.fDoFsTrial) = obj.solver.solve(afun, b(obj.fDoFsTest));
+      obj.solution(obj.fDoFsTrial) = obj.solver.solve(A, b(obj.fDoFsTest));
     end
   end
   methods % access
