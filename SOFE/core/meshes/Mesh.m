@@ -128,6 +128,7 @@ classdef Mesh < SOFE
       armijo = false; armijoMax = 100;
       notFblMax = 3; 
       TOLF = 1e-14;
+      TOLREF = 1e-12;
       %
       gs = obj.getGlobalSearcher();
       C = gs.findCandidates(points);
@@ -172,8 +173,11 @@ classdef Mesh < SOFE
             pLoc(In,:) = pLocTmp;
           end
           if out, fprintf('Cand=%d(#points:%d), nNewton=%d\n',i,numel(Ic),n); end %#ok<UNRCH>
+          if n==maxIt
+            pLoc(In,:) = Inf;
+          end
         end
-        I = obj.topology.isFeasible(pLoc);
+        I = obj.topology.isFeasible(pLoc, TOLREF);
         H(Ic(I)) = C(Ic(I),i); L(Ic(I),:) = pLoc(I,:);
         Ic = Ic(~I);
       end

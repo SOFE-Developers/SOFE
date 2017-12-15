@@ -69,8 +69,8 @@ classdef MeshTopologyTri < MeshTopology
       end
       R = elem;
     end
-    function R = isFeasible(points)
-      tol = 1e-12;
+    function R = isFeasible(points, varargin)
+      if ~isempty(varargin), tol = varargin{1}; else, tol = 1e-12; end
       R = (all(points>-tol, 2) & 1-sum(points,2)>-tol);
     end
     function R = getCenterLoc()

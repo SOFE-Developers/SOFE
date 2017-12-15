@@ -25,9 +25,10 @@ classdef EulerImplicit < Integrator
         % assemble
         obj.statOp.assemble();
         S = obj.massOp.stiffMat + obj.dt(k)*obj.statOp.stiffMat;
-        b = obj.dt(k)*obj.statOp.loadVec + obj.massOp.stiffMat*obj.solution{k} - S*obj.statOp.shift;
-        iTest = obj.statOp.fDoFsTest; iTrial = obj.statOp.fDoFsTrial;
+        b = obj.dt(k)*obj.statOp.loadVec + obj.massOp.stiffMat*obj.solution{k};
+        b = b - S*obj.statOp.shift;
         % solve
+        iTest = obj.statOp.fDoFsTest; iTrial = obj.statOp.fDoFsTrial;
         obj.solution{k+1} = zeros(size(obj.solution{k}));
         obj.solution{k+1}(~iTrial) = obj.statOp.shift(~iTrial);
         obj.solution{k+1}(iTrial) = obj.statOp.shift(iTrial) + ...

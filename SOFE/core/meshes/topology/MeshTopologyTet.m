@@ -116,8 +116,8 @@ classdef MeshTopologyTet < MeshTopology
       R{2} = GaussTri(order);
       R{1} = GaussTet(order);
     end
-    function R = isFeasible(points)
-      tol = 1e-12;
+    function R = isFeasible(points, varargin)
+      if ~isempty(varargin), tol = varargin{1}; else, tol = 1e-12; end
       R = (all(points>-tol, 2) & 1-sum(points,2)>-tol);
     end
     function R = getCenterLoc()

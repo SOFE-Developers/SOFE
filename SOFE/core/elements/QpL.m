@@ -21,14 +21,8 @@ classdef QpL < LagrangeElement
       if p == 0
         p1d = 0.5;
       else
-        switch obj.lagrangePoints
-          case 'equi'
-            p1d = linspace(0,1,p+1)';
-          case 'gauss'
-            p1d = (1+QuadRule.evalWeightedGaussPoints(p+1, @(x)1+0*x(:,1),'Lobatto'))/2;
-          otherwise
-            keyboard
-        end
+%         p1d = linspace(0,1,p+1)';
+        p1d = (1+QuadRule.evalWeightedGaussPoints(p+1, @(x)1+0*x(:,1),'Lobatto'))/2;
       end
       p1d = p1d(2:p);
       switch dim

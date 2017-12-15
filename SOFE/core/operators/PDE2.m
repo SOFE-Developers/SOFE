@@ -19,15 +19,14 @@ classdef PDE2 < SOFE
   end
   methods % constructor & more
     function obj = PDE2(list, lhs, rhs)
-      obj.list = list;
+      obj.list = list; obj.nOp = numel(list);
       obj.lhs = lhs;
       obj.rhs = rhs;
       obj.nEq = numel(rhs.sys);
-      obj.nOp = numel(list);
       obj.fesTrial = cell(obj.nEq, 1);
       obj.fesTest = cell(obj.nEq, 1);
       obj.narginData = 1; % maximal nargin of data(x,t,u,d)
-      for k = 1:obj.nOp
+      for k = 1:numel(list)
         obj.list{k}.pde = obj;
         obj.narginData = max(obj.narginData, nargin(obj.list{k}.dataCache));
       end
@@ -184,7 +183,7 @@ classdef PDE2 < SOFE
           for j = 1:obj.nEq
             if ~isempty(obj.lhs.sys{i,j})
               for k = 1:numel(obj.lhs.sys{i,j})
-                try cc = obj.lhs.coeff{i,j}{k}; catch, cc = 1; end
+                try cc = obj.lhs.coeff{i,j}{k}; catch, cc = 1.0; end
                 try adj = obj.lhs.adj{i,j}{k}; catch, adj = 0; end
                 if adj
                   obj.list{obj.lhs.sys{i,j}{k}}.matrix = obj.list{obj.lhs.sys{i,j}{k}}.matrix.';
@@ -243,13 +242,6 @@ classdef PDE2 < SOFE
         b = obj.loadVec - obj.applySystem(obj.shift); 
         A = @(x)obj.applySystem(x, 1);
       end
-      obj.solution(~obj.fDoFsTrial) = obj.shift(~obj.fDoFsTrial);
-      obj.solution(obj.fDoFsTrial) = obj.solver.solve(A, b(obj.fDoFsTest));
-    end
-    function solve2(obj) % apply only
-      obj.solution = zeros(size(obj.fDoFsTrial));
-      b = obj.loadVec - obj.applySystem(obj.shift); 
-      A = @(x)obj.applySystem(x, 1);
       obj.solution(~obj.fDoFsTrial) = obj.shift(~obj.fDoFsTrial);
       obj.solution(obj.fDoFsTrial) = obj.solver.solve(A, b(obj.fDoFsTest));
     end

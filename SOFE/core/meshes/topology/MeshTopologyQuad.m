@@ -54,8 +54,8 @@ classdef MeshTopologyQuad < MeshTopology
       R{2} = GaussInt(order);
       R{1} = GaussQuad(order);
     end
-    function R = isFeasible(points)
-      tol = 1e-12;
+    function R = isFeasible(points, varargin) % tol
+      if ~isempty(varargin), tol = varargin{1}; else, tol = 1e-12; end
       R = (points(:,1)>-tol & points(:,1)<1+tol & points(:,2)>-tol & points(:,2)<1+tol);
     end
     function R = getCenterLoc()
