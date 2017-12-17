@@ -12,7 +12,7 @@ if isTri
 else
   e = QpL(dim, order);
 end
-fes = FESpace(m, e, @(x) x(:,1) < Inf); fes.setBlockingGlobal([1 1]);
+fes = FESpace(m, e, @(x) x(:,1) < Inf);
 % PDE
 p = Poisson(data, fes);
 p.solver = IterativeSolver([], 'bicgstab', 'ilu');

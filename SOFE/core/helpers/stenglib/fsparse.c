@@ -14,7 +14,7 @@
 #endif
 
 #include "mex.h"
-#include "matrix.h"
+//#include "matrix.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -313,7 +313,7 @@ bool getix(int **ix,int M,int N,int *max,bool nocopy,const mxArray *IX)
    set to the maximum index and nocopy defines the type of IX (double
    or int). */
 {
-  bool ok = true;
+  bool ok = 1;
   int mx = *max;
 
 #ifndef _OPENMP
@@ -348,7 +348,7 @@ bool getix(int **ix,int M,int N,int *max,bool nocopy,const mxArray *IX)
       if (iix[i] > mymx)
 	mymx = iix[i];
       else if (iix[i] < 1)
-	ok = false; // no harm in continuing
+	ok = 0; // no harm in continuing
     }
 
     if (mx < mymx)
@@ -370,7 +370,7 @@ bool getix(int **ix,int M,int N,int *max,bool nocopy,const mxArray *IX)
 #pragma omp for
     for (int i = 0; i < M*N; i++) {
       if (ival[i] < 1.0 || ival[i] != ceil(ival[i]))
-	ok = false; // no harm in continuing
+	ok = 0; // no harm in continuing
       else if ((iix[i] = ival[i]) > mymx)
 	mymx = ival[i];
     }

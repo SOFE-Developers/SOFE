@@ -63,6 +63,37 @@ classdef Functional < SOFE
   end
   methods
     function assemble(obj)
+      % single accumulation
+      if ~isempty(obj.vector), return, end
+      obj.vector = zeros(obj.fes.getNDoF(), 1);
+      if ~any(obj.idx), return, end
+      nBlock = obj.fes.nBlock(obj.codim+1);
+      re = cell(nBlock,1);
+      for k = 1:nBlock
+        I = obj.fes.getBlock(obj.codim, k);
+        e = []; r = [];
+        if ~isempty(I)
+          e = obj.assembleOp(k);
+          r = abs(obj.fes.getDoFMap(obj.codim, I))';
+          if ~ischar(obj.idx)
+            e = e(obj.idx(I),:); r = r(obj.idx(I),:);
+          end
+        end
+        I = (r==0); if any(I(:)), r(I) = []; e(I) = []; end %#ok<AGROW>
+        re{k} = [r(:), e(:)];
+        if k>1
+          if k>2
+            fprintf(repmat('\b',1,length(s)));
+          end
+          s = sprintf('progress assembly RHS: %d / %d', k, nBlock);fprintf(s);          
+        end
+      end
+      if k>1, fprintf('\n'); end
+      re = cell2mat(re);
+      obj.vector = accumarray(re(:,1), re(:,2), size(obj.vector));
+    end
+    function assemble_(obj)
+      % incremental accumulation
       if ~isempty(obj.vector), return, end
       obj.vector = zeros(obj.fes.getNDoF(), 1);
       if ~any(obj.idx), return, end

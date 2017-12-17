@@ -18,15 +18,15 @@ classdef SOFE < handle
       R = [pwd,filesep,'plugins'];
     end
     function unlock()
-      addpath(genpath([SOFE.getCorePath(),filesep,'elements']));
+      addpath(genpath([SOFE.getCorePath(),filesep,'algorithm']));
+			addpath(genpath([SOFE.getCorePath(),filesep,'elements']));
       addpath(genpath([SOFE.getCorePath(),filesep,'feSpaces']));
       addpath(genpath([SOFE.getCorePath(),filesep,'helpers']));
       addpath(genpath([SOFE.getCorePath(),filesep,'meshes']));
       addpath(genpath([SOFE.getCorePath(),filesep,'operators']));
-      addpath(genpath([SOFE.getCorePath(),filesep,'pdes']));
-      addpath(genpath([SOFE.getCorePath(),filesep,'postprocessing']));
+      addpath(genpath([SOFE.getCorePath(),filesep,'pde']));
+      addpath(genpath([SOFE.getCorePath(),filesep,'visualization']));
       addpath(genpath([SOFE.getCorePath(),filesep,'quadrature']));
-      addpath(genpath([SOFE.getCorePath(),filesep,'solver']));
       more off
     end
     function open(name)

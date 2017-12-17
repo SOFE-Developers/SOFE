@@ -1,7 +1,4 @@
 classdef QpL < LagrangeElement
-  properties
-    lagrangePoints = 'gauss' % 'equi'
-  end
   methods % constructor
     function obj = QpL(dim, p)
       obj = obj@LagrangeElement(Qp(dim,p));
