@@ -118,25 +118,6 @@ classdef PDE2 < SOFE
     end
   end
   methods % assemble, apply & solve
-    function compute(obj)
-      t = tic; obj.output('Begin assemble ...', 1);
-      obj.assemble();
-      fprintf('%d DoFs\n', sum(obj.fDoFsTrial));
-      obj.output(['... assembled (',num2str(toc(t)),' sec)'], 1);      
-      t = tic; obj.output('Begin solve ...', 1);
-      obj.solve();
-      obj.output(['... solved (',num2str(toc(t)),' sec)'], 1);
-    end
-    function compute2_(obj)
-      t = tic; obj.output('Begin assemble ...', 1);
-      obj.assemble();
-      fprintf('%d DoFs\n', sum(obj.fDoFsTrial));
-      obj.output(['... assembled (',num2str(toc(t)),' sec)'], 1);      
-      t = tic; obj.output('Begin solve ...', 1);
-      obj.solve2();
-      obj.output(['... solved (',num2str(toc(t)),' sec)'], 1);
-    end
-    %
     function assemble(obj)
       obj.stateChanged = false;
       if ~isempty(obj.stiffMat) && (~obj.stateChanged || obj.narginData < 2)
@@ -203,11 +184,13 @@ classdef PDE2 < SOFE
         end
       end
     end
-    function R = applySystem(obj, x, varargin) % [onFreeDoFs]
+    function R = applySystem(obj, x, varargin) % [onFreeDoFs or {freeI, freeJ}]
       if isempty(varargin)
         freeI = ':'; freeJ = ':';
+      elseif numel(varargin{1})==1
+        freeI = obj.fDoFsTest; freeJ = obj.fDoFsTrial;
       else
-        freeI = obj.fDoFsTest; freeJ = obj.fDoFsTrial;       
+        freeI = varargin{1}; freeJ = varargin{2};
       end
       R = zeros(size(obj.fDoFsTest));
       xx = zeros(size(obj.fDoFsTrial));
@@ -225,25 +208,12 @@ classdef PDE2 < SOFE
                 dR = obj.list{obj.lhs.sys{i,j}{k}}.matrix*xx(JJ);
               end
               try dR = obj.lhs.coeff{i,j}{k}*dR; catch, end
-              R(II) = R(II) + dR;
+              R(II) = dR;
             end
           end
         end
       end
       R = R(freeI);
-    end
-    %
-    function solve(obj) % create and apply
-      obj.solution = zeros(size(obj.loadVec));
-      if obj.createSys 
-        b = obj.loadVec - obj.stiffMat*obj.shift; 
-        A = obj.stiffMat(obj.fDoFsTest, obj.fDoFsTrial);
-      else
-        b = obj.loadVec - obj.applySystem(obj.shift); 
-        A = @(x)obj.applySystem(x, 1);
-      end
-      obj.solution(~obj.fDoFsTrial) = obj.shift(~obj.fDoFsTrial);
-      obj.solution(obj.fDoFsTrial) = obj.solver.solve(A, b(obj.fDoFsTest));
     end
   end
   methods % access

@@ -7,10 +7,4 @@ classdef Solver < SOFE
       obj.pde = pde;
     end
   end
-  methods
-    function reset(obj) %#ok<MANU>
-    end
-    function solve(obj, A, b) %#ok<INUSD>
-    end
-  end
 end
