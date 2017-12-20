@@ -208,7 +208,7 @@ classdef PDE2 < SOFE
                 dR = obj.list{obj.lhs.sys{i,j}{k}}.matrix*xx(JJ);
               end
               try dR = obj.lhs.coeff{i,j}{k}*dR; catch, end
-              R(II) = dR;
+              R(II) = R(II) + dR;
             end
           end
         end

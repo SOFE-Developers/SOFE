@@ -19,6 +19,7 @@ classdef IterativeSolver2 < Solver
       fprintf('%d DoFs\n', sum(obj.pde.fDoFsTrial));
       obj.output(['... assembled (',num2str(toc(t)),' sec)'], 1);    
       t = tic; obj.output('Begin solve ...', 1);
+      M1 = []; M2 = [];
       if obj.pde.createSys 
         b = obj.pde.loadVec - obj.pde.stiffMat*obj.pde.shift;
         A = obj.pde.stiffMat(obj.pde.fDoFsTest, obj.pde.fDoFsTrial);
@@ -32,7 +33,6 @@ classdef IterativeSolver2 < Solver
             M1 = ichol(A,struct('michol','on'));
             M2 = M1';
           case 'none'
-            M1 = []; M2 = [];
           otherwise
             warning('Unknown preconditioner');
         end
