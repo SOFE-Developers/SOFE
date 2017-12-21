@@ -1,21 +1,15 @@
 classdef Mass < PDE
   methods % constructor
-    function obj = Mass(c, fes)
-      if ~iscell(fes)
-        fes = {fes};
+    function obj = Mass(fes, varargin) % [N]
+      if ~isempty(varargin), N = varargin{1}; else, N = 1; end
+      opList = {OpIdId(1.0, 0, fes)};
+      %      
+      rhs.sys = cell(N, 1);
+      lhs.sys = cell(N, N);
+      for i = 1:N
+        lhs.sys{i,i} = {1};
       end
-      nD = numel(fes);
-      empty = cell(nD, 1);
-      op = cell(nD, nD);
-      if ~iscell(c), c = num2cell(c); end
-      for i = 1:nD
-        for j = 1:nD
-          if ~isempty(c{i,j})
-            op{i,j} = {OpIdId(c{i,j}, 0, fes{j}, fes{i})};
-          end
-        end
-      end
-      obj = obj@PDE(op, empty);
+      obj = obj@PDE(opList, lhs, rhs);
     end
   end
 end

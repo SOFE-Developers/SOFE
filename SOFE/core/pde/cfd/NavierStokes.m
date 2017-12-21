@@ -1,20 +1,15 @@
 classdef NavierStokes < PDE
   methods % constructor
     function obj = NavierStokes(data, fesV, fesP)
-      lap = OpSGradSGrad(data.nu, fesV);
-      conv = OpGradId(@(x,t,U)U{1}, fesV, fesV);
-      grad = OpIdDiv(-1, fesP, fesV);
-      div = OpDivId(@(x)1+0*x(:,1), fesV, fesP);
-      try
-        f = {FcId(data.f, fesV, 0)};
-      catch
-        f = {};
-      end
+      opList = {OpSGradSGrad(data.nu, fesV), ...
+                OpGradId(@(x,t,U)U{1}, fesV, fesV), ...
+                OpDivId(1, fesV, fesP)};
+      lhs.sys = {{1,2} {3}; {3} {}};
+      lhs.coeff = {{} {-1.0}; {} {}};
+      lhs.adj = {{} {1}; {} {}};
+      rhs.sys = {{}; {}};
       %
-      lhs = {{lap, conv},  {grad}; ...
-             {div},     []};
-      rhs = {f; []};
-      obj = obj@PDE(lhs, rhs);
+      obj = obj@PDE(opList, lhs, rhs);
     end
   end
 end

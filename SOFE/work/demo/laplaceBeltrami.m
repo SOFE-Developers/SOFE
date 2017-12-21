@@ -1,29 +1,18 @@
 % PARAMETERS
-dim = 2; N = 50; order = 1; isTri = 1;
+N = 50; order = 1; isTri = 1;
 % DATA
-clear data;
-data.a = @(x)0.0025+0*x(:,1);
-data.b = @(x)1*[x(:,1) 0*x(:,1) 0*x(:,1)];
-data.f = @(x)1+0*sin(4*pi*x(:,1));
+data = struct('a',0.0025,'b',[1 0 0],'f',1);
 % MESH
-m = [];
-[nodes, elem] = Mesh.getTensorProductMesh(repmat({linspace(0,1,N)},dim,1), isTri);
-if dim == 1
-  m = Mesh([nodes sin(2*pi*nodes) cos(2*pi*nodes)], elem, dim);
-elseif dim == 2
-  m = Mesh([nodes sin(2*pi*nodes(:,1)).*cos(2*pi*nodes(:,2))], elem, dim);
-end
+[nodes, elem] = Mesh.getTensorProductMesh({linspace(0,1,N),linspace(0,1,N)}, isTri);
+m = Mesh([nodes sin(2*pi*nodes(:,1)).*cos(2*pi*nodes(:,2))], elem, 2);
 % FESPACE
-if isTri
-  e = PpL(dim, order);
-else
-  e = QpL(dim, order);
-end
-fes = FESpace(m, e, @(x) x(:,1) < eps, @(x)0*x(:,1));
+if isTri, e = PpL(2, order); else, e = QpL(dim, order); end
+fes = FESpace(m, e, @(x) x(:,1) < eps);
 % PDE
 p = CDR(data, fes);
-% SOLVE
-p.compute();
+% ALGORITHM
+q = IterativeSolver(p, 'bicgstab', 'ilu');
+q.compute();
 % VISUALIZE
-v = Visualizer.create(fes); clf
-v.show(p.solution, 'l', struct('N',300));
+v = Visualizer.create(fes);
+v.show(p.solution, 'l');

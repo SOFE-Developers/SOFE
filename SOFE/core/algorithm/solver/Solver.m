@@ -1,10 +1,10 @@
-classdef Solver < SOFE
+classdef Solver < Algorithm
   properties
-    pde
+    solution
   end
   methods % constructor
     function obj = Solver(pde)
-      obj.pde = pde;
+      obj = obj@Algorithm(pde);
     end
   end
 end

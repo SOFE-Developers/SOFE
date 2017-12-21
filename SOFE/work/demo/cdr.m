@@ -1,29 +1,19 @@
 % PARAMETERS
 dim = 3; N = 30; order = 1; isTri = 0;
 % DATA
-clear data;
-data.a = @(x)0.1+0*x(:,1);
-data.b = @(x)1+0*x;
-data.c = @(x)1+0*x(:,1);
-data.f = @(x)1+0*x(:,1);
+data = struct('a',0.1,'b',1,'c',1,'f',1);
 % MESH
 m = RegularMesh(N*ones(dim,1), repmat([0 1],dim,1), isTri);
 % FESPACE
-if isTri
-  e = PpL(dim, order);
-else
-  e = QpL(dim, order);
-end
+if isTri, e = PpL(dim, order); else, e = QpL(dim, order); end
 fes = FESpace(m, e, @(x) x(:,1) < Inf);
 % PDE
 p = CDR(data, fes);
-if dim == 3
-  p.solver = IterativeSolver([], 'bicgstab', 'ilu');
-end
-% SOLVE
-p.compute();
+% ALGORITHM
+q = IterativeSolver(p, 'bicgstab', 'ilu');
+q.compute();
 % VISUALIZE
-v = Visualizer.create(fes); clf
+v = Visualizer.create(fes);
 switch dim
   case 1
     v.show(p.solution);

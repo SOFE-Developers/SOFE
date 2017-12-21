@@ -5,9 +5,9 @@ load([SOFE.getCorePath '/meshes/library/elemBall.dat']);
 fes = FESpace(Mesh(nodesBall, elemBall), PpL(3,3), @(x)x(:,1)<Inf);
 %% PDE
 p = Poisson(struct('a',1,'f',1), fes);
-p.solver = IterativeSolver([], 'bicgstab', 'ilu');
-% SOLVE
-p.compute();
+% ALGORITHM
+q = IterativeSolver(p, 'bicgstab', 'ilu');
+q.compute();
 % VISUALIZE
 v = Visualizer.create(fes); clf
 opt = struct('map', @(u,v)0.5*[sin(pi*v).*sin(2*pi*u), ...

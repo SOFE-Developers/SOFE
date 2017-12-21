@@ -3,20 +3,25 @@ classdef LinElast < PDE
     function obj = LinElast(data, fes)
       mu = data.E/2/(1+data.nu);
       lambda = data.E*data.nu/(1+data.nu)/(1-2*data.nu);
-      sLap = OpSGradSGrad(2*mu, fes);
-      divDiv = OpDivDiv(lambda, fes);
+      opList = {OpSGradSGrad(2*mu, fes), ...
+                OpDivDiv(lambda, fes),[], []};
       try
-        f = FcId(data.f, fes, 0);
+        fData = data.f;
       catch
-        f = FcId(@(x)0*x(:,1), fes, 0);
+        fData = @(x)0*x(:,1);
       end
+      opList{3} = FcId(fData, fes, 0);
       %
-      lhs = {sLap, divDiv};
-      rhs = {f};
-      try % Neumann BC
-        rhs{2} = FcId(data.g, fes, 1);
+      lhs.sys = {{1, 2}};
+      %
+      rhs.sys = {{3}};
+      try
+        opList{4} = FcId(data.g, fes, 1);
+        rhs.sys{1} = [rhs.sys{1} 4];
+      catch
+        opList = opList(1:3);
       end
-      obj = obj@PDE({lhs}, {rhs});
+      obj = obj@PDE(opList, lhs, rhs);
     end
   end
 end

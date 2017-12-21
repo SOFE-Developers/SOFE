@@ -1,14 +1,13 @@
 classdef LotkaVolterra < PDE
   methods % constructor
     function obj = LotkaVolterra(data, fes)
-      lap = OpGradGrad(data.a{1}, fes, fes);
-      f1 = FcId(data.f{1}, fes, 0);
-      f2 = FcId(data.f{2}, fes, 0);
+      opList = {OpGradGrad(data.a{1}, fes, fes), ...
+                FcId(data.f{1}, fes, 0), ...
+                FcId(data.f{2}, fes, 0)};
       %
-      lhs = {{lap},  {}; ...
-              {}, {lap}};
-      rhs = {{f1}; {f2}};
-      obj = obj@PDE(lhs, rhs);
+      lhs.sys = {{1}, {}; {} {1}};
+      rhs.sys = {{2}; {3}};
+      obj = obj@PDE(opList, lhs, rhs);
     end
   end
 end
