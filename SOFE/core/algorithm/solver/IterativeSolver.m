@@ -20,13 +20,14 @@ classdef IterativeSolver < Solver
     function R = compute(obj)
       t = tic; obj.output('Begin assemble ...', 1);
       obj.pde.assemble();
-      fprintf('%d DoFs\n', sum(obj.pde.fTrial));
+      [freeI, freeJ] = obj.pde.getFreeDoFs();
+      fprintf('%d DoFs\n', sum(freeJ));
       obj.output(['... assembled (',num2str(toc(t)),' sec)'], 1);    
       t = tic; obj.output('Begin solve ...', 1);
       M1 = []; M2 = [];
       if obj.pde.createSys 
-        b = obj.pde.loadVec - obj.pde.stiffMat*obj.pde.shift;
-        A = obj.pde.stiffMat(obj.pde.fTest, obj.pde.fTrial);
+        b = obj.pde.loadVec - obj.pde.stiffMat*obj.pde.getShift();
+        A = obj.pde.stiffMat(freeI, freeJ);
         switch obj.precon
           case 'diag'
             M1 = spdiags(diag(A), 0, size(A,1), size(A,1));
@@ -41,13 +42,13 @@ classdef IterativeSolver < Solver
             warning('Unknown preconditioner');
         end
       else
-        b = obj.pde.loadVec - obj.pde.applySystem(obj.pde.shift); 
-        A = @(x)obj.pde.applySystem(x, 1);
+        b = obj.pde.loadVec - obj.pde.applySystem(obj.pde.getShift()); 
+        A = @(x)obj.pde.applySystem(x, freeI, freeJ);
       end
-      b = b(obj.pde.fTest); %#ok<*NASGU>
-      R = obj.pde.shift;
-      R(obj.pde.fTrial) = eval([obj.type '(A, b, obj.tol, obj.maxit, M1, M2);']);
-      obj.pde.solution = R;
+      b = b(freeI); %#ok<*NASGU>
+      R = obj.pde.getShift();
+      R(freeJ) = eval([obj.type '(A, b, obj.tol, obj.maxit, M1, M2);']);
+      obj.solution = R;
       obj.output(['... solved (',num2str(toc(t)),' sec)'], 1);
     end
   end

@@ -16,4 +16,4 @@ q.compute();
 v = Visualizer.create(fes);
 opt.N = 50; opt.deform = true;
 opt.map = @(u,v)[M(1)*u, 0.5+0.5*M(2)*cos(2*pi*v), 0.5+0.5*M(3)*sin(2*pi*v)];
-v.show(p.solution, 'g', opt);
+v.show(q.solution, 'g', opt);

@@ -1,10 +1,11 @@
 % PARAMETERS
-N = 60; n = 10; K = 3;
+N = 50; n = 10; K = 3;
 order = 2; isTri = 0; nNonLin = 10; 
 % DATA
 clear data;
-data.nu = 1e-3;
-data.ud = @(x)[1.0*(x(:,2)>1-eps), 0.0*x(:,1)];
+data.nu = 1e-4;
+data.ud = @(x)[x(:,1).*(1-x(:,1)).*(x(:,2)>1-eps), 0.0*x(:,1)];
+%data.ud = @(x)[x(:,1).*(1-x(:,1)).*(x(:,1)-0.5).*(x(:,2)>1-eps), 0.0*x(:,1)];
 data.dLoc = @(x)[x(:,1)<Inf,x(:,1)<Inf];
 % MESH
 g1 = linspace(0,K*sqrt(data.nu),n);
@@ -28,7 +29,10 @@ q.compute();
 % VISUALIZE
 V = Visualizer.create(FES);
 opt.scale = 0.5; opt.N = 200; opt.n = 40; opt.width = 1.5;
-figure(1), V.show(p.getSolution(1), 'g', opt);
+figure(1), clf
+U = q.linSolver.solution(1:p.getNDoF(1));
+V.show(U, 'g', opt);
 v = Visualizer.create(fes);
-figure(2), v.show(p.getSolution(2), 'g', opt);
-view(3), axis([0 1 0 1 -0.5 0.2]); caxis([-0.5 0.2]);
+P = q.linSolver.solution(p.getNDoF(1)+1:end);
+figure(2), clf
+v.show(P, 'g', opt); view(3),axis normal

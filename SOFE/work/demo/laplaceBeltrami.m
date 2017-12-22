@@ -15,4 +15,4 @@ q = IterativeSolver(p, 'bicgstab', 'ilu');
 q.compute();
 % VISUALIZE
 v = Visualizer.create(fes);
-v.show(p.solution, 'l');
+v.show(q.solution, 'l');

@@ -22,21 +22,20 @@ classdef LeapFrog < Integrator
       M = obj.M0.stiffMat;
       for k = 2:obj.nT-1
         tt = tic;
-        obj.A.setTime(obj.timeline.nodes(k+1));
-        obj.A.setState(obj.history{k+1}); 
+        obj.A.setState(obj.timeline.nodes(k+1), obj.history{k+1}); 
         obj.A.assemble();
-        iTest = obj.A.fTest; iTrial = obj.A.fTrial;
+        [freeI, freeJ] = obj.A.getFreeDoFs;
         b = obj.dt(k)^2*(obj.A.loadVec - obj.A.stiffMat*obj.history{k}) + ...
             M*(2*obj.history{k} - obj.history{k-1}) - ...
-            M*obj.A.shift;
+            M*obj.A.getShift();
         % solve
         obj.history{k+1} = zeros(size(obj.history{k}));
-        obj.history{k+1}(~iTrial) = obj.A.shift(~iTrial);
-        obj.history{k+1}(iTrial) = obj.A.shift(iTrial) + M(iTest, iTrial)\b(iTest);
+        obj.history{k+1}(~freeJ) = obj.A.getShift()(~freeJ);
+        obj.history{k+1}(freeJ) = obj.A.getShift()(freeJ) + M(freeI, freeJ)\b(freeI);
         if obj.directSolve
-          obj.history{k+1}(iTrial) = obj.A.shift(iTrial) + M(iTest, iTrial)\b(iTest);
+          obj.history{k+1}(freeJ) = obj.A.getShift()(freeJ) + M(freeI, freeJ)\b(freeI);
         else
-          obj.history{k+1}(iTrial) = obj.A.shift(iTrial) + bicgstab(M(iTest, iTrial), b(iTest), 1e-10, 1000, [], [], obj.history{k}(obj.A.fTrial));
+          obj.history{k+1}(freeJ) = obj.A.getShift()(freeJ) + bicgstab(M(freeI, freeJ), b(freeI), 1e-10, 1000, [], [], obj.history{k}(freeJ));
         end
         fprintf('timestep: %d / %d: %f sec\n', k, obj.nT-1, toc(tt));
       end

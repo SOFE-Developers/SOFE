@@ -13,5 +13,5 @@ v = Visualizer.create(fes); clf
 opt = struct('map', @(u,v)0.5*[sin(pi*v).*sin(2*pi*u), ...
                                -0.5+sin(pi*v).*cos(2*pi*u), ...
                                cos(pi*v)]);
-v.show(p.solution, 'g', opt);
-v.show(p.solution, 'p', struct('loc', @(x)x(:,2)>0));
+v.show(q.solution, 'g', opt);
+v.show(q.solution, 'p', struct('loc', @(x)x(:,2)>0));

@@ -15,4 +15,4 @@ q.compute();
 % VISUALIZE
 v = Visualizer.create(fes);
 opt.N = M*20; opt.deform = true;
-v.show(p.solution, 'g', opt);
+v.show(q.solution, 'g', opt);

@@ -13,4 +13,4 @@ q = IterativeSolver(p, 'bicgstab', 'ilu');
 q.compute();
 % VISUALIZE
 v = Visualizer.create(fes); clf
-v.show(p.solution, 'p', struct('n',order));
+v.show(q.solution, 'p', struct('n',order));

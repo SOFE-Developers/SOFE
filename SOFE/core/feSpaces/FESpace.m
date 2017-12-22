@@ -170,7 +170,7 @@ classdef FESpace < SOFE
       % ------
       % Rp
       %   quadrature points
-      % Rw
+      % RwevalFunction
       %   quadrature weights
       %
       %--------------------------------
@@ -635,7 +635,7 @@ classdef FESpace < SOFE
     end
   end
   methods % interpolation.
-    function R = getShiftVector(obj, varargin) % [time]
+    function R = getShift(obj, varargin) % [time]
       R = zeros(obj.getNDoF,1);
       if ~isempty(obj.shift)
         if nargin(obj.shift) > 1

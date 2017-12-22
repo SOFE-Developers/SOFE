@@ -16,26 +16,27 @@ classdef DirectSolver < Solver
     function R = compute(obj)
       t = tic; obj.output('Begin assemble ...', 1);
       obj.pde.assemble();
-      fprintf('%d DoFs\n', sum(obj.pde.fTrial));
+      [freeI, freeJ] = obj.pde.getFreeDoFs();
+      fprintf('%d DoFs\n', sum(freeJ));
       %
       obj.output(['... assembled (',num2str(toc(t)),' sec)'], 1);    
       t = tic; obj.output('Begin solve ...', 1);
       if ~obj.pde.createSys 
         error('System must be created');
       end
-      b = obj.pde.loadVec - obj.pde.stiffMat*obj.pde.shift;
-      b = b(obj.pde.fTest);
-      A = obj.pde.stiffMat(obj.pde.fTest, obj.pde.fTrial);
-      R = obj.pde.shift;
+      b = obj.pde.loadVec - obj.pde.stiffMat*obj.pde.getShift();
+      b = b(freeI);
+      A = obj.pde.stiffMat(freeI, freeJ);
+      R = obj.pde.getShift();
       if obj.isCaching
         if isempty(obj.cache)
           [obj.cache.L,obj.cache.U,obj.cache.P,obj.cache.Q,obj.cache.R] = lu(A);
         end
-        R(obj.pde.fTrial) = obj.cache.Q*(obj.cache.U\(obj.cache.L\(obj.cache.P*(obj.cache.R\b))));
+        R(freeJ) = obj.cache.Q*(obj.cache.U\(obj.cache.L\(obj.cache.P*(obj.cache.R\b))));
       else
-        R(obj.pde.fTrial) = A\b;
+        R(freeJ) = A\b;
       end
-      obj.pde.solution = R;
+      obj.solution = R;
       obj.output(['... solved (',num2str(toc(t)),' sec)'], 1);
     end
   end

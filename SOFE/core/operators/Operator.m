@@ -111,43 +111,6 @@ classdef Operator < SOFE
         obj.matrix = sparse(rce(:,1), rce(:,2), rce(:,3), M, N);
       end
     end
-    function assemble_(obj)
-      % incremental sparse assembly
-      if ~isempty(obj.matrix), return, end
-      M = obj.fesTest.getNDoF(); N = obj.fesTrial.getNDoF();
-      obj.matrix = sparse(M, N);
-      if ~any(obj.idx), return, end
-      nBlock = obj.fesTrial.nBlock(obj.codim+1);
-      for k = 1:nBlock
-        e = []; r = []; c = [];
-        I = obj.fesTrial.getBlock(obj.codim, k);
-        if ~isempty(I)
-          e = obj.assembleOp(k); % nExnBxnB
-          r = obj.fesTest.getDoFMap(obj.codim, I); % nBxnE
-          c = obj.fesTrial.getDoFMap(obj.codim, I); % nBxnE
-          r = repmat(abs(r)',[1 1 size(c,1)]); % nExnBxnB
-          c = permute(repmat(abs(c)',[1 1 size(r,2)]), [1 3 2]); % nExnBxnB
-          if ~ischar(obj.idx)
-            e=e(obj.idx(I),:,:); r=r(obj.idx(I),:,:); c=c(obj.idx(I),:,:);
-          end
-        end
-        I = (r.*c==0); if any(I(:)), r(I) = []; c(I) = []; e(I) = []; end %#ok<AGROW>
-        try
-          fsparse(0);
-          obj.matrix = obj.matrix + fsparse(r(:), c(:), e(:), [M, N]);
-        catch err
-%           fprintf(['fsparse:' err.message '\n']);
-          obj.matrix = obj.matrix + sparse(r(:), c(:), e(:), M, N);
-        end
-        if k>1
-          if k>2
-            fprintf(repmat('\b',1,length(s)));
-          end
-          s = sprintf('progress assembly LHS: %d / %d', k, nBlock); fprintf(s);
-        end
-      end
-      if k>1, fprintf('\n'); end
-    end
     function R = integrate(obj, hasCoeff, basisI, basisJ, k)
       [~, weights] = obj.fesTrial.getQuadData(obj.codim);
       [~,~,jac] = obj.fesTrial.evalTrafoInfo([], obj.codim, {k}); % nExnP
@@ -155,6 +118,7 @@ classdef Operator < SOFE
         if isnumeric(obj.data)
           coef = obj.fesTrial.evalDoFVector(obj.data, [], obj.codim, 0, {k}); % nExnPx(nD*nD)
         else
+          % TODO: [state, dState] = obj.pde.evalState(k);
           coef = obj.fesTrial.evalFunction(obj.data, [], obj.codim, obj.pde.state, obj.pde.dState, {k}); % nExnP
         end
       else, coef = 1;
