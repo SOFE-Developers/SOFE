@@ -3,7 +3,7 @@ classdef Functional < SOFE
     codim
     data, dataCache
     fes
-    vector
+    matrix
     loc, idx
   end
   methods % constructor
@@ -25,25 +25,25 @@ classdef Functional < SOFE
     end
     function notify(obj, varargin) % [time, state, dState]
       if nargin < 2
-        obj.vector = [];
+        obj.matrix = [];
         obj.idx = ':';
         obj.notifyObservers();
       else
         if ~isnumeric(obj.dataCache)
           if nargin(obj.dataCache) == 2 % f(x,t)
-            obj.vector = [];
+            obj.matrix = [];
             obj.data = @(x)obj.dataCache(x, varargin{1});  
           elseif nargin(obj.dataCache) == 3 % f(x,t,U)
-            obj.vector = [];
+            obj.matrix = [];
             obj.data = @(x, U)obj.dataCache(x, varargin{1}, U);
           elseif nargin(obj.dataCache) == 4 % f(x,t,U,d)
-            obj.vector = [];
+            obj.matrix = [];
             obj.data = @(x, U, d)obj.dataCache(x, varargin{1}, U, d);
           end
         end
         if ~isempty(obj.loc)
           if nargin(obj.loc) > 1 % loc(x,t)
-            obj.vector = [];
+            obj.matrix = [];
             obj.idx = obj.fes.mesh.isBoundary(@(x)obj.loc(x, varargin{1}));
           else
             if strcmp(obj.idx, ':')
@@ -57,8 +57,8 @@ classdef Functional < SOFE
   methods
     function assemble(obj)
       % single accumulation
-      if ~isempty(obj.vector), return, end
-      obj.vector = zeros(obj.fes.getNDoF(), 1);
+      if ~isempty(obj.matrix), return, end
+      obj.matrix = zeros(obj.fes.getNDoF(), 1);
       if ~any(obj.idx), return, end
       nBlock = obj.fes.nBlock(obj.codim+1);
       re = cell(nBlock,1);
@@ -83,7 +83,7 @@ classdef Functional < SOFE
       end
       if k>1, fprintf('\n'); end
       re = cell2mat(re);
-      obj.vector = accumarray(re(:,1), re(:,2), size(obj.vector));
+      obj.matrix = accumarray(re(:,1), re(:,2), size(obj.matrix));
     end
   end
 end

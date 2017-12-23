@@ -297,7 +297,7 @@ classdef Mesh < SOFE
       for k = 1:obj.dimW
         fc = FcDk(1,k,fes);
         fc.assemble();
-        R{k} = fc.vector();
+        R{k} = fc.matrix();
       end
       R = cell2mat(R);
       R = bsxfun(@rdivide,R, sum(R.^2,2).^0.5);

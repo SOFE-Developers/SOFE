@@ -645,7 +645,7 @@ classdef FESpace < SOFE
     function R = getL2Projection(obj, f)
       mass = OpIdId(1, 0, obj); mass.assemble();
       l2 = FcId(f, obj,0); l2.assemble();
-      R = mass.matrix \ l2.vector;
+      R = mass.matrix \ l2.matrix;
     end
     function R = getInterpolation(obj, f, codim, varargin) % [{k} or I]
       if nargin < 4 || (nargin == 6 && ischar(varargin{1}) && strcmp(varargin,':'))

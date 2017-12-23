@@ -85,7 +85,7 @@ classdef PDE < SOFE
         % rhs
         if ~isempty(obj.rhs.sys{i}) 
           for k = 1:numel(obj.rhs.sys{i})
-            b = obj.list{obj.rhs.sys{i}{k}}.vector;
+            b = obj.list{obj.rhs.sys{i}{k}}.matrix;
             try b = obj.rhs.coeff{i}{k}*b; catch, end
             idx = obj.I(i,1):obj.I(i,2);
             obj.loadVec(idx,:) = obj.loadVec(idx,:) + b;
@@ -158,7 +158,7 @@ classdef PDE < SOFE
       end
     end
     function R = getShift(obj, varargin) % [idx]
-      R = cellfun(@(fes)fes.getShift(obj.time),obj.fesTest,'UniformOutput',0);
+      R = cellfun(@(fes)fes.getShift(obj.time),obj.fesTrial,'UniformOutput',0);
       if ~isempty(varargin)
         R = R{varargin{1}};
       else
