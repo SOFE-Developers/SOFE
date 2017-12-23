@@ -4,8 +4,8 @@ order = 2; isTri = 0; nNonLin = 10;
 % DATA
 clear data;
 data.nu = 1e-4;
-data.ud = @(x)[x(:,1).*(1-x(:,1)).*(x(:,2)>1-eps), 0.0*x(:,1)];
-%data.ud = @(x)[x(:,1).*(1-x(:,1)).*(x(:,1)-0.5).*(x(:,2)>1-eps), 0.0*x(:,1)];
+%data.ud = @(x)[x(:,1).*(1-x(:,1)).*(x(:,2)>1-eps), 0.0*x(:,1)];
+data.ud = @(x)[x(:,1).*(1-x(:,1)).*(x(:,1)-0.5).*(x(:,2)>1-eps), 0.0*x(:,1)];
 data.dLoc = @(x)[x(:,1)<Inf,x(:,1)<Inf];
 % MESH
 g1 = linspace(0,K*sqrt(data.nu),n);
@@ -20,7 +20,8 @@ if isTri
 else
   E = TPElem(QpL(2,order)); e = QpL(2,order-1);
 end
-FES = FESpace(m, E, data.dLoc, data.ud); fes = FESpace(m, e);
+FES = FESpace(m, E, data.dLoc, data.ud); FES.setBlockingGlobal([2 2]);
+fes = FESpace(m, e); fes.setBlockingGlobal([2 2]);
 % PDE
 p = NavierStokes(data, FES, fes);
 % ALGORITHM

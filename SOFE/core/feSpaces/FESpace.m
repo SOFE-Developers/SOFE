@@ -42,7 +42,6 @@ classdef FESpace < SOFE
     freeDoFs
     cache
     isCaching = false;
-    observers
     nBlock
     nBlockGlobal
   end
@@ -60,7 +59,6 @@ classdef FESpace < SOFE
       obj.quadRule = obj.mesh.topology.getQuadRule(max(2*(obj.element.order),1));
       obj.setBlocking();
       obj.mesh.register(obj);
-      obj.observers = {};
       obj.fixB = @(x)false(size(x,1),1);
       obj.shift = [];
       if nargin > 2
@@ -131,14 +129,6 @@ classdef FESpace < SOFE
       obj.resetCache();
       obj.notifyObservers();
     end
-    function register(obj, observer)
-      obj.observers = [obj.observers, {observer}];
-    end
-    function notifyObservers(obj)
-      for i = 1:numel(obj.observers)
-        obj.observers{i}.notify();
-      end
-    end
   end
   methods % quadrature.
     function setQuadRule(obj, quadRule)
@@ -170,7 +160,7 @@ classdef FESpace < SOFE
       % ------
       % Rp
       %   quadrature points
-      % RwevalFunction
+      % Rw
       %   quadrature weights
       %
       %--------------------------------
@@ -182,8 +172,8 @@ classdef FESpace < SOFE
     end
   end
   methods % evaluation.
-    function R = evalFunction(obj, F, points, codim, U, D, varargin)
-      % R = evalFunction(obj, F, points, codim, U, D [,idx])
+    function R = evalFunction(obj, F, points, codim, S, varargin)
+      % R = evalFunction(obj, F, points, codim, S [,idx])
       %   evaluates function in local/quadrature points
       %
       % Input
@@ -194,12 +184,10 @@ classdef FESpace < SOFE
       %   local evaluation points ([] if not needed)
       % codim
       %   codimension of quadrature points (in case of POINTS = [])
-      % U
+      % S.U
       %   nExnPxnC state array for nonlinear function F
-      %   ([] if not needed)
-      % D
+      % S.dU
       %   nExnPxnCxnD gradient state array for nonlinear function F
-      %   ([] if not needed)
       % idx
       %   subentities I or block {k}
       %
@@ -213,7 +201,7 @@ classdef FESpace < SOFE
       % Copyright 2017, Dr. Lars Ludwig
       %--------------------------------
       block = false;
-      if nargin > 6 && iscell(varargin{1})
+      if ~isempty(varargin) && iscell(varargin{1})
         block = true; k = varargin{1};
       end
       if ~isempty(points)
@@ -225,7 +213,7 @@ classdef FESpace < SOFE
       if isempty(points)
         points = obj.getQuadData(codim);
       end
-      R = obj.mesh.evalFunction(F, points, U, D, varargin{:});
+      R = obj.mesh.evalFunction(F, points, S, varargin{:});
     end
     function R = evalReferenceMap(obj, points, codim, varargin)
       % R = evalReferenceMap(obj, points, codim [, idx])
@@ -677,7 +665,7 @@ classdef FESpace < SOFE
       else
         basis = obj.evalGlobalBasis([], codim, 0, varargin{:}); % nExnBxnPxnC
         if isempty(basis), R = []; return; end
-        F = permute(obj.evalFunction(f, [], codim, [], [], varargin{:}), [1 4 2 3]); % nEx1xnPxnC
+        F = permute(obj.evalFunction(f, [], codim, [], varargin{:}), [1 4 2 3]); % nEx1xnPxnC
         [~,~,jac] = obj.evalTrafoInfo([], codim, varargin{:}); % nExnP
         [~, weights] = obj.getQuadData(codim); % nPx1
         dX = bsxfun(@times, abs(jac), weights'); % nExnP

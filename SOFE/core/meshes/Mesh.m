@@ -5,7 +5,6 @@ classdef Mesh < SOFE
     nodes
     dimW
     globalSearcher
-    observers
   end
   methods % constructor & globalsearcher
     function obj = Mesh(nodes, elem, varargin) % [dimP]
@@ -25,17 +24,9 @@ classdef Mesh < SOFE
     end
   end
   methods % obj is observed
-    function register(obj, observer)
-      obj.observers = [obj.observers, {observer}];
-    end
     function notify(obj)
       obj.globalSearcher = [];
       obj.notifyObservers();
-    end
-    function notifyObservers(obj)
-      for i = 1:numel(obj.observers)
-        obj.observers{i}.notify();
-      end
     end
   end
   methods % reference map
@@ -185,8 +176,8 @@ classdef Mesh < SOFE
     end
   end
   methods % evaluation
-    function R = evalFunction(obj, F, points, U, D, varargin) % [I]
-      I = ':'; if nargin > 5, I = varargin{1}; end
+    function R = evalFunction(obj, F, points, S, varargin) % [I]
+      I = ':'; if ~isempty(varargin), I = varargin{1}; end
       P = obj.evalReferenceMap(points, 0, I); % nExnPxnW
       [nE, nP, nD] = size(P);
       P = reshape(P, nE*nP, nD); % (nE*nP)xnW
@@ -194,25 +185,25 @@ classdef Mesh < SOFE
         case 1 % F(x)
           R = reshape(F(P), nE, nP, []);
         case 2 % F(x,U)
-          if ~iscell(U); U = {U}; end
-          for i = 1:numel(U)
-            U{i} = reshape(U{i}(I,:), [], size(U{i},3));
+          if ~iscell(S.U); S.U = {S.U}; end
+          for i = 1:numel(S.U)
+            S.U{i} = reshape(S.U{i}, [], size(S.U{i},3));
           end
-          R = reshape(F(P, U), nE, nP, []); % nExnPxnC
+          R = reshape(F(P, S.U), nE, nP, []); % nExnPxnC
         case 3 % F(x,U,D)
-          if ~iscell(U); U = {U}; end % nExnPxnC
-          if ~iscell(D); D = {D}; end % nExnPxnCxnD
-          sz = size(D{1});
-          for i = 1:numel(U)
-            U{i} = reshape(U{i}(I,1:nP), [], sz(3));
-            D{i} = reshape(D{i}(I,1:nP,:), [], sz(3), sz(4));
+          if ~iscell(S.U); S.U = {S.U}; end % nExnPxnC
+          if ~iscell(S.dU); S.dU = {S.dU}; end % nExnPxnCxnD
+          sz = size(S.dU{1});
+          for i = 1:numel(S.U)
+            S.U{i} = reshape(S.U{i}, [], sz(3));
+            S.dU{i} = reshape(S.dU{i}, [], sz(3), sz(4));
           end
-          R = reshape(F(P, U, D), nE, nP, []); % nExnPxnCxnD
+          R = reshape(F(P, S.U, S.dU), nE, nP, []); % nExnPxnCxnD
       end
     end
     function [R, RVec] = integrate(obj, func, quadRule, varargin)
       if ~isnumeric(func)
-        func = obj.evalFunction(func, quadRule.points, [], [], varargin{:});
+        func = obj.evalFunction(func, quadRule.points, [], varargin{:});
       end
       [~,~,trafo] = obj.evalTrafoInfo(quadRule.points,varargin{:});
       RVec = (func.*abs(trafo))*quadRule.weights;

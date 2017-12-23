@@ -2,7 +2,7 @@ classdef Poisson < PDE
   methods % constructor
     function obj = Poisson(data, fesTrial, varargin)
       if ~isempty(varargin), fesTest = varargin{:}; else, fesTest = fesTrial; end
-      opList = {OpGradGrad(data.a, fesTrial, fesTest), ...
+      opList = {OpGradGrad(data.a, fesTrial, varargin{:}), ...
                 FcId(data.f, fesTest, 0)};
       lhs.sys = {{1}};
       rhs.sys = {{2}};

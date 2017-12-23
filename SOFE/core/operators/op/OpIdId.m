@@ -13,7 +13,8 @@ classdef OpIdId < Operator % ( c*U, V )
       points = obj.fesTrial.getQuadData(obj.codim);
       if isempty(points) % 1D special case
         I = obj.fesTrial.getBlock(1,k);
-        R = obj.fesTrial.mesh.evalFunction(obj.data, points, obj.pde.state, obj.pde.dState, I); % nExnP
+        S = obj.observers{1}.evalState(k);
+        R = obj.fesTrial.mesh.evalFunction(obj.data, points, S, I); % nExnP
       else
         basisJ = obj.fesTrial.evalGlobalBasis([], obj.codim, 0, {k}); % nExnBxnPxnC
         basisI = obj.fesTest.evalGlobalBasis([], obj.codim, 0, {k});

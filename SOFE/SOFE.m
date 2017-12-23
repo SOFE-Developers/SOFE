@@ -3,6 +3,9 @@ classdef SOFE < handle
     outputFlag = true;
     mem = 4; % [GBy]
   end
+  properties
+    observers = {};
+  end
   methods % constructor
     function obj = SOFE()
     end
@@ -106,6 +109,14 @@ classdef SOFE < handle
           otherwise
             fprintf(str);
         end
+      end
+    end
+    function register(obj, observer)
+      obj.observers = [obj.observers, {observer}];
+    end
+    function notifyObservers(obj)
+      for i = 1:numel(obj.observers)
+        obj.observers{i}.notify();
       end
     end
   end
