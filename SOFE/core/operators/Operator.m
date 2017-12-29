@@ -134,6 +134,11 @@ classdef Operator < SOFE
     end
     function R = apply(obj, x)
       R = obj.matrix*x;
+       % assemble on the fly
+%       ARef = [2 -1 -1;-1 1 0; -1 0 1]/2; % P1
+%       ARef = [4 -1 -1 -2; -1 4 -2 -1; -1 -2 4 -1; -2 -1 -1 4]/6; % Q1
+%       dm = obj.fesTrial.getDoFMap(0);
+%       R = accumarray(dm(:),reshape(ARef*x(dm),[],1));
     end
   end
 end
