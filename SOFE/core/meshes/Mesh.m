@@ -217,6 +217,12 @@ classdef Mesh < SOFE
       end
       obj.notifyObservers();
     end
+    function uniformRefineFast(obj, N)
+      for i = 1:N
+        obj.nodes = obj.topology.uniformRefineFast()*obj.nodes;
+      end
+      obj.notifyObservers();
+    end
   end
   methods % mesh operations
     function rotate(obj, alpha)

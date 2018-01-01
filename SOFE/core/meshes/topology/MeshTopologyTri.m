@@ -44,6 +44,33 @@ classdef MeshTopologyTri < MeshTopology
       el = [el(:,[1 4 6]);el(:,[4 2 5]);el(:,[6 5 3]);el(:,[5 6 4])];
       obj.update(el);
     end
+    function P = uniformRefineFast(obj)
+      fc = obj.getEntity(1);
+      el = obj.getEntity(2);
+      e2F = obj.connectivity{3,2};
+      orient = obj.getOrientation()<0;
+      nN = obj.getNumber(0); nF = obj.getNumber(1); nE = obj.getNumber(2);
+      fRange = (1:nF)'; eRange = (1:nE)';
+      %
+      P = [speye(nN); sparse(repmat((1:nF)',1,2), fc, 0.5)];
+      %
+      newIndices = nN + fRange;
+      el = [el newIndices(obj.connectivity{3,2})];
+      el = [el(:,[1 4 6]);el(:,[4 2 5]);el(:,[6 5 3]);el(:,[5 6 4])];
+      fc = [fc(:,1) nN+fRange; fc(:,2) nN+fRange; ...
+            sort([nN+e2F(:,[1 2]);nN+e2F(:,[2 3]);nN+e2F(:,[1 3])],2)];
+      e2F = [[nF*orient(:,1)+e2F(:,1), 2*(nF+nE)+eRange, nF*orient(:,3)+e2F(:,3)]; ...
+             [nF*~orient(:,1)+e2F(:,1), nF*orient(:,2)+e2F(:,2), 2*nF+eRange]; ...
+             [2*nF+nE+eRange, nF*~orient(:,2)+e2F(:,2), nF*~orient(:,3)+e2F(:,3)]; ...
+             [2*nF+nE+eRange, 2*(nF+nE)+eRange, 2*nF+eRange]];
+      %
+      obj.connectivity{obj.dimP+1,1} = el;
+      obj.connectivity{2,1} = fc;
+      obj.connectivity{3,2} = e2F;
+      obj.connectivity{1,1} = (1:size(P,1))';
+      obj.connectivity{2,2} = (1:size(fc,1))';
+      obj.connectivity{3,3} = (1:size(el,1))';
+    end
     function flipFace(obj, I)
       [f2e, type] = obj.getFace2Elem();
       elem = obj.getEntity(2);
