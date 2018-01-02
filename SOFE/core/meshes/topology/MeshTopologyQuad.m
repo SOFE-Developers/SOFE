@@ -36,16 +36,41 @@ classdef MeshTopologyQuad < MeshTopology
   end
   methods % refinement
     function P = uniformRefine(obj)
-      faces = obj.getEntity(1);
+      fc = obj.getEntity(1);
       el = obj.getEntity(2);
-      nE = obj.getNumber(2); nF = obj.getNumber(1); nN = obj.getNumber(0);
-      P = [eye(nN); sparse(repmat((1:nF)',1,2), faces, 0.5); ...
+      nN = obj.getNumber(0); nF = obj.getNumber(1); nE = obj.getNumber(2);
+      P = [eye(nN); sparse(repmat((1:nF)',1,2), fc, 0.5); ...
                     sparse(repmat((1:nE)',1,4), el, 0.25)];
       newIndicesF = nN + (1:nF);
       newIndicesE = nN + nF + (1:nE)';
       el = [el newIndicesF(obj.connectivity{3,2}) newIndicesE];
       el = [el(:,[1 5 7 9]);el(:,[5 2 9 8]);el(:,[7 9 3 6]);el(:,[9 8 6 4])];
       obj.update(el);
+    end
+    function P = uniformRefineFast(obj)
+      fc = obj.getEntity(1); el = obj.getEntity(2);
+      e2F = obj.connectivity{3,2}; oo = obj.getOrientation()<0;
+      nN = obj.getNumber(0); nF = obj.getNumber(1); nE = obj.getNumber(2);
+      fRange = (1:nF)'; eRange = (1:nE)';
+      %
+      P = [eye(nN); sparse(repmat((1:nF)',1,2), fc, 0.5); sparse(repmat((1:nE)',1,4), el, 0.25)];
+      %
+      newIndicesF = nN + fRange; newIndicesE = nN + nF + eRange;
+      el = [el newIndicesF(obj.connectivity{3,2}) newIndicesE];
+      el = [el(:,[1 5 7 9]);el(:,[5 2 9 8]);el(:,[7 9 3 6]);el(:,[9 8 6 4])];
+      fc = [fc(:,1) newIndicesF; fc(:,2) newIndicesF; ...
+            nN+e2F(:,1) newIndicesE; nN+e2F(:,2) newIndicesE; nN+e2F(:,3) newIndicesE; nN+e2F(:,4) newIndicesE];
+      e2F = [[nF*oo(:,1)+e2F(:,1), 2*(nF+nE)+eRange, nF*oo(:,3)+e2F(:,3), 2*nF+eRange]; ...
+             [nF*~oo(:,1)+e2F(:,1), (2*nF+3*nE)+eRange, 2*nF+eRange, nF*oo(:,4)+e2F(:,4)]; ...
+             [2*(nF+nE)+eRange, nF*oo(:,2)+e2F(:,2), nF*~oo(:,3)+e2F(:,3), (2*nF+nE)+eRange]; ...
+             [(2*nF+3*nE)+eRange, nF*~oo(:,2)+e2F(:,2), (2*nF+nE)+eRange, nF*~oo(:,4)+e2F(:,4)]];
+      %
+      obj.connectivity{obj.dimP+1,1} = el;
+      obj.connectivity{2,1} = fc;
+      obj.connectivity{3,2} = e2F;
+      obj.connectivity{1,1} = (1:size(P,1))';
+      obj.connectivity{2,2} = (1:size(fc,1))';
+      obj.connectivity{3,3} = (1:size(el,1))';
     end
   end
   methods(Static = true)
