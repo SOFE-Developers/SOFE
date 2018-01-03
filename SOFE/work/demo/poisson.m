@@ -6,8 +6,9 @@ m = RegularMesh(N*ones(dim,1), repmat([0 1],dim,1), isTri);
 if isTri, e = PpL(dim, order); else, e = QpL(dim, order); end
 fes = FESpace(m, e, @(x) x(:,1) < Inf);
 % PDE
-p = Poisson(struct('a',1,'f', @(x)sin(16*pi*prod(x,2))), fes);
-p.createSys = 0;
+data = struct('a',1,'f', @(x)sin(16*pi*prod(x,2)));
+p = Poisson(data, fes);
+p.createSys = 1;
 % ALGORITHM
 q = IterativeSolver(p, 'bicgstab', 'ilu');
 %q = DirectSolver(p);
