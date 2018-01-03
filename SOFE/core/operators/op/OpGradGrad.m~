@@ -14,8 +14,6 @@ classdef OpGradGrad < Operator % ( c*GRAD(U), GRAD(V) )
       [~, weights] = obj.fesTrial.getQuadData(obj.codim);
       [~,~,jac] = obj.fesTrial.evalTrafoInfo([], obj.codim, 1); % nExnP
       dX = bsxfun(@times, abs(jac), weights'); % nExnP
-      basisI = obj.fesTrial.evalGlobalBasis([], 0, 1, 1); % nExnBxnPxnCxnD
-      basisJ = obj.fesTest.evalGlobalBasis([], 0, 1, 1);
       nE = size(basisI, 1); nBI = size(basisI, 2); nBJ = size(basisJ,2); nP = size(basisI,3);
       basisI = reshape(basisI, nE, nBI, nP, []); basisJ = reshape(basisJ, nE, nBJ, nP, []);
       R = sum(bsxfun(@times, permute(basisI, [1 2 5 3 4]), ...

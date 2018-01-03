@@ -133,8 +133,8 @@ classdef PDE < SOFE
               if adj
                 dR = (X(obj.J(j,1):obj.J(j,2))'*obj.list{obj.lhs.sys{i,j}{k}}.matrix)';
               else
-                dR = obj.list{obj.lhs.sys{i,j}{k}}.matrix*X(obj.J(j,1):obj.J(j,2));
-                %dR = obj.list{obj.lhs.sys{i,j}{k}}.apply(X(obj.J(j,1):obj.J(j,2)));
+                %dR = obj.list{obj.lhs.sys{i,j}{k}}.matrix*X(obj.J(j,1):obj.J(j,2));
+                dR = obj.list{obj.lhs.sys{i,j}{k}}.apply(X(obj.J(j,1):obj.J(j,2)));
               end
               try dR = obj.lhs.coeff{i,j}{k}*dR; catch, end
               R(obj.I(i,1):obj.I(i,2)) = R(obj.I(i,1):obj.I(i,2)) + dR;
