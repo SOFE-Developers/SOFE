@@ -32,7 +32,9 @@ classdef Operator < SOFE
       if nargin > 3
         obj.loc = varargin{2};
       end
-      obj.matrix0 = obj.assembleRef();
+      try
+        obj.matrix0 = obj.assembleRef();
+      end
     end
     function notify(obj, varargin) % [time]
       if nargin < 2

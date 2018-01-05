@@ -140,7 +140,7 @@ classdef Visualizer2D < Visualizer
         points = points(sum(points,2)<=1,:);
       end
       P = obj.feSpace.mesh.evalReferenceMap(points, 0); % nExnPxnW
-      Z = obj.feSpace.evalDoFVector(U, points, [], 0); % nExnPxnC
+      Z = obj.feSpace.evalDoFVector(U, points, [], 0); % nExnPxnC      
       if size(Z,3) == 1
         P = reshape(P, [], size(P,3));
         if size(P,2) == 2
@@ -157,7 +157,7 @@ classdef Visualizer2D < Visualizer
           try scale = varargin{1}.scale; catch, scale = 1.0; end
           try width = varargin{1}.width; catch, width = 1; end
           try normalize = varargin{1}.normalize; catch, normalize = true; end
-          try vectors = varargin{1}.vectors; catch, vectors = true; end
+          try vectors = varargin{1}.vectors; catch, vectors = 1; end
           try abs = varargin{1}.abs; catch, abs = true; end
           try n = varargin{1}.n/sqrt(nN*0.5^isT); catch, n = 50/sqrt(nN*0.5^isT); end
           absZ = sum(Z.^2, 3).^0.5;
@@ -169,7 +169,7 @@ classdef Visualizer2D < Visualizer
               h = plot3k(reshape(P,[],size(P,3)), 'ColorData', absZ(:));
             end
           end
-          if vectors
+          if vectors==1
             if normalize, Z = bsxfun(@rdivide, Z, absZ); Z(Z==Inf) = 0; end
             try color = varargin{1}.color; catch, color = 'b'; end
             P = reshape(P(:,1:ceil(N/n)^2:end,:), [], size(P,3)); % (nE*nP)xnW
@@ -179,6 +179,17 @@ classdef Visualizer2D < Visualizer
               quiver(P(:,1),P(:,2),Z(:,1),Z(:,2), scale, 'linewidth', width, 'color',color);
             else
               quiver3(P(:,1),P(:,2),P(:,3),Z(:,1),Z(:,2),Z(:,3), scale, 'linewidth', width);
+            end
+            hold off
+          elseif vectors==2
+            P = reshape(P(:,1:ceil(N/n)^2:end,:), [], size(P,3)); % (nE*nP)xnW
+            Z = reshape(Z(:,1:ceil(N/n)^2:end,:), [], size(Z,3)); % (nE*nP)xnW
+            hold on
+            if size(Z,2)==4
+              quiver(P(:,1),P(:,2),Z(:,1),Z(:,2), scale, 'linewidth', width, 'color','r');
+              quiver(P(:,1),P(:,2),Z(:,3),Z(:,4), scale, 'linewidth', width, 'color','g');
+            else
+              % TODO
             end
             hold off
           end
