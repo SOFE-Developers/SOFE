@@ -189,7 +189,8 @@ classdef Visualizer2D < Visualizer
               quiver(P(:,1),P(:,2),Z(:,1),Z(:,2), scale, 'linewidth', width, 'color','r');
               quiver(P(:,1),P(:,2),Z(:,3),Z(:,4), scale, 'linewidth', width, 'color','g');
             else
-              % TODO
+              quiver3(P(:,1),P(:,2),P(:,3),Z(:,1),Z(:,2),Z(:,3), scale, 'linewidth', width, 'color','r');
+              quiver3(P(:,1),P(:,2),P(:,3),Z(:,4),Z(:,5),Z(:,6), scale, 'linewidth', width, 'color','g');
             end
             hold off
           end
