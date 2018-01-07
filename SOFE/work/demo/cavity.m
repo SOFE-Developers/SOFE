@@ -2,8 +2,7 @@
 N = 50; n = 10; K = 5;
 order = 2; isTri = 0; nNonLin = 10; 
 % DATA
-clear data;
-data.nu = 1e-4;
+data = struct('nu', 1e-4, 'f', 0);
 data.ud = @(x)[(x(:,1).*(1-x(:,1))).*(x(:,2)>1-eps), 0.0*x(:,1)];
 %data.ud = @(x)[x(:,1).*(1-x(:,1)).*(x(:,1)-0.5).*(x(:,2)>1-eps), 0.0*x(:,1)];
 data.dLoc = @(x)[x(:,1)<Inf,x(:,1)<Inf];
