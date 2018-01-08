@@ -10,8 +10,7 @@ m0 = Mass(fes);
 timeline = RegularMesh(M, [0 1], 0);
 u0 = @(x)0.2*exp(-((x(:,1)-0.3).^2+(x(:,2)-0.3).^2)/0.01);
 % ALGORITHM
-q = EulerImplicit(m0, p, timeline, u0);
-q.directSolve = 2;
+q = EulerImplicit(m0, p, timeline, u0); q.directSolve = 2;
 q.compute();
 % VISUALIZE
 v = Visualizer.create(fes);

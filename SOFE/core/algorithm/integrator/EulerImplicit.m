@@ -12,7 +12,7 @@ classdef EulerImplicit < Integrator
         try
           obj.history{1}{k} = obj.A.fesTrial{k}.getInterpolation(obj.initCond{k}, 0);
         catch
-          obj.history{1}{k} = zeros(obj.A.J{k}(2)-obj.A.J{k}(1)+1, 1);
+          obj.history{1}{k} = zeros(obj.A.J(k,2)-obj.A.J(k,1)+1, 1);
         end
       end
       obj.history{1} = cell2mat(obj.history{1});
