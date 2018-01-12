@@ -15,14 +15,14 @@ classdef FixPointSolver < Solver
   end
   methods % integrate
     function compute(obj)
-      sOld = zeros(obj.pde.nDoF,1);
+      obj.solution = zeros(obj.pde.nDoF,1);
       N = obj.pde.fesTrial{1}.getNDoF();
       for k = 1:obj.nIt
         obj.linSolver.compute();
         obj.pde.setState(0.0, obj.linSolver.solution);
-        diff = norm(sOld(1:N) - obj.linSolver.solution(1:N));
+        diff = norm(obj.solution(1:N) - obj.linSolver.solution(1:N));
         fprintf('step: %d / %d, diff: %d\n', k, obj.nIt, diff);
-        sOld = obj.linSolver.solution;
+        obj.solution = obj.linSolver.solution;
       end
     end
   end
