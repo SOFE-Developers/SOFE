@@ -136,7 +136,7 @@ classdef Mesh < SOFE
           pLocN = pLoc(In,:);
           % test for convergence
           F = points(Ic(In),:) - obj.evalReferenceMap({pLocN, C(Ic(In),i)},0);
-          cntNotFbl = cntNotFbl + ~obj.topology.isFeasible(pLocN);
+          cntNotFbl = cntNotFbl + ~obj.topology.isFeasible(pLocN, TOLREF);
           normF = sum(F.^2,2);
           del = normF<TOLF^2 | cntNotFbl>notFblMax;
           In(del) = []; cntNotFbl(del) = []; pLocN(del,:) = [];

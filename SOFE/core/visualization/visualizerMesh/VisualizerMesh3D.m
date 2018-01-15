@@ -51,7 +51,7 @@ classdef VisualizerMesh3D < VisualizerMesh
       end
     end
     function showEntity(obj, dim, varargin)
-      if nargin < 3, I = (1:obj.mesh.getNumber(dim))'; else, I = varargin{1}; end
+      if nargin < 3, I = (1:obj.mesh.topology.getNumber(dim))'; else, I = varargin{1}; end
       center = obj.mesh.getCenter(dim);
       switch dim
         case 3

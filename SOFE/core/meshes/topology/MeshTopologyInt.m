@@ -27,8 +27,7 @@ classdef MeshTopologyInt < MeshTopology
       R{2} = GaussPoint();
       R{1} = GaussInt(order);
     end
-    function R = isFeasible(points)
-      tol = 1e-12;
+    function R = isFeasible(points, tol)
       R = (points>-tol & points<1+tol);
     end
     function R = getCenterLoc()
