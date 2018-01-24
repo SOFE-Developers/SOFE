@@ -16,9 +16,9 @@
    binary library uses size_t while the declaration is erroneously
    int. For such cases you will have to manually define BLASINT as
    size_t when calling the compiler. */
-#ifndef BLASINT
-#define BLASINT int
-#endif
+// #ifndef BLASINT
+#define BLASINT size_t
+// #endif
 
 // declaration of BLAS-kernel
 void dgemm_(const char *,const char *,

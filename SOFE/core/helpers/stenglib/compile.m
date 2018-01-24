@@ -1,5 +1,5 @@
 tmp = pwd;
-cd([SOFE.getCorePath() 'helpers/stenglib/']);
+cd([SOFE.getCorePath() '/helpers/stenglib/']);
 %
 if ~exist('OCTAVE_VERSION', 'builtin') % Matlab
   mex tprod.c -lmwblas
