@@ -159,7 +159,7 @@ classdef Visualizer2D < Visualizer
           try normalize = varargin{1}.normalize; catch, normalize = true; end
           try vectors = varargin{1}.vectors; catch, vectors = 1; end
           try abs = varargin{1}.abs; catch, abs = true; end
-          try n = varargin{1}.n/sqrt(nN*0.5^isT); catch, n = 50/sqrt(nN*0.5^isT); end
+          try n = varargin{1}.n; catch, n = 10; end
           absZ = sum(Z.^2, 3).^0.5;
           h = [];
           if abs
@@ -172,8 +172,8 @@ classdef Visualizer2D < Visualizer
           if vectors==1
             if normalize, Z = bsxfun(@rdivide, Z, absZ); Z(Z==Inf) = 0; end
             try color = varargin{1}.color; catch, color = 'b'; end
-            P = reshape(P(:,1:ceil(N/n)^2:end,:), [], size(P,3)); % (nE*nP)xnW
-            Z = reshape(Z(:,1:ceil(N/n)^2:end,:), [], size(Z,3)); % (nE*nP)xnW
+            P = reshape(P(:,1:n:end,:), [], size(P,3)); % (nE*nP)xnW
+            Z = reshape(Z(:,1:n:end,:), [], size(Z,3)); % (nE*nP)xnW
             hold on
             if size(Z,2)==2
               quiver(P(:,1),P(:,2),Z(:,1),Z(:,2), scale, 'linewidth', width, 'color',color);
@@ -182,8 +182,8 @@ classdef Visualizer2D < Visualizer
             end
             hold off
           elseif vectors==2
-            P = reshape(P(:,1:ceil(N/n)^2:end,:), [], size(P,3)); % (nE*nP)xnW
-            Z = reshape(Z(:,1:ceil(N/n)^2:end,:), [], size(Z,3)); % (nE*nP)xnW
+            P = reshape(P(:,1:n:end,:), [], size(P,3)); % (nE*nP)xnW
+            Z = reshape(Z(:,1:n:end,:), [], size(Z,3)); % (nE*nP)xnW
             hold on
             if size(Z,2)==4
               quiver(P(:,1),P(:,2),Z(:,1),Z(:,2), scale, 'linewidth', width, 'color','r');

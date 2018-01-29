@@ -1,4 +1,7 @@
 classdef PpL < LagrangeElement
+  properties
+    lagrPoints
+  end
   methods % constructor
     function obj = PpL(dim, order)
       obj = obj@LagrangeElement(Pp(dim,order));
@@ -52,6 +55,7 @@ classdef PpL < LagrangeElement
           I = ix+iy+iz < p;
           points = [points; [px(I) py(I) pz(I)]];
       end
+      obj.lagrPoints{dim} = points;
       R = obj.source.evalBasis(points, 0); % nBxnP
     end
   end

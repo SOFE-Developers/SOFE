@@ -1,4 +1,7 @@
 classdef QpL < LagrangeElement
+  properties
+    lagrPoints
+  end
   methods % constructor
     function obj = QpL(dim, p)
       obj = obj@LagrangeElement(Qp(dim,p));
@@ -52,6 +55,7 @@ classdef QpL < LagrangeElement
           [pz,py,px] = meshgrid(p1d,p1d,p1d);
           points = [points; [px(:) py(:) pz(:)]];
       end
+      obj.lagrPoints{dim} = points;
       R = obj.source.evalBasis(points, 0); % nBxnP
     end
   end
