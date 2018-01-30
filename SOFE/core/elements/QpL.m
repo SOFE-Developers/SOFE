@@ -1,7 +1,4 @@
 classdef QpL < LagrangeElement
-  properties
-    lagrPoints
-  end
   methods % constructor
     function obj = QpL(dim, p)
       obj = obj@LagrangeElement(Qp(dim,p));
@@ -16,8 +13,14 @@ classdef QpL < LagrangeElement
       end
       obj.conformity = 'H1';
     end
-    function R = evalFunctionals(obj, dim)
-      p = obj.order(1);
+    function [R, data] = evalFunctionals(obj, dim)
+      points = obj.getLagrangePoints(dim, obj.order);
+      R = obj.source.evalBasis(points, 0); % nBxnP
+    end
+  end
+  methods(Static=true)
+    function R = getLagrangePoints(dim, p)
+      p = p(1);
       if p == 0
         p1d = 0.5;
       else
@@ -27,36 +30,33 @@ classdef QpL < LagrangeElement
       p1d = p1d(2:p);
       switch dim
         case 1
-          points = [0; 1];
-          points = [points; p1d];
+          R = [0; 1; p1d];
         case 2
           zz = zeros(p-1,1); oo = ones(p-1,1);
-          points = [0 0; 1 0; 0 1; 1 1];
+          R = [0 0; 1 0; 0 1; 1 1];
           % faces
-          points = [points; [p1d zz]; [p1d oo]; [zz p1d]; [oo p1d]];
+          R = [R; [p1d zz]; [p1d oo]; [zz p1d]; [oo p1d]];
           % inner
           [py,px] = meshgrid(p1d,p1d);
-          points = [points; [px(:) py(:)]];
+          R = [R; [px(:) py(:)]];
         case 3
           zz = zeros(p-1,1); oo = ones(p-1,1);
-          points = [0 0 0; 1 0 0; 0 1 0; 1 1 0; ...
-                    0 0 1; 1 0 1; 0 1 1; 1 1 1];
+          R = [0 0 0; 1 0 0; 0 1 0; 1 1 0; ...
+               0 0 1; 1 0 1; 0 1 1; 1 1 1];
           % edges
-          points = [points; [p1d zz zz]; [p1d oo zz]; [p1d zz oo]; [p1d oo oo]; ...
-                            [zz p1d zz]; [zz p1d oo]; [oo p1d zz]; [oo p1d oo]; ...
-                            [zz zz p1d]; [oo zz p1d]; [zz oo p1d]; [oo oo p1d]];
+          R = [R; [p1d zz zz]; [p1d oo zz]; [p1d zz oo]; [p1d oo oo]; ...
+                  [zz p1d zz]; [zz p1d oo]; [oo p1d zz]; [oo p1d oo]; ...
+                  [zz zz p1d]; [oo zz p1d]; [zz oo p1d]; [oo oo p1d]];
           % faces
           [py,px] = meshgrid(p1d,p1d);
           zz = zeros((p-1)^2,1); oo = ones((p-1)^2,1);
-          points = [points; [px(:) py(:) zz]; [px(:) py(:) oo]; ...
-                            [zz px(:) py(:)]; [oo px(:) py(:)]; ...
-                            [px(:) zz py(:)]; [px(:) oo py(:)]];
+          R = [R; [px(:) py(:) zz]; [px(:) py(:) oo]; ...
+                  [zz px(:) py(:)]; [oo px(:) py(:)]; ...
+                  [px(:) zz py(:)]; [px(:) oo py(:)]];
           % inner
           [pz,py,px] = meshgrid(p1d,p1d,p1d);
-          points = [points; [px(:) py(:) pz(:)]];
+          R = [R; [px(:) py(:) pz(:)]];
       end
-      obj.lagrPoints{dim} = points;
-      R = obj.source.evalBasis(points, 0); % nBxnP
     end
   end
 end

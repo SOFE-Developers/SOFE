@@ -138,6 +138,7 @@ classdef Visualizer2D < Visualizer
       end
       if isT
         points = points(sum(points,2)<=1,:);
+        points = points-eps; % circumvent duffy singular points
       end
       P = obj.feSpace.mesh.evalReferenceMap(points, 0); % nExnPxnW
       Z = obj.feSpace.evalDoFVector(U, points, [], 0); % nExnPxnC      
