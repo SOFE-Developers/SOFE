@@ -517,5 +517,57 @@ classdef Mesh < SOFE
       elem = cell2mat(elem);
       elem = J(elem);
     end
+    function R = transformTri2Quad(m)
+      nSmooth = 10;
+      %
+      nN = m.topology.getNumber(0);
+      nF = m.topology.getNumber(1);
+      nE = m.topology.getNumber(2);
+      [f2e, type] = m.topology.getFace2Elem();
+      e2F = m.topology.getElem2Face();
+      face = m.topology.getEntity(1);
+      elem = m.topology.getEntity(2);
+      % sort
+      [~,I] = sort(m.getMeasure(1),'descend');
+      % find pairs
+      mem = false(nF,1); pairs = zeros(nF,3);
+      cnt = 1;
+      for k = 1:nF
+        f = f2e(I(k),:);
+        if prod(f)>0 && ~(mem(f(1)) || mem(f(2)))
+          pairs(cnt,:) = [I(k) f];
+          cnt = cnt + 1;
+          mem(f,:) = true;
+        end
+      end
+      pairs = pairs(1:cnt-1,:);
+      single = find(~accumarray(reshape(pairs(:,[2 3]),[],1),1,[nE,1]));
+      % refine
+      Ep = cell(1,2);
+      for cc = 1:2
+        Ep{cc} = [elem(pairs(:,cc+1),:), nN+e2F(pairs(:,cc+1),:)];
+        I = type(pairs(:,1),cc)==1; Ep{cc}(I,:) = Ep{cc}(I,[3 1 2 6 4 5]);
+        I = type(pairs(:,1),cc)==2; Ep{cc}(I,:) = Ep{cc}(I,[1 2 3 4 5 6]);
+        I = type(pairs(:,1),cc)==3; Ep{cc}(I,:) = Ep{cc}(I,[2 3 1 5 6 4]);
+      end
+      Ep = cell2mat(Ep);
+      Es = [elem(single,:), nN+e2F(single,:), nN+nF+(1:numel(single))'];
+      E = [Ep(:,[1 4 6 5]);Ep(:,[4 2 5 12]);Ep(:,[6 5 3 10]);Ep(:,[11 12 10 7]); ...
+           Es(:,[1 4 6 7]);Es(:,[4 2 7 5]);Es(:,[7 5 6 3])];
+      % new nodes
+      P = [speye(nN); sparse(repmat((1:nF)',1,2), face, 0.5, nF, nN); ...
+                      sparse(repmat((1:numel(single))',1,3), elem(single,:), 1/3, numel(single), nN)];
+      NN = P*m.nodes;
+      %
+      R = Mesh(NN, E);
+      for k = 1:nSmooth
+        zNN = [0 0; R.nodes];
+        n2N = R.topology.getNodePatch(0);
+        xij = reshape(zNN(n2N+1,:),size(NN,1),[],2);
+        %dij = sum((xij - permute(zNN(2:end,:),[1 3 2])).^2,3).^0.5; dij(n2N==0) = 0;
+        NN = permute(sum(xij,2),[1 3 2])./sum(abs(xij(:,:,1))>0,2);
+        R.nodes(~R.isBoundaryNode(),:) = NN(~R.isBoundaryNode(),:);
+      end
+    end
   end
 end

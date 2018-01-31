@@ -13,6 +13,7 @@ classdef Visualizer2D < Visualizer
       if obj.feSpace.mesh.element.isSimplex()
         idx = X(:)+Y(:)<=1;
         X = X(idx); Y = Y(idx);
+        Y = Y-eps; % circumvent duffy singular points
       end
       nE = obj.feSpace.mesh.topology.getNumber(2);
       if obj.feSpace.mesh.element.isSimplex()
