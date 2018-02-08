@@ -424,7 +424,7 @@ classdef FESpace < SOFE
             R = padcell2mat(R);
           end
           [~,I] = sort(obj.getBlock(codim));
-          R = R(I,:,:,:);
+          R = R(I,:,:,:,:);
         else
           if block
             varargin{1} = obj.getBlock(codim, k{1});
