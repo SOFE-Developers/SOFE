@@ -94,7 +94,7 @@ classdef MeshTopologyTri < MeshTopology
       end
       R = elem;
     end
-    function R = isFeasible(points, varargin)
+    function R = isFeasible(points, varargin) % [tol]
       if ~isempty(varargin), tol = varargin{1}; else, tol = 1e-12; end
       R = (all(points>-tol, 2) & 1-sum(points,2)>-tol);
     end

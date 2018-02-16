@@ -156,7 +156,7 @@ classdef MeshTopologyHex < MeshTopology
       R{2} = GaussQuad(order);
       R{1} = GaussHex(order);
     end
-    function R = isFeasible(points, varargin)
+    function R = isFeasible(points, varargin) % [tol
       if ~isempty(varargin), tol = varargin{1}; else, tol = 1e-12; end
       R = (points(:,1)>-tol & points(:,1)<1+tol & ...
            points(:,2)>-tol & points(:,2)<1+tol & ...
