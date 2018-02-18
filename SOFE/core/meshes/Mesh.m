@@ -50,16 +50,15 @@ classdef Mesh < SOFE
     end
     function [R, invR, jacR] = evalTrafoInfo(obj, points, varargin) % [I]
       R = obj.evalReferenceMap(points, 1, varargin{:}); % nExnPxnWxnD or nExnWxnD
-      nW = obj.dimW;
       if iscell(points)
         nD = size(points{1}, 2); nP = -1;
       else
         [nP,nD] = size(points);
-        R = reshape(R,[],nW,nD); % (nE*nP)xnWxnD
+        R = reshape(R,[],obj.dimW,nD); % (nE*nP)xnWxnD
       end
       switch nD
         case 1 % line
-          switch nW
+          switch obj.dimW
             case 1
               invR = 1.0;
               jacR = R; 
@@ -73,7 +72,7 @@ classdef Mesh < SOFE
               jacR = sqrt(jacR); % (nE*nP)
           end
         case 2 % surface
-          switch nW
+          switch obj.dimW
             case 2
               invR = -R;
               invR(:,1,1) = R(:,2,2);
@@ -109,12 +108,12 @@ classdef Mesh < SOFE
           invR = bsxfun(@rdivide, invR, jacR);
       end
       if nP > 0
-        R = reshape(R,[],nP,nW,nD); % nExnPxnDxnW
-        invR = reshape(invR,[],nP,nD,nW); % nExnPxnDxnW
+        R = reshape(R,[],nP,obj.dimW,nD); % nExnPxnDxnW
+        invR = reshape(invR,[],nP,nD,obj.dimW); % nExnPxnDxnW
         jacR = reshape(jacR,[],nP); % nExnP
       end
     end
-    function R = evalInversReferenceMap(obj, points, varargin) % [output flag]
+    function R = evalInversReferenceMap(obj, points)
       out = false;
       armijo = false; armijoMax = 100;
       notFblMax = 3; 
@@ -212,16 +211,42 @@ classdef Mesh < SOFE
   end
   methods % refinement
     function uniformRefine(obj, N)
+      fprintf('Fast uniform refinement ');
       for i = 1:N
         obj.nodes = obj.topology.uniformRefine()*obj.nodes;
+        fprintf([num2str(i) '/']);
       end
       obj.notifyObservers();
+      fprintf('DONE\n');
     end
     function uniformRefineFast(obj, N)
+      fprintf('Uniform refinement ');
       for i = 1:N
         obj.nodes = obj.topology.uniformRefineFast()*obj.nodes;
+        fprintf([num2str(i) '/']);
       end
       obj.notifyObservers();
+      fprintf('DONE\n');
+    end
+    function adaptiveRefine(obj, loc, N)
+      fprintf('Adaptive refinement ');
+      for i = 1:N
+        I = obj.findEntity('0', loc);
+        obj.nodes = obj.topology.adaptiveRefine(I)*obj.nodes;
+        fprintf([num2str(i) '/']);
+      end
+      obj.notifyObservers();
+      fprintf('DONE\n');
+    end
+    function coarsen(obj, loc, N)
+      fprintf('Coarsening ');
+      for i = 1:N
+        I = obj.findEntity('0', loc);
+        obj.nodes = obj.topology.coarsen(I)*obj.nodes;
+        fprintf([num2str(i) '/']);
+      end
+      obj.notifyObservers();
+      fprintf('DONE\n');
     end
   end
   methods % mesh operations

@@ -23,6 +23,13 @@ classdef MeshTopology < SOFE
       e2F = obj.getElem2Face(); % nExnF
       R = accumarray(e2F(e2F>0),1, [obj.getNumber('1') 1])==1; % nFx1
     end
+    function R = getBoundary(obj)
+      R = obj.getEntity('1', obj.isBoundary());
+    end
+    function R = isBoundaryNode(obj)
+      R = unique(obj.getBoundary());
+      R = accumarray(R,1,[obj.getNumber(0) 1])>0;
+    end
   end
   methods % connectivity information
     function R = getElem2Face(obj, varargin)
@@ -72,6 +79,20 @@ classdef MeshTopology < SOFE
         end
         R(R(:,1)==0,:) = [];
       end
+    end
+  end
+  methods
+    function R = uniformRefineFast(obj)
+      warning('uniformRefineFast() not yet implemented!');
+      R = 1;
+    end
+    function R = adaptiveRefine(obj, I)
+      warning('adaptiveRefine() not yet implemented!');
+      R = 1;
+    end
+    function R = coarsen(obj, I)
+      warning('coarsen() not yet implemented!');
+      R = 1;
     end
   end
 end
