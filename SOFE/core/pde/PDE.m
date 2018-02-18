@@ -39,9 +39,8 @@ classdef PDE < SOFE
           end
         end
       end
-      obj.notify();
       obj.mesh = obj.fesTrial{1}.mesh;
-      obj.setState(0.0, zeros(obj.nDoF,1));
+      obj.notify();
     end
     function notify(obj)
       [nTest, nTrial] = obj.getNDoF();
@@ -52,6 +51,7 @@ classdef PDE < SOFE
       %
       obj.nDoF = nTrial(obj.nEq);
       obj.stiffMat = []; obj.loadVec = [];
+      obj.setState(0.0, zeros(obj.nDoF,1));
     end
     function setState(obj, t, varargin) % [state]
       obj.time = t;
