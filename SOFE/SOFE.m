@@ -20,6 +20,9 @@ classdef SOFE < handle
     function R = getPluginPath()
       R = [pwd,filesep,'plugins'];
     end
+    function R = getDocPath()
+      R = [pwd,filesep,'doctest'];
+    end
     function unlock()
       addpath(genpath([SOFE.getCorePath(),filesep,'algorithm']));
 			addpath(genpath([SOFE.getCorePath(),filesep,'elements']));
@@ -30,6 +33,7 @@ classdef SOFE < handle
       addpath(genpath([SOFE.getCorePath(),filesep,'pde']));
       addpath(genpath([SOFE.getCorePath(),filesep,'visualization']));
       addpath(genpath([SOFE.getCorePath(),filesep,'quadrature']));
+      addpath(genpath(SOFE.getDocPath()));
       more off
     end
     function open(name)

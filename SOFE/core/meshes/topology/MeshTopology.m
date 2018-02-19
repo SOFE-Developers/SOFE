@@ -21,7 +21,7 @@ classdef MeshTopology < SOFE
     end
     function R = isBoundary(obj)
       e2F = obj.getElem2Face(); % nExnF
-      R = accumarray(e2F(e2F>0),1, [obj.getNumber('1') 1])==1; % nFx1
+      R = accumarray(reshape(e2F(e2F>0),[],1), 1, [obj.getNumber('1') 1])==1; % nFx1
     end
     function R = getBoundary(obj)
       R = obj.getEntity('1', obj.isBoundary());
