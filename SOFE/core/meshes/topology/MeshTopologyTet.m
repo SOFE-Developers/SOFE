@@ -39,7 +39,7 @@ classdef MeshTopologyTet < MeshTopology
       nodeIxAtFace = [1 2 3; 1 5 4; 2 6 5; 3 6 4];
       for t = 1:4
         for k = 0:2
-          I = (type == t) & (abs(reshape(orientF(ind),[],1)) == k+1);
+          I = reshape(type == t,[],1) & (abs(reshape(orientF(ind),[],1)) == k+1);
           R(I,:) = e2E(elems(I), circshift(nodeIxAtFace(t,:)',-k));
         end
       end

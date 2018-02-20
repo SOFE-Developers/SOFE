@@ -10,7 +10,7 @@ classdef VisualizerMesh < SOFE
   methods(Static = true)
     function R = create(mesh)
       R = [];
-      dim = mesh.dimW;
+      dim = mesh.topology.dimP;
       eval(['R = VisualizerMesh' num2str(dim) 'D(mesh);']);
     end
   end
