@@ -64,42 +64,42 @@ classdef Mesh_D
       % 1) 1D-->1D/2D/3D
       m = RegularMesh(10, [0 1]);
       R = m.evalReferenceMap(rand(5,1),0);
-      assert(size(R)==[10,5]);
+      assert(norm(size(R)-[10,5])==0);
       R = m.evalReferenceMap(rand(5,1),1);
-      assert(size(R)==[10,5]);
+      assert(norm(size(R)-[10,5])==0);
       %
       curve = @(x)[sin(pi*x) cos(pi*x)];
       m2 = Mesh(curve(m.nodes), m.topology.getEntity('0'), 1);
       R = m2.evalReferenceMap(rand(5,1),0);
-      assert(size(R)==[10,5,2]);
+      assert(norm(size(R)-[10,5,2])==0);
       R = m2.evalReferenceMap(rand(5,1),1);
-      assert(size(R)==[10,5,2]);
+      assert(norm(size(R)-[10,5,2])==0);
       %
       curve = @(x)[sin(pi*x) cos(pi*x) x.^2];
       m3 = Mesh(curve(m.nodes), m.topology.getEntity('0'), 1);
       R = m3.evalReferenceMap(rand(5,1),0);
-      assert(size(R)==[10,5,3]);
+      assert(norm(size(R)-[10,5,3])==0);
       R = m3.evalReferenceMap(rand(5,1),1);
-      assert(size(R)==[10,5,3]);
+      assert(norm(size(R)-[10,5,3])==0);
       % 2) 2D-->2D/3D
       m = RegularMesh([10 20], [0 1; 0 2]);
       R = m.evalReferenceMap(rand(5,2),0);
-      assert(size(R)==[200,5,2]);
+      assert(norm(size(R)-[200,5,2])==0);
       R = m.evalReferenceMap(rand(5,2),1);
-      assert(size(R)==[200,5,2,2])
+      assert(norm(size(R)-[200,5,2,2])==0);
       %
       area = @(x)[sin(pi*x(:,1)) cos(pi*x(:,1)) x(:,2)];
       m3 = Mesh(area(m.nodes), m.topology.getEntity('0'), 2);
       R = m3.evalReferenceMap(rand(5,2),0);
-      assert(size(R)==[200,5,3]);
+      assert(norm(size(R)-[200,5,3])==0);
       R = m3.evalReferenceMap(rand(5,2),1);
-      assert(size(R)==[200,5,3,2]);
+      assert(norm(size(R)-[200,5,3,2])==0);
       % 3) 3D-->3D
       m = RegularMesh([10 5 2], [0 1; 0 2; 0 3]);
       R = m.evalReferenceMap(rand(5,3),0);
-      assert(size(R)==[100,5,3]);
+      assert(norm(size(R)-[100,5,3])==0);
       R = m.evalReferenceMap(rand(5,3),1);
-      assert(size(R)==[100,5,3,3]);
+      assert(norm(size(R)-[100,5,3,3])==0);
       %
       fprintf('Test ''Mesh.evalReferenceMap()'' CHECK\n');
     end

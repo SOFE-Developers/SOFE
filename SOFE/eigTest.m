@@ -1,3 +1,4 @@
+clear classes
 % PARAMETERS
 dim = 2; N = 20; order = 1; isTri = 2;
 % MESH
@@ -15,5 +16,5 @@ q.compute();
 % VISUALIZE
 v = Visualizer.create(fes);
 disp(q.eigenVal);
-v.show(q.eigenVec(:,3), 'g');
+v.show(q.eigenVec(:,16), 'g');
 axis tight

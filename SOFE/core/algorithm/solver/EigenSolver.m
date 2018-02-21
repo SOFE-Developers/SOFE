@@ -23,7 +23,7 @@ classdef EigenSolver < Solver
       A = obj.pde.stiffMat(freeI, freeJ);
       M = obj.mass.stiffMat(freeI, freeJ);
       obj.eigenVec = zeros(size(freeI,1), 20);
-      [obj.eigenVec(freeJ,:), obj.eigenVal] = eigs(A,M,20,0);
+      [obj.eigenVec(freeJ,:), obj.eigenVal] = eigs(A,M,20,0,struct('v0',ones(sum(freeI),1)));
       obj.eigenVal = diag(obj.eigenVal);
       obj.output(['... solved (',num2str(toc(t)),' sec)'], 1);
     end

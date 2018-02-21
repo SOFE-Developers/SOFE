@@ -211,41 +211,41 @@ classdef Mesh < SOFE
   end
   methods % refinement
     function uniformRefine(obj, N)
-      fprintf('Fast uniform refinement ');
+      fprintf('Fast uniform refinement /');
       for i = 1:N
         obj.nodes = obj.topology.uniformRefine()*obj.nodes;
         fprintf([num2str(i) '/']);
       end
-      fprintf('DONE\n');
+      fprintf(' DONE\n');
       obj.notifyObservers();
     end
     function uniformRefineFast(obj, N)
-      fprintf('Uniform refinement ');
+      fprintf('Uniform refinement /');
       for i = 1:N
         obj.nodes = obj.topology.uniformRefineFast()*obj.nodes;
         fprintf([num2str(i) '/']);
       end
-      fprintf('DONE\n');
+      fprintf(' DONE\n');
       obj.notifyObservers();
     end
     function adaptiveRefine(obj, loc, N)
-      fprintf('Adaptive refinement ');
+      fprintf('Adaptive refinement /');
       for i = 1:N
         if ~isreal(loc), I = obj.findEntity('0', loc); else, I = loc; end
         obj.nodes = obj.topology.adaptiveRefine(I)*obj.nodes;
         fprintf([num2str(i) '/']);
       end
-      fprintf('DONE\n');
+      fprintf(' DONE\n');
       obj.notifyObservers();
     end
     function coarsen(obj, loc, N)
-      fprintf('Coarsening ');
+      fprintf('Coarsening /');
       for i = 1:N
         if ~isreal(loc), I = obj.findEntity('0', loc); else, I = loc; end
         obj.nodes = obj.topology.coarsen(I)*obj.nodes;
         fprintf([num2str(i) '/']);
       end
-      fprintf('DONE\n');
+      fprintf(' DONE\n');
       obj.notifyObservers();
     end
   end

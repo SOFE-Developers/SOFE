@@ -102,19 +102,37 @@ classdef GlobalSearcher < SOFE
   end
   methods % global search
     function R = findCandidates(obj, points)
-      if isempty(obj.diam), obj.update(); end
-      [~,L] = obj.getBin(points);
-      I = L>0 & L<=prod(obj.NVec);
-      R = cell(1,obj.nBlockGS);
-      for k = 1:obj.nBlockGS
-        idx = obj.getBlock(k);
-        R{k} = zeros(numel(L), size(obj.bgMesh{k},2));
-        R{k}(I,:) = obj.bgMesh{k}(L(I),:);
-        R{k}(R{k}>0) = R{k}(R{k}>0) + (idx(1)-1);
+      if obj.dim>1
+        if isempty(obj.diam), obj.update(); end
+        [~,L] = obj.getBin(points);
+        I = L>0 & L<=prod(obj.NVec);
+        R = cell(1,obj.nBlockGS);
+        for k = 1:obj.nBlockGS
+          idx = obj.getBlock(k);
+          R{k} = zeros(numel(L), size(obj.bgMesh{k},2));
+          R{k}(I,:) = obj.bgMesh{k}(L(I),:);
+          R{k}(R{k}>0) = R{k}(R{k}>0) + (idx(1)-1);
+        end
+        R = cell2mat(R)';
+        colSum = sum(R>0);
+        R = reshapeTop(colSum, R(R>0))';
+      else
+        [pointsSorted, pid] = sort(points);
+        R = zeros(length(points),1);
+        elem = obj.mesh.topology.getEntity(1);
+        [leftNodesSorted, nlid] = sort(obj.mesh.nodes(elem(:,1)));
+        if (leftNodesSorted(1)<pointsSorted(1))
+          j = 1;
+        else
+          j = 2;
+        end
+        for i=1:length(points)
+          while (j<=length(leftNodesSorted)) && (leftNodesSorted(j)<pointsSorted(i))
+            j=j+1;
+          end
+          R(pid(i)) = nlid(j-1);
+        end
       end
-      R = cell2mat(R)';
-      colSum = sum(R>0);
-      R = reshapeTop(colSum, R(R>0))';
     end
     function [R, L] = getBin(obj, points)
       sPoints = bsxfun(@rdivide, bsxfun(@minus, points, obj.diam(:,1)'), diff(obj.diam')); % nPx3

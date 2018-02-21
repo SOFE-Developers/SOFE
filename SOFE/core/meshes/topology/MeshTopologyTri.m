@@ -125,7 +125,7 @@ classdef MeshTopologyTri < MeshTopology
       idxN = (cnt==4 & ~isB) | (cnt==2 & isB);
       idxN(1:obj.nN0) = false;
       % 3) mark elements
-      idxE = idxN(elem(:,1)); I = find(idxE);
+      idxE = idxN(elem(:,1));
       if ~any(idxE), R = 1; return; end
       % 4) get brother-son pairs
       f2E = obj.getFace2Elem(); e2F = obj.connectivity{3,2};
@@ -159,6 +159,7 @@ classdef MeshTopologyTri < MeshTopology
   end
   methods(Static = true)
     function R = renumber(node, elem)
+      R = elem; return;
       % positive jacobian
       if isempty(elem), R = []; return; end
       v1 = node(elem(:,2),:) - node(elem(:,1),:);
