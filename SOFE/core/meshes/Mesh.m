@@ -594,5 +594,63 @@ classdef Mesh < SOFE
         R.nodes(~R.isBoundaryNode(),:) = NN(~R.isBoundaryNode(),:);
       end
     end
+    function [nodes, elem] = removeNodes(nodes, elem)
+      unode = unique(elem);
+      nN = size(nodes,1); nNNew = numel(unode);
+      nodes = nodes(unode,:);
+      M = zeros(nN,1); M(unode) = (1:nNNew)';
+      elem = M(elem);
+    end
+    function [nodes, elem] = removeElements(nodes, elem, loc)
+      [nE, nV] = size(elem);
+      center = permute(sum(reshape(nodes(elem,:), nE, nV, []),2)/nV,[1 3 2]);
+      elem(loc(center),:) = [];      
+      [nodes, elem] = removeNodes(nodes, elem);
+    end
+    function m = removeElements2(m, sdf)
+      nodes = m.nodes; elem = m.topology.getEntity('0');
+      assert(size(nodes,2)==2 & size(elem,2)==4);
+      %
+      loc = @(x) sdf(x) > 0;
+      [nE, nV] = size(elem);
+      center = permute(sum(reshape(nodes(elem,:), nE, nV, []),2)/nV,[1 3 2]);
+      elem(loc(center),:) = [];
+      [nodes, elem] = m.removeNodes(nodes, elem);
+      m = Mesh(nodes, elem);
+      %
+      delta = max(m.getMeasure(1));
+      I = m.isBoundaryNode() & sdf(m.nodes)>(-delta);
+      grad = zeros(sum(I),2); E = 1e-8*eye(2);
+      for k = 1:2
+        for ii = 1:2
+          grad(:,ii) = (sdf(m.nodes(I,:)+ones(sum(I),1)*E(ii,:))-sdf(m.nodes(I,:)))/1e-8;
+        end
+        grad = grad./repmat(sum(grad.^2,2)+1e-12,1,2); % not sdf
+      end
+      m.nodes(I,:) = m.nodes(I,:) - (sdf(m.nodes(I,:))*ones(1,2)).*grad;
+      %
+      nodes = m.nodes; elem = m.topology.getEntity('0');
+      indB = I(elem); isDeg = (sum(indB,2)==3); % degenerated elements
+      %
+      v1 = nodes(elem(:,2),:) - nodes(elem(:,1),:);
+      v2 = nodes(elem(:,3),:) - nodes(elem(:,1),:);
+      D(:,1) = sum((v1 - v2).^2, 2);
+      D(:,2) = sum((v1 + v2).^2, 2);
+      I = ~isDeg & (D(:,1) < D(:,2));
+      II = ~isDeg & ~(D(:,1) < D(:,2));
+      elemT = {zeros(size(elem,1),3);zeros(size(elem,1),3)};
+      elemT{1}(I,:) = elem(I,[1 2 3]); elemT{2}(I,:) = elem(I,[4 3 2]);
+      elemT{1}(II,:) = elem(II,[2 4 1]); elemT{2}(II,:) = elem(II,[3 1 4]);
+      %
+      I1 = isDeg & all(indB(:,[2 3 4]),2); I2 = isDeg & all(indB(:,[1 3 4]),2);
+      I3 = isDeg & all(indB(:,[1 2 4]),2); I4 = isDeg & all(indB(:,[1 2 3]),2);
+      elemT{1}(I1,:) = elem(I1,[1 2 3]); elemT{1}(I2,:) = elem(I2,[2 4 1]);
+      elemT{1}(I3,:) = elem(I3,[3 1 4]); elemT{1}(I4,:) = elem(I4,[4 3 2]);
+      %
+      elemT{2}(sum(elemT{2},2)==0,:) = [];
+      elem = cell2mat(elemT);
+      [nodes, elem] = m.removeNodes(nodes, elem);
+      m = Mesh(nodes, elem);
+    end
   end
 end
