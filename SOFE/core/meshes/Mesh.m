@@ -200,7 +200,7 @@ classdef Mesh < SOFE
           R = reshape(F(P, S.U, S.dU), nE, nP, []); % nExnPxnCxnD
       end
     end
-    function [R, RVec] = integrate(obj, func, quadRule, varargin)
+    function [R, RVec] = integrate(obj, func, quadRule, varargin) % [I]
       if ~isnumeric(func)
         func = obj.evalFunction(func, quadRule.points, [], varargin{:});
       end
@@ -210,8 +210,9 @@ classdef Mesh < SOFE
     end
   end
   methods % refinement
-    function uniformRefine(obj, N)
-      fprintf('Fast uniform refinement /');
+    function uniformRefine(obj, varargin) % [N]
+      if ~isempty(varargin), N = varargin{1}, else, N = 1; end
+      fprintf('Uniform refinement /');
       for i = 1:N
         obj.nodes = obj.topology.uniformRefine()*obj.nodes;
         fprintf([num2str(i) '/']);
@@ -219,8 +220,9 @@ classdef Mesh < SOFE
       fprintf(' DONE\n');
       obj.notifyObservers();
     end
-    function uniformRefineFast(obj, N)
-      fprintf('Uniform refinement /');
+    function uniformRefineFast(obj, varargin) % [N]
+      if ~isempty(varargin), N = varargin{1}, else, N = 1; end
+      fprintf('Fast uniform refinement /');
       for i = 1:N
         obj.nodes = obj.topology.uniformRefineFast()*obj.nodes;
         fprintf([num2str(i) '/']);
@@ -228,7 +230,8 @@ classdef Mesh < SOFE
       fprintf(' DONE\n');
       obj.notifyObservers();
     end
-    function adaptiveRefine(obj, loc, N)
+    function adaptiveRefine(obj, loc, varargin) % [N]
+      if ~isempty(varargin), N = varargin{1}, else, N = 1; end
       fprintf('Adaptive refinement /');
       for i = 1:N
         if ~isreal(loc), I = obj.findEntity('0', loc); else, I = loc; end
@@ -238,7 +241,8 @@ classdef Mesh < SOFE
       fprintf(' DONE\n');
       obj.notifyObservers();
     end
-    function coarsen(obj, loc, N)
+    function coarsen(obj, loc, varargin) % [N]
+      if ~isempty(varargin), N = varargin{1}, else, N = 1; end
       fprintf('Coarsening /');
       for i = 1:N
         if ~isreal(loc), I = obj.findEntity('0', loc); else, I = loc; end
@@ -441,41 +445,7 @@ classdef Mesh < SOFE
       axis equal
     end
   end
-  methods(Static = true)
-    function R = getTopology(nodes, elem, dimP)
-      switch size(elem, 2)
-        case 2
-          R = MeshTopologyInt(elem);
-        case 3
-          elem = MeshTopologyTri.renumber(nodes, elem);
-          R = MeshTopologyTri(elem);
-        case 4
-          if dimP == 2
-            R = MeshTopologyQuad(elem);
-          else
-            elem = MeshTopologyTet.renumber(nodes, elem);
-            R = MeshTopologyTet(elem);
-          end
-        case 8
-          R = MeshTopologyHex(elem);
-      end
-    end
-    function R = getShapeElement(N, dimP)
-      switch N
-        case 2
-          R = PpL(1,1);
-        case 3
-          R = PpL(2,1);
-        case 4
-          if dimP == 2
-            R = QpL(2,1);
-          else
-            R = PpL(3,1);
-          end
-        case 8
-          R = QpL(3,1);
-      end
-    end
+  methods(Static = true) % mesh generation
     function [nodes, elem] = getTensorProductMesh(grid, varargin) % [isTri]
       switch numel(grid)
         case 1
@@ -523,26 +493,30 @@ classdef Mesh < SOFE
           end
       end
     end
-    function [nodes, elem] = getMesh2D(grid, A, varargin)
-      [nn, ee] = Mesh.getTensorProductMesh(grid, varargin{:});
+    function m = puzzleMesh(N, A, varargin) % [iTri]
+      m = RegularMesh([N N], [0 1;0 1], varargin{:});
+      nn = m.nodes; ee = m.topology.getEntity('0');
       N = size(A);
       nodes = cell(prod(N),1);
       elem = cell(prod(N),1);
+      maxX = max(nn(:,1)); maxY = max(nn(:,2));
       cnt = -1;
       for i = 1:N(1)
         for j = 1:N(2)
           if ~A(i,j), continue; end
           cnt = cnt + 1;
-          nodes{i+N(1)*(j-1)}(:,1) = nn(:,1) + (j-1)*grid{1}(end);
-          nodes{i+N(1)*(j-1)}(:,2) = nn(:,2) + (N(1)-i)*grid{2}(end);
+          nodes{i+N(1)*(j-1)}(:,1) = nn(:,1) + (j-1)*maxX;
+          nodes{i+N(1)*(j-1)}(:,2) = nn(:,2) + (N(1)-i)*maxY;
           elem{i+N(1)*(j-1)} = ee + cnt*size(nn,1);
         end
       end
-      [nodes, ~, J] = uniquetol(cell2mat(nodes),1e-6,'byrows',1);
       elem = cell2mat(elem);
+      [nodes, ~, J] = uniqueTOL(cell2mat(nodes),1e-6,'first','rows');
       elem = J(elem);
+      %
+      m = Mesh(nodes, elem);
     end
-    function R = transformTri2Quad(m)
+    function m = transformTri2Quad(m)
       nSmooth = 10;
       %
       nN = m.topology.getNumber(0);
@@ -584,41 +558,33 @@ classdef Mesh < SOFE
                       sparse(repmat((1:numel(single))',1,3), elem(single,:), 1/3, numel(single), nN)];
       NN = P*m.nodes;
       %
-      R = Mesh(NN, E);
+      m = Mesh(NN, E);
+      %
+      n2N = m.topology.getNodePatch(0);
+      I = ~m.isBoundaryNode();
       for k = 1:nSmooth
-        zNN = [0 0; R.nodes];
-        n2N = R.topology.getNodePatch(0);
+        zNN = [0 0; m.nodes];
         xij = reshape(zNN(n2N+1,:),size(NN,1),[],2);
         %dij = sum((xij - permute(zNN(2:end,:),[1 3 2])).^2,3).^0.5; dij(n2N==0) = 0;
-        NN = permute(sum(xij,2),[1 3 2])./sum(abs(xij(:,:,1))>0,2);
-        R.nodes(~R.isBoundaryNode(),:) = NN(~R.isBoundaryNode(),:);
+        NN = permute(sum(xij,2),[1 3 2])./sum(n2N>0,2);
+        m.nodes(I,:) = NN(I,:);
       end
     end
-    function [nodes, elem] = removeNodes(nodes, elem)
-      unode = unique(elem);
-      nN = size(nodes,1); nNNew = numel(unode);
-      nodes = nodes(unode,:);
-      M = zeros(nN,1); M(unode) = (1:nNNew)';
-      elem = M(elem);
-    end
-    function [nodes, elem] = removeElements(nodes, elem, loc)
-      [nE, nV] = size(elem);
-      center = permute(sum(reshape(nodes(elem,:), nE, nV, []),2)/nV,[1 3 2]);
-      elem(loc(center),:) = [];      
-      [nodes, elem] = removeNodes(nodes, elem);
-    end
-    function m = removeElements2(m, sdf)
+    function m = removeElements(m, sdf)
       nodes = m.nodes; elem = m.topology.getEntity('0');
-      assert(size(nodes,2)==2 & size(elem,2)==4);
-      %
-      loc = @(x) sdf(x) > 0;
       [nE, nV] = size(elem);
       center = permute(sum(reshape(nodes(elem,:), nE, nV, []),2)/nV,[1 3 2]);
-      elem(loc(center),:) = [];
+      elem(sdf(center)>0,:) = [];
       [nodes, elem] = m.removeNodes(nodes, elem);
       m = Mesh(nodes, elem);
-      %
-      delta = max(m.getMeasure(1));
+    end
+    function m = removeElementsQuad2Tri(m, sdf)
+      nodes = m.nodes; elem = m.topology.getEntity('0');
+      assert(size(nodes,2)==2 & size(elem,2)==4);
+      % remove cells
+      m = m.removeElements(m, @(x) sdf(x)>0);
+      % project boundary nodes
+      delta = 2*max(m.getMeasure(1));
       I = m.isBoundaryNode() & sdf(m.nodes)>(-delta);
       grad = zeros(sum(I),2); E = 1e-8*eye(2);
       for k = 1:2
@@ -628,10 +594,9 @@ classdef Mesh < SOFE
         grad = grad./repmat(sum(grad.^2,2)+1e-12,1,2); % not sdf
       end
       m.nodes(I,:) = m.nodes(I,:) - (sdf(m.nodes(I,:))*ones(1,2)).*grad;
-      %
+      % quad to tri mesh
       nodes = m.nodes; elem = m.topology.getEntity('0');
       indB = I(elem); isDeg = (sum(indB,2)==3); % degenerated elements
-      %
       v1 = nodes(elem(:,2),:) - nodes(elem(:,1),:);
       v2 = nodes(elem(:,3),:) - nodes(elem(:,1),:);
       D(:,1) = sum((v1 - v2).^2, 2);
@@ -646,11 +611,64 @@ classdef Mesh < SOFE
       I3 = isDeg & all(indB(:,[1 2 4]),2); I4 = isDeg & all(indB(:,[1 2 3]),2);
       elemT{1}(I1,:) = elem(I1,[1 2 3]); elemT{1}(I2,:) = elem(I2,[2 4 1]);
       elemT{1}(I3,:) = elem(I3,[3 1 4]); elemT{1}(I4,:) = elem(I4,[4 3 2]);
-      %
       elemT{2}(sum(elemT{2},2)==0,:) = [];
       elem = cell2mat(elemT);
+      %
       [nodes, elem] = m.removeNodes(nodes, elem);
       m = Mesh(nodes, elem);
+      %
+      n2N = m.topology.getNodePatch(0);
+      I = ~m.isBoundaryNode();
+      for k = 1:0
+        zNN = [0 0; m.nodes];
+        xij = reshape(zNN(n2N+1,:),size(nodes,1),[],2);
+        nodes = permute(sum(xij,2),[1 3 2])./sum(n2N>0,2);
+        m.nodes(I,:) = nodes(I,:);
+      end
+    end
+    function [nodes, elem] = removeNodes(nodes, elem)
+      unode = unique(elem);
+      nN = size(nodes,1); nNNew = numel(unode);
+      nodes = nodes(unode,:);
+      M = zeros(nN,1); M(unode) = (1:nNNew)';
+      elem = M(elem);
+    end
+  end
+  methods(Static = true)
+    function R = getTopology(nodes, elem, dimP)
+      switch size(elem, 2)
+        case 2
+          R = MeshTopologyInt(elem);
+        case 3
+          elem = MeshTopologyTri.renumber(nodes, elem);
+          R = MeshTopologyTri(elem);
+        case 4
+          if dimP == 2
+%            R = MeshTopologyQuad(elem);
+            R = MeshTopologyQuadAdapt(elem);
+          else
+            elem = MeshTopologyTet.renumber(nodes, elem);
+            R = MeshTopologyTet(elem);
+          end
+        case 8
+          R = MeshTopologyHex(elem);
+      end
+    end
+    function R = getShapeElement(N, dimP)
+      switch N
+        case 2
+          R = PpL(1,1);
+        case 3
+          R = PpL(2,1);
+        case 4
+          if dimP == 2
+            R = QpL(2,1);
+          else
+            R = PpL(3,1);
+          end
+        case 8
+          R = QpL(3,1);
+      end
     end
   end
 end

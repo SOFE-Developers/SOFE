@@ -1,0 +1,26 @@
+classdef FcGrad < Functional % ( F, grad(v) )
+  methods % constructor
+    function obj = FcGrad(coeff, fes, varargin) % [loc]
+      obj = obj@Functional(coeff, fes, 0, varargin{:});
+    end
+  end
+  methods
+    function R = assembleOp(obj, k)
+      [points, weights] = obj.fes.getQuadData(obj.codim); % nPx1     
+      if isnumeric(obj.data)
+        R = obj.fes.evalDoFVector(obj.data, [], obj.codim, 0, {k}); % nExnPxnC
+      else
+        try, S = obj.observers{1}.evalState(k); catch, S = []; end
+        R = obj.fes.evalFunction(obj.data, [], obj.codim, S, {k}); % nExnPxnC
+      end
+      if ~isempty(points)
+        basis = obj.fes.evalGlobalBasis([], obj.codim, 1, {k}); % nExnBxnPx1xnD
+        [~,~,jac] = obj.fes.evalTrafoInfo([], obj.codim, {k}); % nExnP
+        dX = bsxfun(@times, abs(jac), weights'); % nExnP
+        R = sum(bsxfun(@times, permute(R, [1 4 2 3]), ...
+                               permute(basis,[1 2 3 5 4])), 4); % nExnBxnP
+        R = sum(bsxfun(@times, R, permute(dX, [1 3 2])), 3); % nExnB
+      end
+    end
+  end
+end

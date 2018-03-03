@@ -26,6 +26,7 @@ classdef Mesh_D
       % dimP  ... 1x1, space dimension of reference element
       %
     end
+    % evaluation reference map
     function evalReferenceMap()
       % Evaluates function values and first order derivatives of family of 
       % maps from the reference entity in parameter space onto the
@@ -37,7 +38,7 @@ classdef Mesh_D
       % x ... nPxnD, coordinates in parameter space OR
       % x ... {nPxnD, nP}, pairs of coordinates in parameter space and hosting element
       % order  ... 0/1, derivative flag
-      % I      ... nEx1, logical vector selecting a subset of entities
+      % I      ... nEx1, logical vector selecting subset of entities
       % R      ... nExnPxnW[xnD], reference map for all points & (sub)entities
       %
     end
@@ -50,15 +51,15 @@ classdef Mesh_D
       %
       % x ... nPxnD, coordinates in parameter space OR
       % x ... {nPxnD, nP}, pairs of coordinates in parameter space and hosting element
-      % I      ... nEx1, logical vector selecting a subset of entities
+      % I      ... nEx1, logical vector selecting subset of entities
       % R      ... nExnPxnWxnD, gradient of reference map for all points & (sub)entities
       % invR   ... nExnPxnW[xnD], inverse of gradient
       % jacR   ... nExnPxnW[xnD], determinant of gradient
       %
     end
     function evalInversReferenceMap()
-      % Finds hosting cell K and inverse reference map related to K for list of
-      % global points in physical space.
+      % Finds hosting cell K and evaluates inverse reference map related to K 
+      % for all global points in physical space contained in list.
       %
       % Call:
       % R = m.evalInversReferenceMap(x)
@@ -70,19 +71,74 @@ classdef Mesh_D
       %
     end
     function evalFunction()
+      % Evaluates (nonlinear) function in local points.
+      %
+      % Call:
+      % R = m.evalFunction(F, x, S[, I])
+      %
+      % F = F(x[,u,du]) ... function handle
+      % x    ... nPxnD, local coordinates
+      % S    ... [] OR struct('U','dU') WITH
+      % S.U  ... cell(mxn){nExnPxnC}, evaluated state
+      % S.dU ... cell(mxn){nExnPxnCxnD}, gradient of evaluated state
+      % I    ... nEx1, logical vector selecting subset of entities
+      % R    ... nExnPxnCxnD, array function values
+      %
     end
     function integrate()
+      % Integrates function on (sub)mesh.
+      %
+      % Call:
+      % R = m.integrate(F, quadRule[, I])
+      %
+      % F = F(x) ... function handle
+      % quadRule ... QuadRule, quadrature rule class
+      % I    ... nEx1, logical vector selecting subset of entities
+      % R    ... 1x1, value of integral
+      %
     end
-    %
+    % refinement
     function uniformRefine()
+      % Refines all cells uniformly in 2^nD subcells (red refinement)
+      %
+      % Call:
+      % m.uniformRefine([N])
+      %
+      % N ... 1x1, number of refinements, default N = 1
+      %
     end
     function uniformRefineFast()
+      % Refines all cells uniformly in 2^nD subcells (red refinement)
+      % using fast update of connectivity structures
+      %
+      % Call:
+      % m.uniformRefineFast([N])
+      %
+      % N ... 1x1, number of refinements, default N = 1
+      %
     end
     function adaptiveRefine()
+      % Refines all cells in given subdomain adaptively by bisection
+      %
+      % Call:
+      % m.adaptiveRefine(loc[,N])
+      %
+      % loc ... function handle, location of cells to be refined
+      % N   ... 1x1, number of refinements, default N = 1
+      %
     end
     function coarsen()
+      % Coarsens all cells in given subdomain that previously have been refined
+      % adaptively.
+      %
+      % Call:
+      % m.coarsen(loc[,N])
+      %
+      % loc ... function handle, location of cells to be refined
+      % N   ... 1x1, number of refinements, default N = 1
+      %
     end
-    %
+    % mesh shape manipulation
     function rotate()
     end
     function scale()
@@ -91,7 +147,7 @@ classdef Mesh_D
     end
     function applyLinearMap()
     end
-    %
+    % mesh information
     function getMeasure()
     end
     function getCenter()
@@ -118,186 +174,13 @@ classdef Mesh_D
     end
     function getBoundaryNode()
     end
-    %
-    function getLocation()
-    end
-    function showMeshFunction()
-    end
-    %
+    % mesh visualization
     function show()
     end
-    %
+    % mesh generation
     function getMesh2D()
     end
     function transformTri2Quad()
-    end
-    function getTopology()
-    end
-    function getShapeElement()
-    end
-  end
-  methods(Static=true) % tests
-    function testAll()
-      fprintf('##########################\n');
-      fprintf('Start test suite ''Mesh'':\n');
-      fprintf('##########################\n');
-      Mesh_D.Mesh_T();
-      Mesh_D.evalReferenceMap_T();
-      Mesh_D.evalTrafoInfo_T();
-      fprintf('################################\n');
-      fprintf('Test suite ''Mesh'' successful!\n');
-      fprintf('################################\n');
-    end
-    function Mesh_T(varargin)
-      % 1) 1D
-      m = Mesh(linspace(0,1,10)', [(1:9)' (2:10)']);
-      if ~isempty(varargin) ,m.show(); pause(); end
-      %
-      curve = @(x)[sin(pi*x) cos(pi*x)];
-      m2 = Mesh(curve(m.nodes), m.topology.getEntity('0'), 1);
-      if ~isempty(varargin) ,m2.show(); pause(); end
-      %
-      curve = @(x)[sin(pi*x) cos(pi*x) x.^2];
-      m2 = Mesh(curve(m.nodes), m.topology.getEntity('0'), 1);
-      if ~isempty(varargin) ,m2.show(); pause(); end
-      % 2) 2D
-      m = Mesh([0 0; 1 0; 0 1; 1 1], [1 2 3; 4 3 2]);
-      if ~isempty(varargin), m.show(); pause(); end
-      %
-      m = RegularMesh([10 20], [0 1; 0 2]);
-      area = @(x)[sin(pi*x(:,1)) cos(pi*x(:,1)) x(:,2)];
-      m = Mesh(area(m.nodes), m.topology.getEntity('0'), 2);
-      if ~isempty(varargin), m.show(); pause(); end
-      % 3) 3D
-      m = Mesh([-1 0 0; 1 0 0; 0 1 0; 0 0.5 1], [1 2 3 4]);
-      if ~isempty(varargin) ,m.show(); pause(); end
-      fprintf('Test ''Mesh.Mesh()'' CHECK\n');
-    end
-    function evalReferenceMap_T(varargin)
-      dx = 1e-8;
-      % 1) 1D-->1D/2D/3D
-      x = 0.5*rand(5,1);
-      m = RegularMesh(10, [0 1]);
-      R = m.evalReferenceMap(x,0);
-      assert(norm(size(R)-[10,5])==0);
-      dR = m.evalReferenceMap(x,1);
-      assert(norm(size(dR)-[10,5])==0);
-      small = (m.evalReferenceMap(x+dx,0) - R)/dx - dR;
-      assert(norm(small(:))<1e-6);
-      %
-      curve = @(x)[sin(pi*x) cos(pi*x)];
-      m2 = Mesh(curve(m.nodes), m.topology.getEntity('0'), 1);
-      R = m2.evalReferenceMap(x,0);
-      assert(norm(size(R)-[10,5,2])==0);
-      dR = m2.evalReferenceMap(x,1);
-      assert(norm(size(dR)-[10,5,2])==0);
-      small = (m2.evalReferenceMap(x+dx,0) - R)/dx - dR;
-      assert(norm(small(:))<1e-6);
-      %
-      curve = @(x)[sin(pi*x) cos(pi*x) x.^2];
-      m3 = Mesh(curve(m.nodes), m.topology.getEntity('0'), 1);
-      R = m3.evalReferenceMap(x,0);
-      assert(norm(size(R)-[10,5,3])==0);
-      dR = m3.evalReferenceMap(x,1);
-      assert(norm(size(dR)-[10,5,3])==0);
-      small = (m3.evalReferenceMap(x+dx,0) - R)/dx - dR;
-      assert(norm(small(:))<1e-6);
-      % 2) 2D-->2D/3D
-      x = 0.5*rand(5,2);
-      m = RegularMesh([10 20], [0 1; 0 2]);
-      R = m.evalReferenceMap(x,0);
-      assert(norm(size(R)-[200,5,2])==0);
-      dR = m.evalReferenceMap(x,1);
-      assert(norm(size(dR)-[200,5,2,2])==0);
-      small = (m.evalReferenceMap(x+dx*[1 0],0) - R)/dx - dR(:,:,:,1);
-      assert(norm(small(:))<1e-6);
-      small = (m.evalReferenceMap(x+dx*[0 1],0) - R)/dx - dR(:,:,:,2);
-      assert(norm(small(:))<1e-6);
-      %
-      area = @(x)[sin(pi*x(:,1)) cos(pi*x(:,1)) x(:,2)];
-      m3 = Mesh(area(m.nodes), m.topology.getEntity('0'), 2);
-      R = m3.evalReferenceMap(x,0);
-      assert(norm(size(R)-[200,5,3])==0);
-      dR = m3.evalReferenceMap(x,1);
-      assert(norm(size(dR)-[200,5,3,2])==0);
-      small = (m3.evalReferenceMap(x+dx*[1 0],0) - R)/dx - dR(:,:,:,1);
-      assert(norm(small(:))<1e-6);
-      small = (m3.evalReferenceMap(x+dx*[0 1],0) - R)/dx - dR(:,:,:,2);
-      assert(norm(small(:))<1e-6);
-      % 3) 3D-->3D
-      x = 0.5*rand(5,3);
-      m = RegularMesh([10 5 2], [0 1; 0 2; 0 3]);
-      R = m.evalReferenceMap(x,0);
-      assert(norm(size(R)-[100,5,3])==0);
-      dR = m.evalReferenceMap(x,1);
-      assert(norm(size(dR)-[100,5,3,3])==0);
-      small = (m.evalReferenceMap(x+dx*[1 0 0],0) - R)/dx - dR(:,:,:,1);
-      assert(norm(small(:))<1e-6);
-      small = (m.evalReferenceMap(x+dx*[0 1 0],0) - R)/dx - dR(:,:,:,2);
-      assert(norm(small(:))<1e-6);
-      small = (m.evalReferenceMap(x+dx*[0 0 1],0) - R)/dx - dR(:,:,:,3);
-      assert(norm(small(:))<1e-6);
-      %
-      fprintf('Test ''Mesh.evalReferenceMap()'' CHECK\n');
-    end
-    function evalTrafoInfo_T(varargin)
-      % 1) 1D-->1D/2D/3D
-      x = 0.5*rand(5,1);
-      m = RegularMesh(10, [0 1]);
-      [R, invR, jacR] = m.evalTrafoInfo(x,1:2:10);
-      assert(norm(size(R)-[5,5])==0);
-      small = R-1./invR;
-      assert(norm(small(:))<1e-14);
-      small = R-jacR;
-      assert(norm(small(:))<1e-14);
-      %
-      curve = @(x)[sin(pi*x) cos(pi*x)];
-      m2 = Mesh(curve(m.nodes), m.topology.getEntity('0'), 1);
-      [R, invR, jacR] = m2.evalTrafoInfo(x,1:2:10);
-      assert(norm(size(R)-[5,5,2])==0);
-      small = permute(R,[1 2 4 3])./sum(R.*R,3)-invR;
-      assert(norm(small(:))<1e-14);
-      sum(R.*R,3).^0.5 - jacR;
-      assert(norm(small(:))<1e-14);
-      %
-      curve = @(x)[sin(pi*x) cos(pi*x) x.^2];
-      m3 = Mesh(curve(m.nodes), m.topology.getEntity('0'), 1);
-      [R, invR, jacR] = m3.evalTrafoInfo(x,1:2:10);
-      assert(norm(size(R)-[5,5,3])==0);
-      small = permute(R,[1 2 4 3])./sum(R.*R,3)-invR;
-      assert(norm(small(:))<1e-14);
-      sum(R.*R,3).^0.5 - jacR;
-      assert(norm(small(:))<1e-14);
-      % 2) 2D-->2D/3D
-      x = 0.5*rand(5,2);
-      m = RegularMesh([10 20], [0 1; 0 2]);
-      [R, invR, jacR] = m.evalTrafoInfo(x);
-      assert(norm(size(R)-[200,5,2,2])==0);
-      small = inv(squeeze(R(1,1,:,:))) - squeeze(invR(1,1,:,:));
-      assert(norm(small(:))<1e-14);
-      small = det(squeeze(R(1,1,:,:))) - squeeze(jacR(1,1,:,:));
-      assert(norm(small(:))<1e-14);
-      %
-      area = @(x)[sin(pi*x(:,1)) cos(pi*x(:,1)) x(:,2)];
-      m3 = Mesh(area(m.nodes), m.topology.getEntity('0'), 2);
-      [R, invR, jacR] = m3.evalTrafoInfo(x);
-      assert(norm(size(R)-[200,5,3,2])==0);
-      r = squeeze(R(1,1,:,:));
-      small = (r*inv(r'*r))' - squeeze(invR(1,1,:,:));
-      assert(norm(small(:))<1e-14);
-      small = det(r'*r).^0.5 - squeeze(jacR(1,1,:,:));
-      assert(norm(small(:))<1e-14);
-      % 3) 3D-->3D
-      x = 0.5*rand(5,3);
-      m = RegularMesh([10 5 2], [0 1; 0 2; 0 3]);
-      [R, invR, jacR] = m.evalTrafoInfo(x);
-      assert(norm(size(R)-[100,5,3,3])==0);
-      small = inv(squeeze(R(1,1,:,:))) - squeeze(invR(1,1,:,:));
-      assert(norm(small(:))<1e-14);
-      small = det(squeeze(R(1,1,:,:))) - squeeze(jacR(1,1,:,:));
-      assert(norm(small(:))<1e-14);
-      %
-      fprintf('Test ''Mesh.evalTrafoInfo()'' CHECK\n');
     end
   end
 end

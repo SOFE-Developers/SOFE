@@ -39,7 +39,7 @@ classdef MeshTopologyQuad < MeshTopology
       fc = obj.getEntity(1);
       el = obj.getEntity(2);
       nN = obj.getNumber(0); nF = obj.getNumber(1); nE = obj.getNumber(2);
-      P = [eye(nN); sparse(repmat((1:nF)',1,2), fc, 0.5); ...
+      P = [speye(nN); sparse(repmat((1:nF)',1,2), fc, 0.5); ...
                     sparse(repmat((1:nE)',1,4), el, 0.25)];
       newIndicesF = nN + (1:nF);
       newIndicesE = nN + nF + (1:nE)';
@@ -53,7 +53,7 @@ classdef MeshTopologyQuad < MeshTopology
       nN = obj.getNumber(0); nF = obj.getNumber(1); nE = obj.getNumber(2);
       fRange = (1:nF)'; eRange = (1:nE)';
       %
-      P = [eye(nN); sparse(repmat((1:nF)',1,2), fc, 0.5); sparse(repmat((1:nE)',1,4), el, 0.25)];
+      P = [speye(nN); sparse(repmat((1:nF)',1,2), fc, 0.5); sparse(repmat((1:nE)',1,4), el, 0.25)];
       %
       newIndicesF = nN + fRange; newIndicesE = nN + nF + eRange;
       el = [el newIndicesF(obj.connectivity{3,2}) newIndicesE];
