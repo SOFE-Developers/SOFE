@@ -493,6 +493,37 @@ classdef Mesh < SOFE
           end
       end
     end
+    function [nodes, elem] = getBeeMesh(h, M, N)
+      X = 0:h:h*M;
+      Y = 0:h*sqrt(3):h*sqrt(3)*N;
+      [Px, Py] = meshgrid(X,Y);
+      Px2 = Px - 0.5*h;
+      Py2 = Py + 0.5*h*sqrt(3);
+      P = [Px(:) Py(:)];
+      P2 = [Px2(:) Py2(:)];
+      elem = cell(4,1);
+      elem{1} =  [];
+      %
+      m = numel(grid{1});
+      n = numel(grid{2});
+      nodes = [kron(ones(1,n),grid{1}); ...
+               kron(grid{2}, ones(1,m))]';
+      elem = [1:m*(n-1)-1; 2:m*(n-1)];
+      elem = [elem; elem+m]';
+      elem(m:m:end,:) = [];
+      if nargin > 1
+        switch varargin{1}
+          case 1
+            elem = [elem(:,[1 2 3]); elem(:,[4 3 2])];
+          case 2
+            mid = permute(sum(reshape(nodes(elem(:),:),[],4,2),2)/4,[1 3 2]);
+            elem = [elem size(nodes,1)+(1:size(elem,1))'];
+            nodes = [nodes; mid];
+            elem = [elem(:,[5 1 2]); elem(:,[5 2 4]); ...
+                    elem(:,[5 4 3]); elem(:,[5 3 1])];
+        end
+      end
+    end
     function m = puzzleMesh(N, A, varargin) % [iTri]
       m = RegularMesh([N N], [0 1;0 1], varargin{:});
       nn = m.nodes; ee = m.topology.getEntity('0');
@@ -577,6 +608,42 @@ classdef Mesh < SOFE
       elem(sdf(center)>0,:) = [];
       [nodes, elem] = m.removeNodes(nodes, elem);
       m = Mesh(nodes, elem);
+    end
+    function m = removeElementsTri2Tri(m, sdf)
+      nodes = m.nodes; elem = m.topology.getEntity('0');
+      assert(size(nodes,2)==2 & size(elem,2)==3);
+      % remove cells
+      m = m.removeElements(m, @(x) sdf(x)>0);
+      % project boundary nodes
+      delta = 2*max(m.getMeasure(1));
+      I = m.isBoundaryNode() & sdf(m.nodes)>(-delta);
+      grad = zeros(sum(I),2); E = 1e-8*eye(2);
+      for k = 1:2
+        for ii = 1:2
+          grad(:,ii) = (sdf(m.nodes(I,:)+ones(sum(I),1)*E(ii,:))-sdf(m.nodes(I,:)))/1e-8;
+        end
+        grad = grad./repmat(sum(grad.^2,2)+1e-12,1,2); % not sdf
+      end
+      m.nodes(I,:) = m.nodes(I,:) - (sdf(m.nodes(I,:))*ones(1,2)).*grad;
+      % remove elem
+      nodes = m.nodes; elem = m.topology.getEntity('0');
+      v1 = sum((nodes(elem(:,2),:) - nodes(elem(:,1),:)).^2,2).^0.5; % nE
+      v2 = sum((nodes(elem(:,3),:) - nodes(elem(:,2),:)).^2,2).^0.5; % nE
+      v3 = sum((nodes(elem(:,3),:) - nodes(elem(:,1),:)).^2,2).^0.5; % nE
+      isDeg = abs(v1+v2-v3)./(v1+v2)<1e-3 | abs(v3+v1-v2)./(v3+v1)<1e-3 | abs(v2+v3-v1)./(v2+v3)<1e-3; % nE
+      elem(isDeg,:) = [];
+      % remove nodes
+      [nodes, elem] = m.removeNodes(nodes, elem);
+      m = Mesh(nodes, elem);
+      %
+      n2N = m.topology.getNodePatch(0);
+      I = ~m.isBoundaryNode();
+      for k = 1:0
+        zNN = [0 0; m.nodes];
+        xij = reshape(zNN(n2N+1,:),size(nodes,1),[],2);
+        nodes = permute(sum(xij,2),[1 3 2])./sum(n2N>0,2);
+        m.nodes(I,:) = nodes(I,:);
+      end
     end
     function m = removeElementsQuad2Tri(m, sdf)
       nodes = m.nodes; elem = m.topology.getEntity('0');
