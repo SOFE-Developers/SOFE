@@ -5,7 +5,7 @@ classdef MeshTopologyQuadAdapt < MeshTopologyQuad
   methods % constructor
     function obj = MeshTopologyQuadAdapt(elem)
       obj = obj@MeshTopologyQuad(elem);
-      obj.faceStat = zeros(obj.getNumber(1),2);;
+      obj.faceStat = zeros(obj.getNumber(1),2);
     end
   end
   methods % refinement
