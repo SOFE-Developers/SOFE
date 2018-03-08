@@ -273,7 +273,7 @@ classdef Mesh < SOFE
     end
   end
   methods % mesh information
-    function R = getMeasure(obj, dim, varargin)
+    function R = getMeasure(obj, dim, varargin) % [I]
       I = ':'; if nargin > 2, I = varargin{1}; end
       ee = obj.topology.getEntity(dim); ee = ee(I,:);
       switch dim

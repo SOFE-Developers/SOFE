@@ -118,7 +118,7 @@ classdef Mesh_D
       %
     end
     function adaptiveRefine()
-      % Refines all cells in given subdomain adaptively by bisection
+      % Adaptively refines all cells in given subdomain
       %
       % Call:
       % m.adaptiveRefine(loc[,N])
@@ -128,7 +128,7 @@ classdef Mesh_D
       %
     end
     function coarsen()
-      % Coarsens all cells in given subdomain that previously have been refined
+      % Coarsens all cells in given subdomain that have been refined
       % adaptively.
       %
       % Call:
@@ -140,47 +140,184 @@ classdef Mesh_D
     end
     % mesh shape manipulation
     function rotate()
+      % Rotates mesh by given angle around origin (2D only)
+      %
+      % Call:
+      % m.rotate(alpha)
+      %
+      % alpha ... 1x1, angle in rad
+      %
     end
     function scale()
+      % Scales mesh by given vector
+      %
+      % Call:
+      % m.scale(a)
+      %
+      % a ... 1x1 or nWx1, acaling vector
+      %
     end
     function translate()
+      % Shifts mesh by given translation vector
+      %
+      % Call:
+      % m.translate(vec)
+      % vec ... nWx1, translation vector
+      %
     end
     function applyLinearMap()
+      % Transforms mesh by linear map A
+      %
+      % Call:
+      % m.applyLinearMap(A)
+      %
+      % A ... nWxnW, linear map
+      %
     end
     % mesh information
     function getMeasure()
+      % Computes measure of (selected) mesh entities of given dimension
+      %
+      % Call:
+      % R = m.getMeasure(dim[, I])
+      %
+      % dim ... 1x1, dimension of entities
+      % I   ... logical or integer index vector
+      % R   ... nEx1, list of measures
+      %
     end
     function getCenter()
+      % Computes centroid of (selected) mesh entities of given dimension
+      %
+      % Call:
+      % R = m.getCenter(dim[, I])
+      %
+      % dim ... 1x1, dimension of entities
+      % I   ... logical or integer index vector
+      % R   ... nExnW, list of coordinates 
+      %
     end
     function getOuterNormal()
+      % Computes outer unit  normal vector for boundary faces in local points
+      % (2D only)
+      %
+      % Call:
+      % R = m.getOuterNormal(points)
+      %
+      % points ... nPx1, local points
+      % R   ... nExnPxnW, list of normal vectors in local points
+      %
     end
     function getOuterNormal2()
+      % Computes outer unit normal vector for boundary faces in langrange points
+      % to given reference element
+      %
+      % Call:
+      % R = m.getOuterNormal2(element)
+      %
+      % element ... Element, reference element
+      % R   ... nDoFxnW, list of normal vectors in local points
+      %                  (NaN if not on boundary)
+      %
     end
     function getDiam()
+      % Returns coordinates of bounding box to mesh
+      %
+      % Call:
+      % R = m.getDiam()
+      %
+      % R   ... 2xnW, max and min for all coordinate directions
+      %
     end
     function findEntity()
+      % Returns if entity lies with at least one vertex in given subdomain
+      %
+      % Call:
+      % R = m.findEntity(dim[, loc])
+      %
+      % dim ... 1x1, dimension of entity
+      % loc ..., function handle, logical discription of subdomain
+      % R   ... nEx1, logical vector
+      %
     end
     function findEntityC()
+      % Returns if entity lies with centroid in given subdomain
+      %
+      % Call:
+      % R = m.findEntityC(dim[, loc])
+      %
+      % dim ... 1x1, dimension of entity
+      % loc ..., function handle, logical discription of subdomain
+      % R   ... nEx1, logical vector
+      %
     end
     function isBoundary()
+      % Returns if facet lies on boundary (AND in given subdomain)
+      %
+      % Call:
+      % R = m.isBoundary([loc])
+      %
+      % loc ..., function handle, logical discription of subdomain
+      % R   ... nEx1, logical vector
+      %
     end
     function getBoundary()
+      % Returns list of facets that lie on boundary (AND in given subdomain)
+      %
+      % Call:
+      % R = m.getBoundary([loc])
+      %
+      % loc ..., function handle, logical discription of subdomain
+      % R   ... nEx2, list of facets
+      %
     end
     function isSurface()
+      % Returns if facet lies on boundary (OF given subdomain)
+      %
+      % Call:
+      % R = m.isSurface([loc])
+      %
+      % loc ..., function handle, logical discription of subdomain
+      % R   ... nEx1, logical vector
+      %
     end
     function getSurface()
+      % Returns list of facets that lie on boundary (OF given subdomain)
+      %
+      % Call:
+      % R = m.getSurface([loc])
+      %
+      % loc ..., function handle, logical discription of subdomain
+      % R   ... nEx2, list of facets
+      %
     end
     function isBoundaryNode()
+      % Returns if node lies on boundary (AND given subdomain)
+      %
+      % Call:
+      % R = m.isBoundaryNode([loc])
+      %
+      % loc ..., function handle, logical discription of subdomain
+      % R   ... nEx1, logical vector
+      %
     end
     function getBoundaryNode()
+      % Returns coordinates of nodes that lie on boundary (AND given subdomain)
+      %
+      % Call:
+      % R = m.getBoundaryNode([loc])
+      %
+      % loc ..., function handle, logical discription of subdomain
+      % R   ... nExnW, list of coordinates
+      %
     end
     % mesh visualization
     function show()
-    end
-    % mesh generation
-    function getMesh2D()
-    end
-    function transformTri2Quad()
+      % Visualizes mesh by means of the corresponding VisualizerMesh class
+      %
+      % Call:
+      % m.show()
+      %
     end
   end
 end
