@@ -76,6 +76,7 @@ classdef SOFE < handle
       end
     end
     function pluggedin()
+      fprintf('Plugins:\n');
       X = path;
       I = strfind(X,[filesep,'plugins',filesep]);
       plugin = '';

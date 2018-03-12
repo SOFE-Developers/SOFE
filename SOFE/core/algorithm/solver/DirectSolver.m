@@ -16,6 +16,7 @@ classdef DirectSolver < Solver
     function R = compute(obj)
       t = tic; obj.output('Begin assemble ...', 1);
       obj.pde.assemble();
+      [freeI, freeJ] = obj.pde.getFreeDoFs();
       fprintf('%d DoFs\n', size(obj.pde.loadVec,1));
       %
       obj.output(['... assembled (',num2str(toc(t)),' sec)'], 1);    
@@ -25,7 +26,6 @@ classdef DirectSolver < Solver
       end
       R = obj.pde.getShift();
       b = obj.pde.loadVec - obj.pde.stiffMat*R;
-      [freeI, freeJ] = obj.pde.getFreeDoFs();
       b = b(freeI);
       A = obj.pde.stiffMat(freeI, freeJ);
       %
