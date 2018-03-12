@@ -502,8 +502,7 @@ classdef Mesh < SOFE
           R = MeshTopologyTri(elem);
         case 4
           if dimP == 2
-%            R = MeshTopologyQuad(elem);
-            R = MeshTopologyQuadAdapt(elem);
+           R = MeshTopologyQuad(elem);
           else
             elem = MeshTopologyTet.renumber(nodes, elem);
             R = MeshTopologyTet(elem);

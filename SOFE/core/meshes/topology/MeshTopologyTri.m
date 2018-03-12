@@ -1,13 +1,9 @@
 classdef MeshTopologyTri < MeshTopology
-  properties
-    nN0
-  end
   methods % constructor
     function obj = MeshTopologyTri(elem)
       obj = obj@MeshTopology(2);
       obj.update(elem);
       obj.isSimplex = 1;
-      obj.nN0 = obj.getNumber(0);
     end
     function update(obj, elem)
       obj.connectivity = cell(obj.dimP+1);
@@ -47,8 +43,6 @@ classdef MeshTopologyTri < MeshTopology
       el = [el newIndices(obj.connectivity{3,2})];
       el = [el(:,[1 4 6]);el(:,[4 2 5]);el(:,[6 5 3]);el(:,[5 6 4])];
       obj.update(el);
-      %
-      obj.nN0 = obj.getNumber(0);
     end
     function R = uniformRefineFast(obj)
       fc = obj.getEntity(1); el = obj.getEntity(2);
@@ -71,80 +65,9 @@ classdef MeshTopologyTri < MeshTopology
       obj.connectivity{obj.dimP+1,1} = el;
       obj.connectivity{2,1} = fc;
       obj.connectivity{3,2} = e2F;
-      obj.connectivity{1,1} = (1:size(P,1))';
+      obj.connectivity{1,1} = (1:size(R,1))';
       obj.connectivity{2,2} = (1:size(fc,1))';
       obj.connectivity{3,3} = (1:size(el,1))';
-      %
-      obj.nN0 = obj.getNumber(0);
-    end
-    function R = adaptiveRefine(obj, idxE)
-      % 1) mark faces
-      e2F = obj.connectivity{3,2};
-      idxF = accumarray(e2F(idxE,2),1,[obj.getNumber(1) 1])>0;
-      % 2) mark base of elements with marked faces until closure
-      while 1
-        marker = idxF(e2F);
-        idxE = (marker(:,1) | marker(:,3)) & ~marker(:,2);
-        if ~any(idxE), break; end
-        idxF(e2F(idxE,2)) = true;
-      end
-      % 3) new node indices
-      nN = obj.getNumber(0);
-      idxN = zeros(size(idxF));
-      nI = sum(idxF);
-      idxN(idxF) = nN + (1:nI)';
-      idxN = idxN(e2F);
-      % 4) new elements (4 cases)
-      elem = obj.getEntity(2);
-      I1 = ~marker(:,1) &  marker(:,2) & ~marker(:,3);
-      I2 =  marker(:,1) &  marker(:,2) & ~marker(:,3);
-      I3 = ~marker(:,1) &  marker(:,2) &  marker(:,3);
-      I4 =  marker(:,1) &  marker(:,2) &  marker(:,3);
-      E = [elem idxN];
-      elem(I1,:) = E(I1,[5 1 2]); elem(I2,:) = E(I2,[4 5 1]);
-      elem(I3,:) = E(I3,[5 1 2]); elem(I4,:) = E(I4,[4 5 1]);
-      newElem = {E(I1,[5 3 1]); ...
-                 E(I2,[4 2 5]); E(I2,[5 3 1]); ...
-                 E(I3,[6 5 3]); E(I3,[6 1 5]); ...
-                 E(I4,[4 2 5]); E(I4,[6 5 3]); E(I4,[6 1 5])};
-      elem = [elem; cell2mat(newElem([4 7 1 2 3 5 6 8]))];
-      % 5) projector
-      faces = obj.getEntity(1);
-      R = [speye(nN); sparse(repmat((1:nI)',1,2), faces(idxF,:), 0.5, nI, nN)];
-      %
-      obj.update(elem);
-    end
-    function R = coarsen(obj, idxE)
-      % 1) mark nodes
-      elem = obj.getEntity(2); % nE
-      nN = obj.getNumber(0);
-      idxN = accumarray(elem(idxE,1),1,[nN 1])>0;
-      % 2) find removable nodes
-      cnt = accumarray(elem(:),idxN(elem(:))); % nN
-      isB = obj.isBoundaryNode(); % nN
-      idxN = (cnt==4 & ~isB) | (cnt==2 & isB);
-      idxN(1:obj.nN0) = false;
-      % 3) mark elements
-      idxE = idxN(elem(:,1));
-      if ~any(idxE), R = 1; return; end
-      % 4) get brother-son pairs
-      f2E = obj.getFace2Elem(); e2F = obj.connectivity{3,2};
-      neigh = f2E(e2F(idxE,1),:);
-      neigh = sort(neigh(all(neigh-find(idxE)>=0,2),:),2,'descend');
-      cnt = accumarray(neigh(:),1);
-      neigh(sum(cnt(neigh)==2,2)==2,:) = []; % remove virtual pairs
-      % 5) projector
-      R = speye(nN);
-      idxN = accumarray(elem(neigh(:,2),1), 1, [nN 1])>0;
-      R(idxN,:) = [];
-      % 6) coarsen
-      elem(neigh(:,2),:) = [elem(neigh(:,2),2), elem(neigh(:,2),3), elem(neigh(:,1),2)];
-      elem(neigh(:,1),:) = [];
-      % 7) renumber node idx
-      shift = cumsum(~idxN);
-      elem = shift(elem);
-      %
-      obj.update(elem);
     end
     function flipFace(obj, I)
       [f2e, type] = obj.getFace2Elem();
@@ -159,7 +82,7 @@ classdef MeshTopologyTri < MeshTopology
   end
   methods(Static = true)
     function R = renumber(node, elem)
-      R = elem; return;
+%       R = elem; return;
       % positive jacobian
       if isempty(elem), R = []; return; end
       v1 = node(elem(:,2),:) - node(elem(:,1),:);

@@ -613,13 +613,17 @@ classdef FESpace < SOFE
     function R = getBoundaryDoFs(obj, varargin) % [loc]
       R = obj.extractDoFs(1, obj.mesh.isBoundary(varargin{:}));
     end
-    function R = getFreeDoFs(obj)
+    function [R,P] = getFreeDoFs(obj)
       if ~isempty(obj.freeDoFs)
         R = obj.freeDoFs;
       else
         R = ~obj.getBoundaryDoFs(obj.fixB);
         obj.freeDoFs = R;
       end
+    end
+    function R = getProjector(obj)
+      R = obj.mesh.topology.getProjector();
+      if ~isempty(R), assert(obj.element.order==1, 'TODO: higher order projector'); end
     end
   end
   methods % interpolation.

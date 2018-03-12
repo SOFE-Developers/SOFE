@@ -80,9 +80,12 @@ classdef MeshTopology < SOFE
         R(R(:,1)==0,:) = [];
       end
     end
+    function R = getProjector(obj) %#ok<*MANU>
+      R = [];
+    end
   end
   methods
-    function R = uniformRefineFast(obj)
+    function R = uniformRefineFast(obj, I) %#ok<*INUSD>
       warning('uniformRefineFast() not yet implemented!');
       R = 1;
     end
