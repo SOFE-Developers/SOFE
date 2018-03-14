@@ -34,6 +34,7 @@ classdef Operator < SOFE
       end
       try
         obj.matrix0 = obj.assembleRef();
+      catch
       end
     end
     function notify(obj, varargin) % [time]
@@ -125,7 +126,7 @@ classdef Operator < SOFE
       nE = size(basisI, 1); nBI = size(basisI, 2); nBJ = size(basisJ,2); nP = size(basisI,3);
       try
         tprod(1,1,1,1); error('err');
-        basisI = bsxfun(@times, basisI, permute(dX,[1 3 2]));
+        basisI = bsxfun(@times, basisI, permute(dX,[1 3 2])); %#ok<UNRCH>
         R = tprod(reshape(basisI,nE,nBI,[]), ...
                   reshape(basisJ,nE,nBJ,[]), [1 2 -1], [1 3 -1]);
       catch
@@ -140,7 +141,7 @@ classdef Operator < SOFE
     function R = apply(obj, x)
       R = obj.matrix*x; return
       % assemble on the fly
-      dm = obj.fesTrial.getDoFMap(0);
+      dm = obj.fesTrial.getDoFMap(0); %#ok<UNRCH>
       R = accumarray(dm(:),reshape(obj.matrix0*x(dm),[],1));
     end
   end
