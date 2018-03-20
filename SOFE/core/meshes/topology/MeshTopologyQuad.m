@@ -65,7 +65,7 @@ classdef MeshTopologyQuad < MeshTopology
              [2*(nF+nE)+eRange, nF*oo(:,2)+e2F(:,2), nF*~oo(:,3)+e2F(:,3), (2*nF+nE)+eRange]; ...
              [(2*nF+3*nE)+eRange, nF*~oo(:,2)+e2F(:,2), (2*nF+nE)+eRange, nF*~oo(:,4)+e2F(:,4)]];
       %
-      obj.connectivity{obj.dimP+1,1} = el;
+      obj.connectivity{3,1} = el;
       obj.connectivity{2,1} = fc;
       obj.connectivity{3,2} = e2F;
       obj.connectivity{1,1} = (1:size(P,1))';
