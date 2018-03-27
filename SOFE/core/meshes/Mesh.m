@@ -230,28 +230,6 @@ classdef Mesh < SOFE
       fprintf(' DONE\n');
       obj.notifyObservers();
     end
-    function adaptiveRefine(obj, loc, varargin) % [N]
-      if ~isempty(varargin), N = varargin{1}; else, N = 1; end
-      fprintf('Adaptive refinement /');
-      for i = 1:N
-        if ~isreal(loc), I = obj.findEntity('0', loc); else, I = loc; end
-        obj.nodes = obj.topology.adaptiveRefine(I)*obj.nodes;
-        fprintf([num2str(i) '/']);
-      end
-      fprintf(' DONE\n');
-      obj.notifyObservers();
-    end
-    function coarsen(obj, loc, varargin) % [N]
-      if ~isempty(varargin), N = varargin{1}; else, N = 1; end
-      fprintf('Coarsening /');
-      for i = 1:N
-        if ~isreal(loc), I = obj.findEntity('0', loc); else, I = loc; end
-        obj.nodes = obj.topology.coarsen(I)*obj.nodes;
-        fprintf([num2str(i) '/']);
-      end
-      fprintf(' DONE\n');
-      obj.notifyObservers();
-    end
   end
   methods % mesh operations
     function rotate(obj, alpha)
