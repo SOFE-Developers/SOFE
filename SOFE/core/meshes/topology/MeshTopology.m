@@ -42,11 +42,16 @@ classdef MeshTopology < SOFE
       if isempty(obj.connectivity{obj.dimP,obj.dimP+1})        
         nE = obj.getNumber('0'); nF = obj.getNumber('1');
         orient = 0.5*(3-obj.getNormalOrientation());
-        obj.connectivity{obj.dimP,obj.dimP+1}{1} = full(sparse(obj.getElem2Face(), orient, repmat((1:nE)',1,size(orient,2)),nF,2));
-        obj.connectivity{obj.dimP,obj.dimP+1}{2} = full(sparse(obj.getElem2Face(), orient, ones(nE,1)*(1:size(orient,2)),nF,2));
+        e2F = obj.getElem2Face();
+        obj.connectivity{obj.dimP,obj.dimP+1}{1} = accumarray([e2F(:), orient(:)], repmat((1:nE)',size(orient,2),1),[nF 2]);
+        if nargout>1
+          obj.connectivity{obj.dimP,obj.dimP+1}{2} = accumarray([e2F(:), orient(:)], kron((1:size(orient,2))',ones(nE,1)),[nF 2]);
+        end
       end
       R = obj.connectivity{obj.dimP,obj.dimP+1}{1};
-      type = obj.connectivity{obj.dimP,obj.dimP+1}{2};
+      if nargout>1
+        type = obj.connectivity{obj.dimP,obj.dimP+1}{2};
+      end
     end
     function R = getNodePatch(obj, dim)
       if dim>0

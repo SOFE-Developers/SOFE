@@ -17,11 +17,11 @@ classdef EulerImplicit < Integrator
       end
       obj.history{1} = cell2mat(obj.history{1});
       %
-      obj.M0.assemble();
       for k = 1:obj.nT-1
         tt = tic;
         obj.A.setState(obj.timeline.nodes(k+1), obj.history{k});
-        obj.A.assemble();
+        obj.M0.setState(obj.timeline.nodes(k+1), obj.history{k});
+        obj.A.assemble(); obj.M0.assemble();
         obj.solve(k);
         fprintf('timestep: %d / %d: %f sec\n', k, obj.nT-1, toc(tt));
       end
