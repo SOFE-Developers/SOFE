@@ -123,7 +123,7 @@ classdef Pp < Element
               B(offset+1,:,1,1) = d2N{1}{i+1}.*N{2}{deg-i+1};
               B(offset+1,:,2,2) = N{1}{i+1}.*d2N{2}{deg-i+1};
               B(offset+1,:,1,2) = dN{1}{i+1}.*dN{2}{deg-i+1};
-              B(offset+1,:,2,1) = B(offset+1,1,2);
+              B(offset+1,:,2,1) = B(offset+1,:,1,2);
               offset = offset + 1;
             end
           end

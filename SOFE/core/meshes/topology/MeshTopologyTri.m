@@ -108,6 +108,7 @@ classdef MeshTopologyTri < MeshTopology
       R{1} = GaussTri(quadOrder);
     end
     function R = upliftPoints(points, fLoc, orient)
+      % complies standard orientation
       zz = zeros(size(points));
       if orient<0
         points = 1-points;
@@ -119,6 +120,21 @@ classdef MeshTopologyTri < MeshTopology
           R = [1-points, points];
         case 3
           R = [zz, points];
+      end
+    end
+    function R = upliftPointsN(points, fLoc, orient)
+      % complies normal orientation
+      zz = zeros(size(points));
+      if orient<0
+        points = 1-points;
+      end
+      switch fLoc
+        case 1
+          R = [points, zz];
+        case 2
+          R = [1-points, points];
+        case 3
+          R = [zz, 1 - points];
       end
     end
   end

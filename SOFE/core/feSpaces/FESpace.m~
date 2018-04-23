@@ -28,12 +28,11 @@ classdef FESpace < SOFE
 %     evalGlobalBasis / evalDoFVector
 %     getDoFMap / getNDoF / extractDoFs / getBoundaryDoFs / getFreeDoFs
 %     getL2Projection / getInterpolation
-%     evalJumpResidual
 %
 %     See also meshes/Mesh, elements/Element, quadrature/QuadRule.
 %
 % SOFE Toolbox.
-% Copyright 2018, Dr. Lars Ludwig
+% Copyright 2017, Dr. Lars Ludwig
   properties
     mesh 
     element
@@ -369,13 +368,11 @@ classdef FESpace < SOFE
               R = sum(bsxfun(@times, permute(basis,    [1 2 3 4 6 5]), ...
                                      permute(trafo{2}, [1 2 3 6 5 4])), 6); % nExnBxnPxnCxnD
             case 2
-              R = permute(basis, [1 2 3 6 4 5]); % % nExnBxnPxnD2xnCxnD1
-              R = sum(bsxfun(@times, permute(R,    [1 2 3 4 5 7 6]), ...
-                                     permute(trafo{2}, [1 2 3 7 6 5 4])), 7); % nExnBxnPxnD2xnCxnD1
-              R = permute(R, [1 2 3 6 5 4]); % % nExnBxnPxnD1xnCxnD2
-              R = sum(bsxfun(@times, permute(R,    [1 2 3 4 5 7 6]), ...
-                                     permute(trafo{2}, [1 2 3 7 6 5 4])), 7); % nExnBxnPxnD2xnCxnD1
-              R = permute(R, [1 2 3 5 4 6]); % % nExnBxnPxxnCxnD1xnD2
+              error('TODO');
+              % nExnBxnPxnCxnDxnD
+              basis = permuts(basis, [1 2 3 6 5 4]); % % nExnBxnPxnD2xnCxnD1
+              R = sum(bsxfun(@times, permute(basis,    [1 2 3 4 4 6 5]), ...
+                                     permute(trafo{2}, [1 2 3 6 5 4])), 6); % nExnBxnPxnCxnD
           end
         case 'HDiv'
           switch order
@@ -512,7 +509,7 @@ classdef FESpace < SOFE
         dMap = abs(obj.getDoFMap(codim, varargin{:})).'; % nExnB
         if isempty(dMap), R = []; return; end
         R = zeros(size(dMap)); I = dMap > 0; R(I) = U(dMap(I)); % nExnB
-        R = sum(bsxfun(@times,permute(R,[1 3:6 2]),permute(basis,[1 3:6 2])),6); % nExnPxnCx[nD]
+        R = sum(bsxfun(@times,permute(R,[1 3:5 2]),permute(basis,[1 3:5 2])),5); % nExnPxnCx[nD]
       end
     end
   end
@@ -701,7 +698,7 @@ classdef FESpace < SOFE
       nOrient = obj.mesh.topology.getNormalOrientation();
       e2F = obj.mesh.topology.getElem2Face(); % nEx3
       if order<1, nD = 1; else, nD = obj.mesh.topology.dimP; end
-      R = zeros(obj.mesh.topology.getNumber('1'), 2, numel(points), obj.element.getNC(), nD); % nFx(L/R)xnPxnCxnD
+      R = zeros(obj.mesh.topology.getNumber('1'), 2, numel(points), obj.element.getNC(), nD); % nFx2xnPxnCxnD
       for fLoc = 1:3
         for no = -1:2:1
           P = obj.mesh.topology.upliftPointsN(points, fLoc, no);
@@ -710,7 +707,7 @@ classdef FESpace < SOFE
           R(e2F(I,fLoc),(3-no)/2,:,:,:) = tmp(I,:,:,:);
         end
       end
-      R = permute(R, [1 3 4 5 2]); % nFxnPxnCxnDx(L/R)
+      R = permute(R, [1 3 4 5 2]); % nFxnPxnCxnDx2
     end
   end
 end

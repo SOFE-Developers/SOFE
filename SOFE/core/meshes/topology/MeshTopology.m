@@ -38,19 +38,17 @@ classdef MeshTopology < SOFE
         R = R(varargin{1},:);
       end
     end
-    function [R, type] = getFace2Elem(obj)
+    function [R, fType] = getFace2Elem(obj)
       if isempty(obj.connectivity{obj.dimP,obj.dimP+1})        
         nE = obj.getNumber('0'); nF = obj.getNumber('1');
         orient = 0.5*(3-obj.getNormalOrientation());
         e2F = obj.getElem2Face();
         obj.connectivity{obj.dimP,obj.dimP+1}{1} = accumarray([e2F(:), orient(:)], repmat((1:nE)',size(orient,2),1),[nF 2]);
-        if nargout>1
-          obj.connectivity{obj.dimP,obj.dimP+1}{2} = accumarray([e2F(:), orient(:)], kron((1:size(orient,2))',ones(nE,1)),[nF 2]);
-        end
+        obj.connectivity{obj.dimP,obj.dimP+1}{2} = accumarray([e2F(:), orient(:)], kron((1:size(orient,2))',ones(nE,1)),[nF 2]);
       end
       R = obj.connectivity{obj.dimP,obj.dimP+1}{1};
       if nargout>1
-        type = obj.connectivity{obj.dimP,obj.dimP+1}{2};
+        fType = obj.connectivity{obj.dimP,obj.dimP+1}{2};
       end
     end
     function R = getNodePatch(obj, dim)

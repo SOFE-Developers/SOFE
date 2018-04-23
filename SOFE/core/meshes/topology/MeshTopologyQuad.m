@@ -87,6 +87,7 @@ classdef MeshTopologyQuad < MeshTopology
       R = [1 1]/2;
     end
     function R = upliftPoints(points, fLoc, orient)
+      % complies standard orientation
       zz = zeros(size(points)); oo = ones(size(points));
       if orient<0
         points = 1-points;
@@ -98,6 +99,23 @@ classdef MeshTopologyQuad < MeshTopology
           R = [points, oo];
         case 3
           R = [zz, points];
+        case 4
+          R = [oo, points];
+      end
+    end
+    function R = upliftPointsN(points, fLoc, orient)
+      % complies normal orientation
+      zz = zeros(size(points)); oo = ones(size(points));
+      if orient<0
+        points = 1-points;
+      end
+      switch fLoc
+        case 1
+          R = [points, zz];
+        case 2
+          R = [1 - points, oo];
+        case 3
+          R = [zz, 1 - points];
         case 4
           R = [oo, points];
       end

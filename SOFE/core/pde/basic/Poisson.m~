@@ -16,6 +16,9 @@ classdef Poisson < PDE
       lapU = obj.fesTrial{1}.evalDoFVector(U, points, [], 2); % nExnPxnCx(nD*nD)
       iDiag = 1:(size(lapU,4)/2+1):size(lapU,4);
       R = f + sum(lapU(:,:,:,iDiag),4); % nExnPxnC
+      %
+      max(abs(lapU(:)))
+      max(abs(R(:)))
     end
   end
 end
