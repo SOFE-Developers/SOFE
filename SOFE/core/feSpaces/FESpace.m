@@ -694,7 +694,7 @@ classdef FESpace < SOFE
       end
     end
   end
-  methods % DOFVector algebra
+  methods % DOFVector operations
     function R = evalJumpResidual(obj, U, points, order)
       assert(obj.mesh.dimW==2, '!Dim of world equals 2 assumed!');
       %
@@ -711,6 +711,26 @@ classdef FESpace < SOFE
         end
       end
       R = permute(R, [1 3 4 5 2]); % nFxnPxnCxnDx(L/R)
+    end
+    function R = getRecoveredGradient(obj, U)
+      nD = obj.element.dimension;
+      nB = obj.element.nB(obj.element.dimension);
+      points = linspace(0,1,obj.element.order+1)';
+      P = points;
+      for i = 2:nD
+        P = [kron(ones(length(points),1),P), kron(points,ones(length(points)^(i-1),1))];
+      end
+      if obj.element.isSimplex
+        P = P((sum(P,2)<=1),:);
+      end
+      lhs = reshape(obj.element.evalBasis(P,0), nB, []).'; % (nP*nC)xnB
+      dU = obj.evalDoFVector(U, P, [], 1);
+      dMap = obj.getDoFMap(0);
+      R = zeros(obj.getNDoF,nD);
+      for d = 1:nD
+        rhs = sign(dMap).*(lhs\reshape(dU(:,:,1,d).', nB, [])); % nBxnE
+        R(:,d) = accumarray(dMap(:),rhs(:))./accumarray(dMap(:),1); 
+      end
     end
   end
 end
