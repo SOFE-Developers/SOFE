@@ -704,7 +704,7 @@ classdef FESpace < SOFE
       R = zeros(obj.mesh.topology.getNumber('1'), 2, numel(points), obj.element.getNC(), nD); % nFx(L/R)xnPxnCxnD
       for fLoc = 1:3
         for no = -1:2:1
-          P = obj.mesh.topology.upliftPointsN(points, fLoc, no);
+          P = obj.mesh.topology.upliftPointsN(reshape(points,[],1), fLoc, no);
           tmp = obj.evalDoFVector(U, P, [], order); % nExnPxnCxnD
           I = nOrient(:,fLoc)==no;
           R(e2F(I,fLoc),(3-no)/2,:,:,:) = tmp(I,:,:,:);
