@@ -1,5 +1,5 @@
 % PARAMETERS
-dim = 2; N = 10; order = 1; isTri = 1;
+dim = 2; N = 1000; order = 1; isTri = 1;
 % MESH
 m = RegularMesh(N*ones(dim,1), repmat([0 1],dim,1), isTri);
 % FESPACE
@@ -10,7 +10,8 @@ data = struct('a',1,'f', @(x)sin(16*pi*prod(x,2)));
 p = Poisson(data, fes);
 p.createSys = 1;
 % ALGORITHM
-q = IterativeSolver(p, 'bicgstab', 'ilu');
+%q = IterativeSolver(p, 'bicgstab', 'ilu');
+q = DirectSolver(p);
 %q = DirectSolver(p);
 q.compute();
 % VISUALIZE
