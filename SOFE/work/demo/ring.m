@@ -1,5 +1,5 @@
 % PARAMETERS
-order = 12;
+order = 7;
 % MESH
 load([SOFE.getCorePath '/meshes/library/nodesRing.dat']);
 load([SOFE.getCorePath '/meshes/library/elemRing.dat']);

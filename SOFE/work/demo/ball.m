@@ -2,7 +2,7 @@
 load([SOFE.getCorePath '/meshes/library/nodesBall.dat']);
 load([SOFE.getCorePath '/meshes/library/elemBall.dat']);
 % FESPACE
-fes = FESpace(Mesh(nodesBall, elemBall), PpL(3,3), @(x)x(:,1)<Inf);
+fes = FESpace(Mesh(nodesBall, elemBall), PpL(3,2), @(x)x(:,1)<Inf);
 %% PDE
 p = Poisson(struct('a',1,'f',1), fes);
 % ALGORITHM

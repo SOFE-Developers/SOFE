@@ -78,7 +78,8 @@ classdef Functional < SOFE
           if k>2
             fprintf(repmat('\b',1,length(s)));
           end
-          s = sprintf('progress assembly RHS: %d / %d', k, nBlock);fprintf(s);          
+          s = sprintf(['progress assembly ', class(obj), ': %d / %d'], k, nBlock);
+          fprintf(s);
         end
       end
       if k>1, fprintf('\n'); end

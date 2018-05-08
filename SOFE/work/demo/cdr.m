@@ -1,7 +1,7 @@
 % PARAMETERS
 dim = 3; N = 30; order = 1; isTri = 0;
 % DATA
-data = struct('a',0.1,'b',1,'c',1,'f',1);
+data = struct('a',0.1,'b',-1,'c',1,'f',1);
 % MESH
 m = RegularMesh(N*ones(dim,1), repmat([0 1],dim,1), isTri);
 % FESPACE

@@ -506,4 +506,61 @@ classdef Mesh < SOFE
       end
     end
   end
+  methods(Static=true)
+    function list()
+      clc
+      fprintf('Class Mesh < SOFE \n');
+      fprintf('----------------- \n');
+      fprintf('\n');
+      fprintf('Properties: \n');
+      fprintf('----------- \n');
+      fprintf('element \n');
+      fprintf('topology \n');
+      fprintf('nodes \n');
+      fprintf('dimW \n');
+      fprintf('globalSearcher \n');
+      fprintf('\n');
+      fprintf('Methods: \n');
+      fprintf('-------- \n');
+      fprintf('obj = Mesh(nodes, elem, varargin) [dimP] \n');
+      fprintf('R = getGlobalSearcher(obj) \n');
+      fprintf('\n');
+      fprintf('R = evalReferenceMap(obj, points, order, varargin) [I] \n');
+      fprintf('[R, invR, jacR] = evalTrafoInfo(obj, points, varargin) [I] \n');
+      fprintf('R = evalInversReferenceMap(obj, points)');
+      fprintf('\n');
+      fprintf('R = evalFunction(obj, F, points, S, varargin) [I] \n');
+      fprintf('[R, RVec] = integrate(obj, func, quadRule, varargin) [I] \n');
+      fprintf('\n');
+      fprintf('uniformRefine(obj, varargin) [N] \n');
+      fprintf('uniformRefineFast(obj, varargin) [N] \n');
+      fprintf('\n');
+      fprintf('rotate(obj, alpha) \n');
+      fprintf('scale(obj, a) \n');
+      fprintf('translate(obj, vec) \n');
+      fprintf('applyLinearMap(obj, A) \n');
+      fprintf('\n');
+      fprintf('R = getMeasure(obj, dim, varargin) [I] \n');
+      fprintf('R = getCenter(obj, dim, varargin) [I] \n');
+      fprintf('R = getOuterNormal(obj, points) \n');
+      fprintf('R = getOuterNormal2(obj, element) \n');
+      fprintf('R = getDiam(obj) \n');
+      fprintf('\n');
+      fprintf('R = findEntity(obj, dim, varargin) [loc] \n');
+      fprintf('R = findEntityC(obj, dim, varargin) [loc] \n');
+      fprintf('R = isBoundary(obj, varargin) [loc] \n');
+      fprintf('R = getBoundary(obj, varargin) [loc] \n');
+      fprintf('R = isSurface(obj, varargin) [loc] \n');
+      fprintf('R = getSurface(obj, varargin) [loc] \n');
+      fprintf('R = isBoundaryNode(obj, varargin) [loc] \n');
+      fprintf('R = getBoundaryNode(obj, varargin) [loc] \n');
+      fprintf('\n');
+      fprintf('show(obj, varargin) [type] \n');
+      fprintf('\n');
+      fprintf('[nodes, elem] = getTensorProductMesh(grid, varargin) [isTri] \n');
+      fprintf('R = getTopology(nodes, elem, dimP) \n');
+      fprintf('R = getShapeElement(N, dimP) \n');
+      fprintf('');
+    end
+  end
 end
