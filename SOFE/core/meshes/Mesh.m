@@ -351,7 +351,8 @@ classdef Mesh < SOFE
       R = obj.topology.getEntity('1', obj.isBoundary(varargin{:}));
     end
     function R = isSurface(obj, varargin) % [loc]
-      if nargin < 2, R = obj.isBoundary(); return; end
+      if isempty(varargin), R = obj.isBoundary(); return; end
+      if strcmp(varargin{1},':'), varargin{1} = @(x)x(:,1)<Inf; end
       goodElem = obj.findEntity('0', varargin{:});
       E2F = obj.topology.getElem2Face();
       E2F = E2F(goodElem,:);
