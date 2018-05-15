@@ -6,6 +6,7 @@ classdef Operator < SOFE
     matrix
     matrix0
     loc, idx
+    state
   end
   methods % constructor
     function obj = Operator(data, fesTrial, varargin) % [fesTest loc]
@@ -37,12 +38,14 @@ classdef Operator < SOFE
       catch
       end
     end
-    function notify(obj, varargin) % [time]
+    function notify(obj, varargin) % [time, state, dState]
       if nargin < 2
         obj.matrix = [];
         obj.idx = ':';
         obj.notifyObservers();
       else
+        try, obj.state.U =  varargin{2}; end
+        try, obj.state.dU =  varargin{3}; end
         if ~isnumeric(obj.dataCache)
           if nargin(obj.dataCache) == 2 % f(x,t)
             obj.matrix = [];
@@ -117,7 +120,7 @@ classdef Operator < SOFE
         if isnumeric(obj.data)
           coef = obj.fesTrial.evalDoFVector(obj.data, [], obj.codim, 0, {k}); % nExnPx(nD*nD)
         else
-          try S = obj.observers{1}.evalState(k); catch, S = []; end
+          try, S = obj.observers{1}.evalState(k); catch, S = obj.state; end
           coef = obj.fesTrial.evalFunction(obj.data, [], obj.codim, S, {k}); % nExnP
         end
       else

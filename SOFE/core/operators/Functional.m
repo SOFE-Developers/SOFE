@@ -5,6 +5,7 @@ classdef Functional < SOFE
     fes
     matrix
     loc, idx
+    state
   end
   methods % constructor
     function obj = Functional(data, fes, codim, varargin) % [loc]
@@ -29,6 +30,8 @@ classdef Functional < SOFE
         obj.idx = ':';
         obj.notifyObservers();
       else
+        try, obj.state.U =  varargin{2}; end
+        try, obj.state.dU =  varargin{3}; end
         if ~isnumeric(obj.dataCache)
           if nargin(obj.dataCache) == 2 % f(x,t)
             obj.matrix = [];

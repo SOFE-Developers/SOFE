@@ -10,7 +10,7 @@ classdef FcCurl < Functional % ( F, curl(V) )
       if isnumeric(obj.data)
         R = obj.fes.evalDoFVector(obj.data, [], obj.codim, 0, {k}); % nExnPx(nD*nD)
       else
-        try, S = obj.observers{1}.evalState(k); catch, S = []; end
+        try, S = obj.observers{1}.evalState(k); catch, S = obj.state; end
         R = obj.fes.evalFunction(obj.data, [], obj.codim, S, {k}); % nExnP
       end
       if ~isempty(points)
