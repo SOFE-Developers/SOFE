@@ -69,6 +69,11 @@ classdef FESpace < SOFE
         end
       end
     end
+    function setElement(obj, element)
+      obj.element = element;
+      obj.resetCache();
+      obj.notifyObservers();
+    end
     function resetCache(obj, varargin)
       nBlockMax = max(obj.nBlock);
       obj.cache.refMaps = cell(nBlockMax, 1);
@@ -147,6 +152,7 @@ classdef FESpace < SOFE
       %--------------------------------
       obj.quadRule = quadRule;
       obj.resetCache('Do not reset DoFMaps');
+      obj.notifyObservers();
     end
     function [Rp, Rw] = getQuadData(obj, codim)
       % [Rp, Rw] = getQuadData(obj, codim)
