@@ -104,14 +104,20 @@ classdef Operator < SOFE
         end
       end
       if k>1, fprintf('\n'); end
-      rce = cell2mat(rce);
-      try
-        fsparse(0);
-        obj.matrix = fsparse(rce(:,1), rce(:,2), rce(:,3), [M, N]);
-      catch
+        keyboard
+%      try
+%        fsparse(0);
+%        rce = cell2mat(rce);
+%        obj.matrix = fsparse(rce(:,1), rce(:,2), rce(:,3), [M, N]);
+%      catch
 %           fprintf(['fsparse:' err.message '\n']);
-        obj.matrix = sparse(rce(:,1), rce(:,2), rce(:,3), M, N);
-      end
+%         rce = cell2mat(rce); obj.matrix = sparse(rce(:,1), rce(:,2), rce(:,3), M, N);
+        
+        obj.matrix = sparse(rce{1}(:,1), rce{1}(:,2), rce{1}(:,3), M, N);;
+        for k = 2:numel(rce)
+          obj.matrix = obj.matrix + sparse(rce{k}(:,1), rce{k}(:,2), rce{k}(:,3), M, N);
+        end
+%      end
     end
     function R = integrate(obj, hasCoeff, basisI, basisJ, k)
       [~, weights] = obj.fesTrial.getQuadData(obj.codim);
