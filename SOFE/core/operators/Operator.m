@@ -79,7 +79,6 @@ classdef Operator < SOFE
       obj.matrix = sparse(M, N);
       if ~any(obj.idx), return, end
       nBlock = obj.fesTrial.nBlock(obj.codim+1);
-      rce = cell(nBlock,1);
       for k = 1:nBlock
         e = []; r = []; c = [];
         I = obj.fesTrial.getBlock(obj.codim, k);
@@ -94,7 +93,12 @@ classdef Operator < SOFE
           end
         end
         I = (r.*c==0); if any(I(:)), r(I) = []; c(I) = []; e(I) = []; end %#ok<AGROW>
-        rce{k} = [r(:), c(:), e(:)];
+        try
+          fsparse(0);
+          obj.matrix = obj.matrix + fsparse(r(:), c(:), e(:), [M, N]);
+        catch
+          obj.matrix = obj.matrix + sparse(r(:), c(:), e(:), M, N);
+        end
         if k>1
           if k>2
             fprintf(repmat('\b',1,length(s)));
@@ -104,20 +108,6 @@ classdef Operator < SOFE
         end
       end
       if k>1, fprintf('\n'); end
-        keyboard
-%      try
-%        fsparse(0);
-%        rce = cell2mat(rce);
-%        obj.matrix = fsparse(rce(:,1), rce(:,2), rce(:,3), [M, N]);
-%      catch
-%           fprintf(['fsparse:' err.message '\n']);
-%         rce = cell2mat(rce); obj.matrix = sparse(rce(:,1), rce(:,2), rce(:,3), M, N);
-        
-        obj.matrix = sparse(rce{1}(:,1), rce{1}(:,2), rce{1}(:,3), M, N);;
-        for k = 2:numel(rce)
-          obj.matrix = obj.matrix + sparse(rce{k}(:,1), rce{k}(:,2), rce{k}(:,3), M, N);
-        end
-%      end
     end
     function R = integrate(obj, hasCoeff, basisI, basisJ, k)
       [~, weights] = obj.fesTrial.getQuadData(obj.codim);
