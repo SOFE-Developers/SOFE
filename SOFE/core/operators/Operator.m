@@ -125,12 +125,12 @@ classdef Operator < SOFE
       dX = bsxfun(@times, abs(jac).*coef, weights'); % nExnP
       nE = size(basisI, 1); nBI = size(basisI, 2); nBJ = size(basisJ,2); nP = size(basisI,3);
       try
-        tprod(1,1,1,1); error('err');
-        basisI = bsxfun(@times, basisI, permute(dX,[1 3 2])); %#ok<UNRCH>
+        tprod(1,1,1,1);
+        basisI = bsxfun(@times, basisI, permute(dX,[1 3 2]));
         R = tprod(reshape(basisI,nE,nBI,[]), ...
                   reshape(basisJ,nE,nBJ,[]), [1 2 -1], [1 3 -1]);
-      catch
-%         fprintf(['tprod:' err.message '\n']);
+      catch err
+        fprintf(['tprod:' err.message '\n']);
         basisI = reshape(basisI, nE, nBI, nP, []);
         basisJ = reshape(basisJ, nE, nBJ, nP, []);
         R = sum(bsxfun(@times, permute(basisI, [1 2 5 3 4]), ...

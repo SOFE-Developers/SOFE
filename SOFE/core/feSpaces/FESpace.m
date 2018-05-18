@@ -71,6 +71,7 @@ classdef FESpace < SOFE
     end
     function setElement(obj, element)
       obj.element = element;
+      obj.quadRule = obj.mesh.topology.getQuadRule(max(2*(obj.element.order),1));
       obj.resetCache();
       obj.notifyObservers();
     end
