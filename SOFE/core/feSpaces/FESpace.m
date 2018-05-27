@@ -373,8 +373,14 @@ classdef FESpace < SOFE
             case 0
               R = basis; % 1xnBxnPxnC
             case 1
-              R = sum(bsxfun(@times, permute(basis,    [1 2 3 4 6 5]), ...
+              try
+                basis = permute(basis,[2 3 4 5 1]);
+                trafo{2} = permute(trafo{2},[1 3 4 5 2]);
+                R = tprod(basis, trafo{2}, [2 3 4 -1], [1 3 -1 5]);
+              catch
+                R = sum(bsxfun(@times, permute(basis,    [1 2 3 4 6 5]), ...
                                      permute(trafo{2}, [1 2 3 6 5 4])), 6); % nExnBxnPxnCxnD
+              end
             case 2
               R = permute(basis, [1 2 3 6 4 5]); % % nExnBxnPxnD2xnCxnD1
               R = sum(bsxfun(@times, permute(R,    [1 2 3 4 5 7 6]), ...

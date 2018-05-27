@@ -3,7 +3,7 @@ N = 50; n = 5;
 M = 50; T = 3e2;
 order = 2; isTri = 0;
 % DATA
-data = struct('nu', 2e-5, 'f', 0);
+data = struct('nu', 2e-4, 'f', 0);
 data.ud = @(x)[(x(:,1).*(1-x(:,1))).*(x(:,2)>1-eps), 0.0*x(:,1)];
 data.dLoc = @(x)[x(:,1)<Inf,x(:,1)<Inf];
 data.tau = 4*sqrt(data.nu);
@@ -32,5 +32,6 @@ for k = 1:q.nT
   clf
   V.show(q.history{k}(p.J(1,1):p.J(1,2)), 'g', opt);
   fprintf('timestep: %d / %d\n', k, M);
+  title(sprintf('time %6.2f / %6.2f',(k-1)*T/q.nT, T));
   drawnow
 end

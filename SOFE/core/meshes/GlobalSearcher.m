@@ -48,10 +48,24 @@ classdef GlobalSearcher < SOFE
       end
       obj.NVec = ceil(obj.NVec);
       obj.bgMesh = cell(obj.nBlockGS,1);
-      for k = 1:obj.nBlockGS
-        idx = obj.getBlock(k);
-        obj.bgMesh{k} = obj.buildBackgroundMesh(idx(1):idx(2));
+      repeat = true;
+      while repeat
+        repeat = false;
+        for k = 1:obj.nBlockGS
+          idx = obj.getBlock(k);
+          obj.bgMesh{k} = obj.buildBackgroundMesh(idx(1):idx(2));
+          if numel(obj.bgMesh{k}) == 1 && obj.bgMesh{k} < 0
+            repeat = true;
+            break
+          end
+          if k>1
+            fprintf(repmat('\b',1,length(s)));
+          end
+          s = sprintf('Boild background mesh %d / %d', k, obj.nBlockGS);
+          fprintf(s);
+        end
       end
+      fprintf('\n');
     end
     function R = buildBackgroundMesh(obj, I)
       N = obj.nodes(I,:,:);
@@ -76,9 +90,15 @@ classdef GlobalSearcher < SOFE
                 reshape(kron((1:size(XX{1},2))', ones(size(XX{1},1),1)),[],1)];
       elseif nW == 2
         IDXE = [reshape(repmat(XX{1}, size(XX{2},1),1),[],1) ...
-               reshape(kron(XX{2}, ones(size(XX{1},1),1)),[],1) ...
-               reshape(kron((1:size(XX{1},2))', ones(size(XX{1},1)*size(XX{2},1),1)),[],1)];
+                reshape(kron(XX{2}, ones(size(XX{1},1),1)),[],1) ...
+                reshape(kron((1:size(XX{1},2))', ones(size(XX{1},1)*size(XX{2},1),1)),[],1)];
       elseif nW == 3
+        nComp = 4*numel(XX{1})*size(XX{2},1)*size(XX{3},1);
+        if(nComp > 5e7)
+          obj.nBlockGS = ceil(nComp/5e7);
+          R = -1;
+          return;
+        end
         IDXE = zeros(numel(XX{1})*size(XX{2},1)*size(XX{3},1),4);
         IDXE(:,1) = reshape(repmat(XX{1}, size(XX{2},1)*size(XX{3},1),1),[],1);
         IDXE(:,2) = reshape(repmat(kron(XX{2}, ones(size(XX{1},1),1)), size(XX{3},1), 1),[],1);
