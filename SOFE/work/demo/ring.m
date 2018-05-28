@@ -9,8 +9,9 @@ fes = FESpace(m, PpL(2,order), @(x)sum(x.^2,2).^0.5<0.5 & x(:,1)<0);
 % PDE
 p = Poisson(struct('a',1,'f',1), fes);
 % ALGORITHM
-q = IterativeSolver(p, 'bicgstab', 'ilu');
+q = StaticAlg(p, IterativeSol('bicgstab', 'ilu'));
 q.compute();
 % VISUALIZE
 v = Visualizer.create(fes); clf
 v.show(q.solution, '', struct('n',order));
+view(3)
