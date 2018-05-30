@@ -1,4 +1,4 @@
-classdef Integrator < Algorithm
+classdef IntegratorOld < Algorithm
   properties
     M0, A
     timeline
@@ -9,7 +9,7 @@ classdef Integrator < Algorithm
     cache
   end
   methods % constructor
-    function obj = Integrator(M0, A, timeline, varargin) % [initCond]
+    function obj = IntegratorOld(M0, A, timeline, varargin) % [initCond]
       obj = obj@Algorithm(A);
       obj.M0 = M0; obj.A = A;
       obj.timeline = timeline;

@@ -39,7 +39,7 @@ classdef FESpace < SOFE
     element
     quadRule
     fixB
-    shift
+    shift, narginShift
     freeDoFs
     cache
     isCaching = false;
@@ -61,11 +61,12 @@ classdef FESpace < SOFE
       obj.setBlocking();
       obj.mesh.register(obj);
       obj.fixB = @(x)false(size(x,1),1);
-      obj.shift = [];
+      obj.shift = []; obj.narginShift = 0;
       if nargin > 2
         obj.fixB = varargin{1};
         if nargin > 3
           obj.shift = varargin{2};
+          obj.narginShift = nargin(obj.shift);
         end
       end
     end

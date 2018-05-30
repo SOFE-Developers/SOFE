@@ -10,8 +10,8 @@ m0 = Mass(fes);
 timeline = RegularMesh(M, [0 1], 0);
 u0 = @(x)0.2*exp(-((x(:,1)-0.3).^2+(x(:,2)-0.3).^2)/0.01);
 % ALGORITHM
-clq = ThetaMethod(m0, p, timeline, u0); q.theta = 0.5;
-q.directSolve = 2;
+q = TimeStep.create('DG1', Mass(fes), p, DirectSol(1));
+q = Integrator(timeline, q, u0);
 q.compute();
 % VISUALIZE
 v = Visualizer.create(fes);

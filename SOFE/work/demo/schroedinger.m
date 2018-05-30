@@ -6,12 +6,11 @@ m = RegularMesh([N; N], [0 1; 0 1], 0);
 fes = FESpace(m, QpL(2,1), @(x)x(:,1)<-Inf);
 % PDE
 p = Poisson(struct('a',0.01*i,'f',0), fes);
-m0 = Mass(fes);
 timeline = RegularMesh(M, [0 T], 0);
 u0 = @(x)0.1+0.2*1i*exp(-((x(:,1)-0.3).^2+(x(:,2)-0.3).^2)/0.01);
 % ALGORITHM
-q = ThetaMethod(m0, p, timeline, u0);
-q.directSolve = 2;
+q = TimeStep.create('CG2', Mass(fes), p, DirectSol(1));
+q = Integrator(timeline, q, u0);
 q.compute();
 % VISUALIZE
 v = Visualizer.create(fes);

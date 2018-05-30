@@ -1,5 +1,5 @@
 % PARAMETERS
-N = 50; n = 5;
+N = 30; n = 5;
 M = 50; T = 3e2;
 order = 2; isTri = 0;
 % DATA
@@ -23,7 +23,8 @@ end
 FES = FESpace(m, E, data.dLoc, data.ud); fes = FESpace(m, e);
 % PDE
 p = NavierStokes(data, FES, fes); M0 = MassStokes(1.0, FES, fes);
-q = EulerImplicit(M0, p, RegularMesh(M, [0 T], 0)); q.directSolve = 1;
+q = TimeStep.create('EulerIm', M0, p, DirectSol());
+q = Integrator(RegularMesh(M, [0 T], 0), q);
 q.compute();
 % VISUALIZE
 V = Visualizer.create(FES);

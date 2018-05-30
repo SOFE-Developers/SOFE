@@ -3,7 +3,7 @@ classdef PDE < SOFE
     nEq, nOp
     list, lhs, rhs
     %
-    stiffMat, loadVec
+    stiffMat, loadVec, shift
     createSys = true;
     %
     mesh
@@ -11,7 +11,7 @@ classdef PDE < SOFE
     I,J, nDoF
     %
     time, state
-    narginData
+    nArgIn
     stateChanged
   end
   methods % constructor & more
@@ -19,7 +19,6 @@ classdef PDE < SOFE
       obj.list = list; obj.nOp = numel(list);
       obj.lhs = lhs; obj.rhs = rhs; obj.nEq = numel(rhs.sys);
       obj.fesTest = cell(obj.nEq, 1); obj.fesTrial = cell(obj.nEq, 1);
-      obj.narginData =  max(cellfun(@(op)nargin(op.dataCache),obj.list)); % maximal nargin of data(x,t,u,d)
       for k = 1:numel(list)
         obj.list{k}.register(obj);
       end
@@ -39,6 +38,8 @@ classdef PDE < SOFE
           end
         end
       end
+      obj.nArgIn.coeff =  max(cellfun(@(op)nargin(op.dataCache),obj.list));
+      obj.nArgIn.shift =  max(cellfun(@(fes)fes.narginShift,obj.fesTrial));
       obj.mesh = obj.fesTrial{1}.mesh;
       obj.notify();
     end
@@ -50,7 +51,7 @@ classdef PDE < SOFE
       obj.J = [[1;nTrial(1:end-1)+1], nTrial];
       %
       obj.nDoF = nTrial(obj.nEq);
-      obj.stiffMat = []; obj.loadVec = [];
+      obj.stiffMat = []; obj.loadVec = []; obj.shift = [];
       obj.setState(0.0, zeros(obj.nDoF,1));
     end
     function setState(obj, t, varargin) % [state]
@@ -59,11 +60,12 @@ classdef PDE < SOFE
       if ~isempty(varargin)
         obj.state = varargin{1};
       end
+      if obj.nArgIn.shift>1, obj.shift = []; end
     end
   end
   methods
     function assemble(obj)
-      if obj.stateChanged && (isempty(obj.stiffMat) || (obj.narginData > 1))
+      if obj.stateChanged && (isempty(obj.stiffMat) || (obj.nArgIn.coeff > 1))
         obj.stateChanged = false;
         obj.stiffMat = []; obj.loadVec = [];
         for k = 1:obj.nOp
@@ -147,22 +149,24 @@ classdef PDE < SOFE
     function R = evalState(obj, k) % [k]
       R.U = cell(obj.nEq, 1); % {nEq}xnExnPxnC
       R.dU = cell(obj.nEq, 1); % {nEq}xnExnPxnCxnD
-      if obj.narginData > 2
+      if obj.nArgIn.coeff > 2
         for j = 1:obj.nEq
           U = obj.state(obj.J(j,1):obj.J(j,2));
           R.U{j} = obj.fesTrial{j}.evalDoFVector(U,[],0,0, {k});
-          if obj.narginData > 3
+          if obj.nArgIn.coeff > 3
             R.dU{j} = obj.fesTrial{j}.evalDoFVector(U,[],0,1, {k});
           end
         end
       end
     end
     function R = getShift(obj, varargin) % [idx]
-      R = cellfun(@(fes)fes.getShift(obj.time),obj.fesTrial,'UniformOutput',0);
+      if isempty(obj.shift)
+        obj.shift = cellfun(@(fes)fes.getShift(obj.time),obj.fesTrial,'UniformOutput',0);
+      end
       if ~isempty(varargin)
-        R = R{varargin{1}};
+        R = obj.shift{varargin{1}};
       else
-        R = cell2mat(R);
+        R = cell2mat(obj.shift);
       end
     end
     function R = getState(obj, varargin) % [idx]

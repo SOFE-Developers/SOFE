@@ -1,4 +1,7 @@
 classdef ScalarFESpace < SOFE
+  properties
+    narginShift = 0;
+  end
   methods
     function obj = ScalarFESpace()
       obj = obj@SOFE();

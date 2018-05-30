@@ -1,7 +1,7 @@
-classdef LeapFrog < Integrator
+classdef LeapFrog < IntegratorOld
   methods % constructor
     function obj = LeapFrog(M0, A, timeline, varargin) % [initCond]
-      obj = obj@Integrator(M0, A, timeline, varargin{:});
+      obj = obj@IntegratorOld(M0, A, timeline, varargin{:});
     end
   end
   methods % integrate

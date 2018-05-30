@@ -1,7 +1,7 @@
-classdef EulerImplicit < Integrator
+classdef EulerImplicit_ < IntegratorOld
   methods % constructor
-    function obj = EulerImplicit(M0, A, timeline, varargin) % [initCond]
-      obj = obj@Integrator(M0, A, timeline, varargin{:});
+    function obj = EulerImplicit_(M0, A, timeline, varargin) % [initCond]
+      obj = obj@IntegratorOld(M0, A, timeline, varargin{:});
     end
   end
   methods % integrate
