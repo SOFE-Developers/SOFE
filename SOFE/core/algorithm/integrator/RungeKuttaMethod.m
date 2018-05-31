@@ -47,7 +47,7 @@ classdef RungeKuttaMethod < TimeStep
       else
         L = kron(ones(obj.nK,1), obj.M0.stiffMat*u0) + sum(cell2mat(L),2);
         S = cellfun(@(P,Q)kron(P, Q), dtA, A, 'UniformOutput', false);
-        S = kron(eye(obj.nK), obj.M0.stiffMat) + cell2mat(S);
+        S = kron(eye(obj.nK), obj.M0.stiffMat) + spcell2mat(S);
         R = obj.solver.solve(S, L, obj.FREEI, obj.FREEJ, cell2mat(shift));
         R = mat2cell(reshape(R,[],obj.nK),size(b{1},1),ones(obj.nK,1));
       end

@@ -43,7 +43,7 @@ classdef VariationalIntegrator < TimeStep
         GA{k+1} = kron(obj.G(:,k+1), A{k+1});
         R{k+1} = obj.pde.getShift();
       end
-      lhs = kron(obj.D, obj.M0.stiffMat) + diff(I)*cell2mat(GA);
+      lhs = kron(obj.D, obj.M0.stiffMat) + diff(I)*spcell2mat(GA(2:end));
       b = permute(sum(bsxfun(@times,obj.G,permute(b,[3 2 1])),2),[3 1 2]); % nDoF x nB
       rhs = kron(obj.d, obj.M0.stiffMat*u0) + diff(I)*(b(:) - kron(obj.G(:,1), A{1}*u0));
       R = obj.solver.solve(lhs, rhs, obj.FREEI, obj.FREEJ, cell2mat(R));
