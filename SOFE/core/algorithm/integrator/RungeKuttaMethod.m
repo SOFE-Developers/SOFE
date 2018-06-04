@@ -28,10 +28,10 @@ classdef RungeKuttaMethod < TimeStep
       end
       dtA = mat2cell(diff(I)*obj.data.A, obj.nK, ones(obj.nK,1));
       L = cellfun(@(P,Q)kron(P, Q), dtA, b, 'UniformOutput', false);
+      M0u0 = obj.M0.stiffMat*u0;
       isExplicit = norm(reshape(triu(obj.data.A),[],1))==0;
       if isExplicit
         L = mat2cell(sum(cell2mat(L),2), numel(shift{1})*ones(obj.nK,1),1);
-        M0u0 = obj.M0.stiffMat*u0;
         R = cell(1,obj.nK);
         for s = 1:obj.nK
           rhs = M0u0 + L{s};
@@ -52,7 +52,7 @@ classdef RungeKuttaMethod < TimeStep
         R = mat2cell(reshape(R,[],obj.nK),size(b{1},1),ones(obj.nK,1));
       end
       R = cellfun(@(a1,a2,a3)a1 - a2*a3, b,A,R, 'UniformOutput', false);
-      R = obj.M0.stiffMat*u0 + diff(I)*(cell2mat(R)*obj.data.b');
+      R = M0u0 + diff(I)*(cell2mat(R)*obj.data.b');
       obj.pde.setState(I(2), u0);
       R = obj.solverMass.solve(obj.M0.stiffMat, R, obj.freeI, obj.freeJ, obj.pde.getShift());
     end
