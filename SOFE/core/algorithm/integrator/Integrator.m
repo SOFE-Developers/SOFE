@@ -14,7 +14,9 @@ classdef Integrator < Algorithm
       obj.tStep = tStep;
       if ~isempty(varargin)
         obj.initCond = varargin{1};
-        if ~iscell(obj.initCond), obj.initCond = {obj.initCond}; end
+        if ~isempty(obj.initCond) && ~iscell(obj.initCond)
+          obj.initCond = {obj.initCond};
+        end
       end
       obj.history = cell(1,obj.nT);
     end
@@ -85,7 +87,7 @@ classdef Integrator < Algorithm
         m = RegularMesh(repmat(N,dim,1), repmat([0 1],dim,1), 0);
         fes = FESpace(m, QpL(dim, pSpace), @(x)x(:,1)<Inf, uEx);
         p = Poisson(struct('a',epsilon, 'f',f), fes);
-        q = IntegratorNew(RegularMesh(M, [0 T]), TimeStep.create(intType, Mass(fes), p));
+        q = Integrator(RegularMesh(M, [0 T]), TimeStep.create(intType, Mass(fes), p, DirectSol()));
         q.compute();
         % COMPUTE ERROR
         err = zeros(M+1,1);
