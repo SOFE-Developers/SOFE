@@ -253,6 +253,7 @@ classdef Mesh < SOFE
   methods % mesh information
     function R = getMeasure(obj, dim, varargin) % [I]
       I = ':'; if nargin > 2, I = varargin{1}; end
+      if ischar(dim), dim  = obj.topology.dimP - str2double(dim); end % dim to codim
       ee = obj.topology.getEntity(dim); ee = ee(I,:);
       switch dim
         case 3

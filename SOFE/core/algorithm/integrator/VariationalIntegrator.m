@@ -24,6 +24,9 @@ classdef VariationalIntegrator < TimeStep
           obj.d = [5/4;-2];
           obj.t = [0 1/2 1];
       end
+      obj.setFreeDoFs();
+    end
+    function setFreeDoFs(obj)
       [obj.freeI, obj.freeJ] = obj.pde.getFreeDoFs();
       obj.FREEI = kron(ones(obj.nK,1), obj.freeI)>0;
       obj.FREEJ = kron(ones(obj.nK,1), obj.freeJ)>0;
