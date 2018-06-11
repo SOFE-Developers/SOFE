@@ -17,7 +17,8 @@ classdef TimeStep < Algorithm
     function R = create(intType, M0, pde, solver) % [solver]
       if numel(intType)>4 && strcmp(intType(1:5),'theta')
         th = str2double(intType(6:end));
-        R = RungeKuttaMethod(struct('A',[0 0;1-th th],'b',[1-th th],'c',[0 1]), M0, pde, solver);
+%        R = RungeKuttaMethod(struct('A',[0 0;1-th th],'b',[1-th th],'c',[0 1]), M0, pde, solver);
+        R = Theta(th, M0, pde, solver);
         return
       end
       switch intType
@@ -40,7 +41,8 @@ classdef TimeStep < Algorithm
           R = RungeKuttaMethod(struct('A',[0 0 0 0 0 0;0.25 0 0 0 0 0;3/32 9/32 0 0 0 0;1932/2197 -7200/2197  7296/2197 0 0 0;439/216 -8 3680/513 -845/4104 0 0;-8/27 2 -3544/2565 1859/4104 -11/40 0],'b',[16/135 0 6656/12825 28561/56430 -9/50 2/55],'c',[0 0.25 0.375 12/13 1 0.5]), M0, pde, solver);
         % implicit Runge Kutta
         case 'EulerIm'
-          R = RungeKuttaMethod(struct('A',1,'b',1,'c',1), M0, pde, solver);
+%          R = RungeKuttaMethod(struct('A',1,'b',1,'c',1), M0, pde, solver);
+          R = EulerImp(M0, pde, solver);
         case 'CN'
           R = RungeKuttaMethod(struct('A',[0 0; 0.5 0.5],'b',[0.5 0.5],'c',[0 1]), M0, pde, solver);
         case 'Gauss2'

@@ -1,21 +1,22 @@
-% PARAMETERS
-dim = 1; T = 10; N = 80; M = 500; isTri = 1;
+%% PARAMETERS
+dim = 2; T = 10; N = 80; M = 1000; isTri = 1;
 cc = 0.5*ones(1,dim);
-% MESH
+%% MESH
 m = RegularMesh(N*ones(dim,1), repmat([0 1],dim,1), 0);
-% FESPACE
+%% FESPACE
 fes = FESpace(m, QpL(dim,1),@(x)x(:,1)<Inf);
-% PDE
+%% PDE
 p = Poisson(struct('a',0.05,'f',0), fes);
 m0 = Mass(fes);
 timeline = RegularMesh(M, [0 1], 0); timeline.scale(T);
 u0 = @(x)0.1*exp(-sum(bsxfun(@minus, x, cc).^2,2)/0.005);
-% ALGORITHM
-q = LeapFrog(m0, p, timeline, u0);
+%% ALGORITHM
+q = LeapFrog(m0, p, DirectSol(1));
+q = Integrator(timeline, q, u0);
 q.compute();
-% VISUALIZE
+%% VISUALIZE
 v = Visualizer.create(fes);
-for k = 1:5:q.nT
+for k = 1:10:q.nT
   clf
   switch dim
     case 1

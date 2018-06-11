@@ -16,7 +16,7 @@ timeline = RegularMesh(T*M, [0 T], 0);
 %
 initialC = {@(x)5*exp(-((x(:,1)-0.4).^2+(x(:,2)-0.4).^2)/0.01), ...
             @(x)5*exp(-((x(:,1)-0.6).^2+(x(:,2)-0.6).^2)/0.01)};
-q = Integrator(timeline, TimeStep.create('DG1', Mass(fes, 2), p, DirectSol(1)), initialC);
+q = Integrator(timeline, TimeStep.create('theta0.5', Mass(fes, 2), p, DirectSol(1)), initialC);
 q.compute();
 %% VISUALIZE
 v = Visualizer.create(fes);

@@ -9,7 +9,7 @@ p = Poisson(struct('a',0.01*i,'f',0), fes);
 timeline = RegularMesh(M, [0 T], 0);
 u0 = @(x)0.1+0.2*1i*exp(-((x(:,1)-0.3).^2+(x(:,2)-0.3).^2)/0.01);
 % ALGORITHM
-q = TimeStep.create('Gauss3', Mass(fes), p, DirectSol(1));
+q = TimeStep.create('DG1', Mass(fes), p, DirectSol(1));
 q = Integrator(timeline, q, u0);
 q.compute();
 % VISUALIZE

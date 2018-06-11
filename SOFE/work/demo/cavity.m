@@ -1,5 +1,5 @@
 % PARAMETERS
-N = 50; n = 10; K = 5;
+N = 40; n = 10; K = 5;
 order = 2; isTri = 0; nNonLin = 10; 
 % DATA
 data = struct('nu', 1e-4, 'f', 0);

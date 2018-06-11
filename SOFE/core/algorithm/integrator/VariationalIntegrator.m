@@ -37,8 +37,13 @@ classdef VariationalIntegrator < TimeStep
       A = cell(obj.nK+1,1); b = zeros(numel(u0),obj.nK+1);
       R = cell(obj.nK+1,1);
       GA = cell(1,obj.nK+1);
-      obj.pde.assemble();
-      A{1} = obj.pde.stiffMat; b(:,1) = obj.pde.loadVec;
+      if norm(obj.G(:,1))>0
+        obj.pde.assemble();
+        A{1} = obj.pde.stiffMat; b(:,1) = obj.pde.loadVec;
+      else
+        N = sum(obj.pde.getNDoF());
+        A{1} = sparse(N,N); b(:,1) = zeros(N,1);
+      end
       for k = 1:obj.nK
         obj.pde.setState(I(1)+obj.t(k+1)*diff(I), u0);
         obj.pde.assemble();

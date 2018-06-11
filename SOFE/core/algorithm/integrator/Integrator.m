@@ -37,11 +37,8 @@ classdef Integrator < Algorithm
       % starting values
       kS = 1;
       if obj.tStep.nS>1
-        tStepStart = RungeKuttaMethod(struct('A',[0 0 0 0;0.5 0 0 0;0 0.5 0 0;0 0 1 0],'b',[1 2 2 1]/6,'c',[0 0.5 0.5 1]), obj.tStep.M0, obj.tStep.pde);
         for kS = 2:obj.tStep.nS
-          cTime = tic;
-          obj.history{kS} = tStepStart.compute(obj.timeline.nodes([kS-1, kS]), obj.history{kS});
-          fprintf('timestep: %d / %d: %f sec\n', kS-1, obj.nT-1, toc(cTime));
+          obj.history{kS} = obj.history{1};
         end
       end
       % time loop
@@ -52,6 +49,7 @@ classdef Integrator < Algorithm
       end
     end
     function compute2(obj)
+      % routine for space adaptivity 
       A = obj.tStep.pde;
       % initial condition
       obj.history{1} = cell(A.nEq,1);
@@ -74,19 +72,21 @@ classdef Integrator < Algorithm
         %
         obj.history{k+1} = obj.tStep.compute(obj.timeline.nodes([k, k+1]), obj.history{k});
         %
-%        figure(1),clf, v.show(obj.history{k+1},'p'); drawnow
-%        figure(2),obj.pde.mesh.show(); drawnow
+%         figure(1),clf, v.show(obj.history{k+1},'p'); drawnow
+%         figure(2),obj.pde.mesh.show(); drawnow
         %
-        I = 'something';
-        for cc = 1:2
-%          I = obj.pde.fesTrial{1}.evalDoFVector(obj.history{k+1},[1 1]/3,[],0)>0.05;
-          I =  max(obj.history{k+1}(obj.pde.mesh.topology.getEntity('0')),[],2)>0.05;
-          I = I & obj.pde.mesh.getMeasure('0')>0.005^2;
+        for cc = 1:3
+%           I = obj.pde.fesTrial{1}.evalDoFVector(obj.history{k+1},[1 1]/3,[],0)>0.02;
+          I =  max(obj.history{k+1}(obj.pde.mesh.topology.getEntity('0')),[],2)>0.02;
+          I = I & obj.pde.mesh.getMeasure('0')>0.005^2+1e-12;
+          if isempty(I), break; end
           obj.history{k+1} = obj.pde.mesh.adaptiveRefine(I)*obj.history{k+1};
         end
-        for cc = 1:2
-%          I = obj.pde.fesTrial{1}.evalDoFVector(obj.history{k+1},[1 1]/3,[],0)<0.05;
-          I =  max(obj.history{k+1}(obj.pde.mesh.topology.getEntity('0')),[],2)<0.05;
+        for cc = 1:3
+%           I = obj.pde.fesTrial{1}.evalDoFVector(obj.history{k+1},[1 1]/3,[],0)<0.02;
+          I =  max(obj.history{k+1}(obj.pde.mesh.topology.getEntity('0')),[],2)<0.02;
+          I = I & obj.pde.mesh.getMeasure('0')<0.0125^2+1e-12;
+          if isempty(I), break; end
           obj.history{k+1} = obj.pde.mesh.coarsen(I)*obj.history{k+1};  
         end
         %

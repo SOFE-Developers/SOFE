@@ -1,5 +1,5 @@
 % PARAMETERS
-N = 50; M = 50;
+N = 50; M = 100;
 % MESH
 m = RegularMesh([N; N], [0 1; 0 1], 0);
 % FESPACE
@@ -10,12 +10,13 @@ m0 = Mass(fes);
 timeline = RegularMesh(M, [0 1], 0);
 u0 = @(x)0.2*exp(-((x(:,1)-0.3).^2+(x(:,2)-0.3).^2)/0.01);
 % ALGORITHM
+%q = TimeStep.create('theta0.5', Mass(fes), p, DirectSol(1));
 q = TimeStep.create('DG1', Mass(fes), p, DirectSol(1));
 q = Integrator(timeline, q, u0);
 q.compute();
 % VISUALIZE
 v = Visualizer.create(fes);
-for k = 1:q.nT
+for k = 1:2:q.nT
   clf
   v.show(q.history{k}, 'p');
   view(3), axis([0 1 0 1 -0.1 0.2]); caxis([0.0, 0.1]);
