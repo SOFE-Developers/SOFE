@@ -38,8 +38,10 @@ classdef Integrator < Algorithm
       % starting values
       kS = 1;
       if obj.tStep.nS>1
+%        q = TimeStep.create('CG2',  obj.tStep.M0, obj.tStep.pde, DirectSol(1));
         for kS = 2:obj.tStep.nS
           obj.history{kS} = obj.history{1};
+%          obj.history{kS} = q.compute(obj.timeline.nodes([kS-1, kS]), obj.history{kS-1});
         end
       end
       % time loop
