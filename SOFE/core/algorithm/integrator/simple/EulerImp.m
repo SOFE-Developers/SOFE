@@ -6,11 +6,7 @@ classdef EulerImp < TimeStep
   methods % constructor
     function obj = EulerImp(M0, pde, solver)
       obj = obj@TimeStep([], M0, pde, solver);
-      obj.nS = 1;
-      obj.setFreeDoFs();
-    end
-    function setFreeDoFs(obj)
-      [obj.freeI, obj.freeJ] = obj.pde.getFreeDoFs();
+      obj.nS = 1; obj.nK = 1;
     end
   end
   methods % integrate

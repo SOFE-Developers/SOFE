@@ -1,9 +1,6 @@
 classdef VariationalIntegrator < TimeStep
   % cG(2) method for "M U_t = L - A*U"
   properties
-    nK
-    freeI, freeJ
-    FREEI, FREEJ
     D,G,d,t
   end
   methods % constructor
@@ -24,12 +21,6 @@ classdef VariationalIntegrator < TimeStep
           obj.d = [5/4;-2];
           obj.t = [0 1/2 1];
       end
-      obj.setFreeDoFs();
-    end
-    function setFreeDoFs(obj)
-      [obj.freeI, obj.freeJ] = obj.pde.getFreeDoFs();
-      obj.FREEI = kron(ones(obj.nK,1), obj.freeI)>0;
-      obj.FREEJ = kron(ones(obj.nK,1), obj.freeJ)>0;
     end
   end
   methods % computation

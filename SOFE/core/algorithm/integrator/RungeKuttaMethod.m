@@ -1,17 +1,11 @@
 classdef RungeKuttaMethod < TimeStep
   properties
-    nK
-    freeI, freeJ
-    FREEI, FREEJ
     solverMass
   end
   methods % constructor
     function obj = RungeKuttaMethod(data, M0, pde, solver)
       obj = obj@TimeStep(data, M0, pde, solver);
       obj.nS = 1; obj.nK = size(obj.data.A,1);
-      [obj.freeI, obj.freeJ] = obj.pde.getFreeDoFs();
-      obj.FREEI = kron(ones(obj.nK,1), obj.freeI)>0;
-      obj.FREEJ = kron(ones(obj.nK,1), obj.freeJ)>0;
       obj.solverMass = DirectSol(1);
       obj.solverMass.pde = obj.pde;
     end

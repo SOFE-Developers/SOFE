@@ -7,12 +7,8 @@ classdef Theta < TimeStep
   methods % constructor
     function obj = Theta(theta, M0, pde, solver)
       obj = obj@TimeStep([], M0, pde, solver);
-      obj.nS = 1;
+      obj.nS = 1; obj.nK = 1;
       obj.theta = theta;
-      obj.setFreeDoFs();
-    end
-    function setFreeDoFs(obj)
-      [obj.freeI, obj.freeJ] = obj.pde.getFreeDoFs();
     end
   end
   methods % integrate

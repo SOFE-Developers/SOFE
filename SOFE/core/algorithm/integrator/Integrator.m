@@ -23,6 +23,7 @@ classdef Integrator < Algorithm
   end
   methods % integration
     function compute(obj)
+      obj.tStep.setFreeDoFs();
       A = obj.tStep.pde;
       % initial condition
       obj.history{1} = cell(A.nEq,1);
