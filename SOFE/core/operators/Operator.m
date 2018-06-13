@@ -116,7 +116,7 @@ classdef Operator < SOFE
         if isnumeric(obj.data)
           coef = obj.fesTrial.evalDoFVector(obj.data, [], obj.codim, 0, {k}); % nExnPx(nD*nD)
         else
-          try, S = obj.observers{1}.evalState(k); catch, S = obj.state; end
+          try S = obj.observers{1}.evalState(k); catch, S = obj.state; end
           coef = obj.fesTrial.evalFunction(obj.data, [], obj.codim, S, {k}); % nExnP
         end
       else

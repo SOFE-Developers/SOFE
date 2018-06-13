@@ -13,7 +13,7 @@ classdef OpGradId < Operator % (c*Grad(u), V )
         if isnumeric(obj.data)
           C = obj.fesTrial.evalDoFVector(obj.data, [], 0, 0, {k}); % nExnPx(nD*nD)
         else
-          try, S = obj.observers{1}.evalState(k); catch, S = obj.state; end
+          try S = obj.observers{1}.evalState(k); catch, S = obj.state; end
           C = obj.fesTrial.evalFunction(obj.data, [], 0, S, {k}); % nExnPxnW
         end
         C = permute(C, [1 4 2 5 3]); % nEx1xnPx1xnW

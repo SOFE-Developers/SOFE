@@ -1,8 +1,4 @@
 classdef EulerImp < TimeStep
-  properties
-    freeI
-    freeJ
-  end
   methods % constructor
     function obj = EulerImp(M0, pde, solver)
       obj = obj@TimeStep([], M0, pde, solver);

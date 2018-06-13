@@ -1,8 +1,4 @@
 classdef LeapFrog < TimeStep
-  properties
-      freeI
-      freeJ
-  end
   methods % constructor
     function obj = LeapFrog(M0, pde, solver)
       obj = obj@TimeStep([], M0, pde, solver);

@@ -1,7 +1,5 @@
 classdef Theta < TimeStep
   properties
-    freeI
-    freeJ
     theta
   end
   methods % constructor
@@ -13,9 +11,11 @@ classdef Theta < TimeStep
   end
   methods % integrate
     function R = compute(obj, I, u0)
-      obj.pde.setState(I(1), u0); obj.pde.assemble();
+      obj.pde.setState(I(1), u0);
+      obj.pde.assemble();
       rhs = obj.M0.stiffMat*u0 + ((1-obj.theta)*diff(I))*(obj.pde.loadVec - obj.pde.stiffMat*u0);
-      obj.pde.setState(I(2), u0); obj.pde.assemble();
+      obj.pde.setState(I(2), u0);
+      obj.pde.assemble();
       lhs = obj.M0.stiffMat + (obj.theta*diff(I))*obj.pde.stiffMat;
       rhs = rhs + (obj.theta*diff(I))*obj.pde.loadVec;
       R = obj.solver.solve(lhs, rhs, obj.freeI, obj.freeJ, obj.pde.getShift());

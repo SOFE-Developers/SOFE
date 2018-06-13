@@ -51,51 +51,6 @@ classdef Integrator < Algorithm
         fprintf('timestep: %d / %d: %f sec\n', k, obj.nT-1, toc(cTime));
       end
     end
-    function compute2(obj)
-      % routine for space adaptivity 
-      A = obj.tStep.pde;
-      % initial condition
-      obj.history{1} = cell(A.nEq,1);
-      for k = 1:A.nEq
-        if ~isempty(obj.initCond)
-          obj.history{1}{k} = A.fesTrial{k}.getInterpolation(obj.initCond{k}, 0);
-        else
-          obj.history{1}{k} = zeros(A.J(k,2)-A.J(k,1)+1, 1);
-        end
-      end
-      obj.history{1} = cell2mat(obj.history{1});
-      assert(obj.tStep.nS==1);
-      v = Visualizer.create(obj.pde.fesTrial{1});
-      % time loop
-      for k = 1:obj.nT-1
-        cTime = tic;
-        %
-        obj.tStep.M0.assemble();
-        obj.tStep.setFreeDoFs();
-        %
-        obj.history{k+1} = obj.tStep.compute(obj.timeline.nodes([k, k+1]), obj.history{k});
-        %
-%         figure(1),clf, v.show(obj.history{k+1},'p'); drawnow
-%         figure(2),obj.pde.mesh.show(); drawnow
-        %
-        for cc = 1:3
-%           I = obj.pde.fesTrial{1}.evalDoFVector(obj.history{k+1},[1 1]/3,[],0)>0.02;
-          I =  max(obj.history{k+1}(obj.pde.mesh.topology.getEntity('0')),[],2)>0.02;
-          I = I & obj.pde.mesh.getMeasure('0')>0.005^2+1e-12;
-          if isempty(I), break; end
-          obj.history{k+1} = obj.pde.mesh.adaptiveRefine(I)*obj.history{k+1};
-        end
-        for cc = 1:3
-%           I = obj.pde.fesTrial{1}.evalDoFVector(obj.history{k+1},[1 1]/3,[],0)<0.02;
-          I =  max(obj.history{k+1}(obj.pde.mesh.topology.getEntity('0')),[],2)<0.02;
-          I = I & obj.pde.mesh.getMeasure('0')<0.0125^2+1e-12;
-          if isempty(I), break; end
-          obj.history{k+1} = obj.pde.mesh.coarsen(I)*obj.history{k+1};  
-        end
-        %
-        fprintf('timestep: %d / %d: %f sec\n', k, obj.nT-1, toc(cTime));
-      end
-    end
   end
   methods(Static=true) % Test
     function R = testConvergence(intType, dim, pSpace)
