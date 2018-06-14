@@ -1,5 +1,5 @@
 %% MESH
-m = TorusMesh([30 40], 1, 0.2, 1);
+m = TorusMesh(30, 1, 0.2, 1);
 %% FESPACE
 fes = FESpace(m, PpL(2,2));
 %% PDE

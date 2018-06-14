@@ -1,6 +1,7 @@
 classdef TorusMesh < RegularMesh
   methods % constructor
     function obj = TorusMesh(N, R, r, isTri)
+      N = [N ceil(R/r*N)];
       obj = obj@RegularMesh(N, [0 2*pi; 0 2*pi], isTri);
       %
       maps = cell(obj.element.dimension,1);
@@ -18,15 +19,6 @@ classdef TorusMesh < RegularMesh
                    (R+r*cos(nodes(:,1))).*sin(nodes(:,2)), ...
                     r*sin(nodes(:,1))];
       obj.dimW = 3;
-    end
-  end
-  methods(Static=true)
-    function [nodes, elem] = removeNodes(nodes, elem)
-      unode = unique(elem);
-      nN = size(nodes,1); nNNew = numel(unode);
-      nodes = nodes(unode,:);
-      M = zeros(nN,1); M(unode) = (1:nNNew)';
-      elem = M(elem);
     end
   end
 end

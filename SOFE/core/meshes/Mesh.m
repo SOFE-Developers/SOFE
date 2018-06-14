@@ -426,6 +426,40 @@ classdef Mesh < SOFE
     end
   end
   methods(Static = true)
+    function R = getTopology(nodes, elem, dimP)
+      switch size(elem, 2)
+        case 2
+          R = MeshTopologyInt(elem);
+        case 3
+%           elem = MeshTopologyTri.renumber(nodes, elem);
+          R = MeshTopologyTri(elem);
+        case 4
+          if dimP == 2
+           R = MeshTopologyQuad(elem);
+          else
+            elem = MeshTopologyTet.renumber(nodes, elem);
+            R = MeshTopologyTet(elem);
+          end
+        case 8
+          R = MeshTopologyHex(elem);
+      end
+    end
+    function R = getShapeElement(N, dimP)
+      switch N
+        case 2
+          R = PpL(1,1);
+        case 3
+          R = PpL(2,1);
+        case 4
+          if dimP == 2
+            R = QpL(2,1);
+          else
+            R = PpL(3,1);
+          end
+        case 8
+          R = QpL(3,1);
+      end
+    end
     function [nodes, elem] = getTensorProductMesh(grid, varargin) % [isTri]
       switch numel(grid)
         case 1
@@ -473,39 +507,12 @@ classdef Mesh < SOFE
           end
       end
     end
-    function R = getTopology(nodes, elem, dimP)
-      switch size(elem, 2)
-        case 2
-          R = MeshTopologyInt(elem);
-        case 3
-%           elem = MeshTopologyTri.renumber(nodes, elem);
-          R = MeshTopologyTri(elem);
-        case 4
-          if dimP == 2
-           R = MeshTopologyQuad(elem);
-          else
-            elem = MeshTopologyTet.renumber(nodes, elem);
-            R = MeshTopologyTet(elem);
-          end
-        case 8
-          R = MeshTopologyHex(elem);
-      end
-    end
-    function R = getShapeElement(N, dimP)
-      switch N
-        case 2
-          R = PpL(1,1);
-        case 3
-          R = PpL(2,1);
-        case 4
-          if dimP == 2
-            R = QpL(2,1);
-          else
-            R = PpL(3,1);
-          end
-        case 8
-          R = QpL(3,1);
-      end
+    function [nodes, elem] = removeNodes(nodes, elem)
+      unode = unique(elem);
+      nN = size(nodes,1); nNNew = numel(unode);
+      nodes = nodes(unode,:);
+      M = zeros(nN,1); M(unode) = (1:nNNew)';
+      elem = M(elem);
     end
   end
   methods(Static=true)

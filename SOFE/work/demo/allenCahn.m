@@ -4,7 +4,7 @@ N = 150; isTri = 0;
 M = 100; T = 2;
 epsilon = 3e-2;
 %% MESH
-m = TorusMesh([N ceil(R/r*N)], R, r, isTri);
+m = TorusMesh(N, R, r, isTri);
 %% FESPACE
 if isTri, e = PpL(2, 1); else, e = QpL(2, 1); end
 fes = FESpace(m, e);
