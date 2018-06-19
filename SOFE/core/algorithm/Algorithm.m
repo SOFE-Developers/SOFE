@@ -12,7 +12,7 @@ classdef Algorithm < SOFE
     end
     function setSolver(obj, solver)
       obj.solver = solver;
-      obj.solver.pde = obj.pde;
+      obj.solver.setPDE(obj.pde);
     end
   end
 end

@@ -8,7 +8,7 @@ classdef StaticAlg < Algorithm
     end
   end
   methods
-    function R = compute(obj)
+    function compute(obj)
       assert(~isempty(obj.solver), 'Solver not set!');
       t = tic; obj.output('Begin assemble ...', 1);
       obj.pde.assemble();

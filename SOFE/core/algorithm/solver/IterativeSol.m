@@ -27,7 +27,7 @@ classdef IterativeSol < Solver
         case 'ichol'
           M1 = ichol(A,struct('michol','on'));
           M2 = M1';
-        case []
+        case {[], 'none', 'no'}
         otherwise
           warning('Unknown preconditioner');
       end
