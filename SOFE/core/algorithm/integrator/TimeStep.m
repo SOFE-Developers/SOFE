@@ -11,9 +11,9 @@ classdef TimeStep < Algorithm
     function obj = TimeStep(data, M0, pde, solver)
       obj = obj@Algorithm(pde);
       obj.data = data;
+      obj.setSolver(solver);
       obj.M0 = M0;
       obj.M0.assemble();
-      obj.setSolver(solver);
     end
     function setFreeDoFs(obj)
       [obj.freeI, obj.freeJ] = obj.pde.getFreeDoFs();
