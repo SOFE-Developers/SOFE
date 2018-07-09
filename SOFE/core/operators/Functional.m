@@ -30,8 +30,8 @@ classdef Functional < SOFE
         obj.idx = ':';
         obj.notifyObservers();
       else
-        try, obj.state.U =  varargin{2}; end
-        try, obj.state.dU =  varargin{3}; end
+        try obj.state.U =  varargin{2}; catch, end
+        try obj.state.dU =  varargin{3}; catch, end
         if ~isnumeric(obj.dataCache)
           if nargin(obj.dataCache) == 2 % f(x,t)
             obj.matrix = [];

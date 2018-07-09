@@ -10,7 +10,7 @@ classdef FcGrad < Functional % ( F, grad(v) )
       if isnumeric(obj.data)
         R = obj.fes.evalDoFVector(obj.data, [], obj.codim, 0, {k}); % nExnPxnC
       else
-        try, S = obj.observers{1}.evalState(k); catch, S = obj.state; end
+        try S = obj.observers{1}.evalState(k); catch, S = obj.state; end
         R = obj.fes.evalFunction(obj.data, [], obj.codim, S, {k}); % nExnPxnC
       end
       if ~isempty(points)
