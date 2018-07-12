@@ -192,8 +192,8 @@ classdef Mesh < SOFE
         case 3 % F(x,U,D)
           if ~iscell(S.U); S.U = {S.U}; end % nExnPxnC
           if ~iscell(S.dU); S.dU = {S.dU}; end % nExnPxnCxnD
-          sz = size(S.dU{1});
           for i = 1:numel(S.U)
+            sz = size(S.dU{i});
             S.U{i} = reshape(S.U{i}, [], sz(3));
             S.dU{i} = reshape(S.dU{i}, [], sz(3), sz(4));
           end
