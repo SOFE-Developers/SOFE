@@ -64,7 +64,7 @@ classdef FESpace < SOFE
       obj.shift = []; obj.narginShift = 0;
       if nargin > 2
         obj.fixB = varargin{1};
-        if nargin > 3
+        if nargin > 3 && ~isempty(varargin{2})
           obj.shift = varargin{2};
           obj.narginShift = nargin(obj.shift);
         end

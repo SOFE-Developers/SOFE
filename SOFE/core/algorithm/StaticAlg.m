@@ -22,4 +22,9 @@ classdef StaticAlg < Algorithm
       obj.output(['... solved (',num2str(toc(t)),' sec)'], 1);
     end
   end
+  methods
+    function R = getSolution(obj, i)
+      R = obj.solution(obj.pde.J(i,1):obj.pde.J(i,2));
+    end
+  end
 end
