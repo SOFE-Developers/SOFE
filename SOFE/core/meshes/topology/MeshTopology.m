@@ -9,6 +9,26 @@ classdef MeshTopology < SOFE
       obj.dimP = dimP;
     end
   end
+  methods(Static = true)
+    function R = create(nodes, elem, dimP)
+      switch size(elem, 2)
+        case 2
+          R = MeshTopologyInt(elem);
+        case 3
+%           elem = MeshTopologyTri.renumber(nodes, elem);
+          R = MeshTopologyTri(elem);
+        case 4
+          if dimP == 2
+           R = MeshTopologyQuad(elem);
+          else
+            elem = MeshTopologyTet.renumber(nodes, elem);
+            R = MeshTopologyTet(elem);
+          end
+        case 8
+          R = MeshTopologyHex(elem);
+      end
+    end
+  end
   methods % mesh information
     function R = getEntity(obj, dim, varargin) % [I]
       I = ':'; if nargin > 2, I = varargin{1}; end

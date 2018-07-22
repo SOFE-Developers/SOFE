@@ -20,6 +20,24 @@ classdef Element < SOFE
       R = (1:prod(nDoF))';
     end
   end
+  methods(Static = true)
+    function R = create(N, dimP)
+      switch N
+        case 2
+          R = PpL(1,1);
+        case 3
+          R = PpL(2,1);
+        case 4
+          if dimP == 2
+            R = QpL(2,1);
+          else
+            R = PpL(3,1);
+          end
+        case 8
+          R = QpL(3,1);
+      end
+    end
+  end
   methods % evaluation local
     function R = evalBasis(obj, points, order) %#ok<STOUT,INUSL>
       eval(['R = obj.evalD' num2str(order) 'Basis(points);']);

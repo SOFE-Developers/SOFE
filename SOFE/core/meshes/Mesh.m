@@ -8,12 +8,12 @@ classdef Mesh < SOFE
   end
   methods % constructor & globalsearcher
     function obj = Mesh(nodes, elem, varargin) % [dimP]
+      obj.dimW = size(nodes,2);
+      if isempty(varargin), dimP = size(nodes, 2); else dimP = varargin{1}; end
+      obj.nodes = nodes;
       if ~isempty(elem)
-        obj.dimW = size(nodes,2);
-        obj.nodes = nodes;
-        if nargin > 2, dimP = varargin{1}; else, dimP = size(nodes, 2); end
-        obj.element = obj.getShapeElement(size(elem,2), dimP);
-        obj.topology = obj.getTopology(nodes, elem, dimP);
+        obj.element = Element.create(size(elem,2), dimP);
+        obj.topology = MeshTopology.create(nodes, elem, dimP);
       end
     end
     function R = getGlobalSearcher(obj)
@@ -426,24 +426,6 @@ classdef Mesh < SOFE
     end
   end
   methods(Static = true)
-    function R = getTopology(nodes, elem, dimP)
-      switch size(elem, 2)
-        case 2
-          R = MeshTopologyInt(elem);
-        case 3
-%           elem = MeshTopologyTri.renumber(nodes, elem);
-          R = MeshTopologyTri(elem);
-        case 4
-          if dimP == 2
-           R = MeshTopologyQuad(elem);
-          else
-            elem = MeshTopologyTet.renumber(nodes, elem);
-            R = MeshTopologyTet(elem);
-          end
-        case 8
-          R = MeshTopologyHex(elem);
-      end
-    end
     function R = getShapeElement(N, dimP)
       switch N
         case 2
@@ -567,8 +549,6 @@ classdef Mesh < SOFE
       fprintf('show(obj, varargin) [type] \n');
       fprintf('\n');
       fprintf('[nodes, elem] = getTensorProductMesh(grid, varargin) [isTri] \n');
-      fprintf('R = getTopology(nodes, elem, dimP) \n');
-      fprintf('R = getShapeElement(N, dimP) \n');
       fprintf('');
     end
   end

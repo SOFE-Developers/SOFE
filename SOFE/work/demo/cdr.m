@@ -10,7 +10,7 @@ fes = FESpace(m, e, @(x) x(:,1) < Inf);
 % PDE
 p = CDR(data, fes);
 % ALGORITHM
-q = IterativeSolver(p, 'bicgstab', 'ilu');
+q = StaticAlg(p, IterativeSol('bicgstab', 'ilu'));
 q.compute();
 % VISUALIZE
 v = Visualizer.create(fes);
