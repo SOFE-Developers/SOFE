@@ -633,7 +633,7 @@ classdef FESpace < SOFE
     function R = getBoundaryDoFs(obj, varargin) % [loc]
       R = obj.extractDoFs(1, obj.mesh.isBoundary(varargin{:}));
     end
-    function [R,P] = getFreeDoFs(obj)
+    function R = getFreeDoFs(obj)
       if ~isempty(obj.freeDoFs)
         R = obj.freeDoFs;
       else
