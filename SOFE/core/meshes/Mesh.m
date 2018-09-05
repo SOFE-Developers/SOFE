@@ -9,7 +9,7 @@ classdef Mesh < SOFE
   methods % constructor & globalsearcher
     function obj = Mesh(nodes, elem, varargin) % [dimP]
       obj.dimW = size(nodes,2);
-      if isempty(varargin), dimP = size(nodes, 2); else dimP = varargin{1}; end
+      if isempty(varargin), dimP = size(nodes, 2); else, dimP = varargin{1}; end
       obj.nodes = nodes;
       if ~isempty(elem)
         obj.element = Element.create(size(elem,2), dimP);
