@@ -33,10 +33,10 @@ classdef Operator < SOFE
       if nargin > 3
         obj.loc = varargin{2};
       end
-      try
-        obj.matrix0 = obj.assembleRef();
-      catch
-      end
+%       try % deprecated
+%         obj.matrix0 = obj.assembleRef();
+%       catch
+%       end
     end
     function notify(obj, varargin) % [time, state, dState]
       if nargin < 2

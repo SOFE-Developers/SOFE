@@ -177,7 +177,11 @@ classdef Mesh < SOFE
   methods % evaluation
     function R = evalFunction(obj, F, points, S, varargin) % [I]
       I = ':'; if ~isempty(varargin), I = varargin{1}; end
-      P = obj.evalReferenceMap(points, 0, I); % nExnPxnW
+      if iscell(points)
+        P = points{1};
+      else
+        P = obj.evalReferenceMap(points, 0, I); % nExnPxnW
+      end
       [nE, nP, nD] = size(P);
       P = reshape(P, nE*nP, nD); % (nE*nP)xnW
       switch nargin(F)

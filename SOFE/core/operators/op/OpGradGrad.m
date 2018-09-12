@@ -10,7 +10,7 @@ classdef OpGradGrad < Operator % ( c*GRAD(U), GRAD(V) )
       gradBasisI = obj.fesTest.evalGlobalBasis([], 0, 1, {k});
       R = obj.integrate(true, gradBasisI, gradBasisJ, k);
     end
-    function R = assembleRef(obj)
+    function R = assembleRef_(obj) % deprecated
       [~, weights] = obj.fesTrial.getQuadData(obj.codim);
       [~,~,jac] = obj.fesTrial.evalTrafoInfo([], obj.codim, 1); % nExnP
       dX = bsxfun(@times, abs(jac), weights'); % nExnP
