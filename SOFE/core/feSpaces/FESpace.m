@@ -79,15 +79,11 @@ classdef FESpace < SOFE
     function resetCache(obj, varargin)
       nBlockMax = max(obj.nBlock);
       obj.cache.Phi = cell(nBlockMax, 1);
-      obj.cache.DPhi = cell(nBlockMax, 1);
-      obj.cache.D2Phi = cell(nBlockMax, 1);
       obj.cache.DPhiInv = cell(nBlockMax, 1);
       obj.cache.jac = cell(nBlockMax, 1);
       obj.cache.basis = cell(nBlockMax, 1);
       for k = 1:nBlockMax
-        obj.cache.Phi{k} = cell(obj.element.dimension+1,1);
-        obj.cache.DPhi{k} = cell(obj.element.dimension+1,1);
-        obj.cache.D2Phi{k} = cell(obj.element.dimension+1,1);
+        obj.cache.Phi{k} = cell(obj.element.dimension+1,3);
         obj.cache.DPhiInv{k} = cell(obj.element.dimension+1,1);
         obj.cache.jac{k} = cell(obj.element.dimension+1,1);
         obj.cache.basis{k} = cell(obj.element.dimension+1,3);
@@ -211,19 +207,16 @@ classdef FESpace < SOFE
       % SOFE Toolbox.
       % Copyright 2017, Dr. Lars Ludwig
       %--------------------------------
-      doCache = 0;
-      II = varargin{1};
-      if ~isempty(varargin) && iscell(varargin{1})
-        doCache =  obj.isCaching && isempty(points);
-        k = varargin{1};
-        II = obj.getBlock(codim, k{1});
-      end
-      if doCache && isempty(points)
-        points = {obj.evalReferenceMap(points, codim, 0, varargin{:})};
-      else
+      if isempty(points)
         points = obj.getQuadData(codim);
+      else
+        codim = obj.element.dimension-size(points,2);
+        points = {obj.evalReferenceMap(points, codim, 0, varargin{:})};
       end
-      R = obj.mesh.evalFunction(F, points, S, II);
+      if ~isempty(varargin) && iscell(varargin{1})
+        varargin{1} = obj.getBlock(codim, varargin{1}{1});
+      end
+      R = obj.mesh.evalFunction(F, points, S, varargin{:});
     end
     function R = evalReferenceMap(obj, points, codim, order, varargin) % [{k} or I]
       % R = evalReferenceMap(obj, points, codim, order [, idx])
@@ -260,28 +253,15 @@ classdef FESpace < SOFE
         varargin{1} = obj.getBlock(codim, k{1});
       end
       %
-      if doCache && (order==0) && ~isempty(obj.cache.Phi{k{1}}{codim+1})
-        R = obj.cache.Phi{k{1}}{codim+1};
-        return
-      end
-      if doCache && (order==1) && ~isempty(obj.cache.DPhi{k{1}}{codim+1})
-        R = obj.cache.D2Phi{k{1}}{codim+1};
-        return
-      end
-      if doCache && (order==2) && ~isempty(obj.cache.D2Phi{k{1}}{codim+1})
-        R = obj.cache.D2Phi{k{1}}{codim+1};
+      if doCache && ~isempty(obj.cache.Phi{k{1}}{codim+1,order+1})
+        R = obj.cache.Phi{k{1}}{codim+1,order+1};
         return
       end
       % ELSE
       R = obj.mesh.evalReferenceMap(forcedPoints, order, varargin{:});
-      if doCache && (order==0)
-          obj.cache.Phi{k{1}}{codim+1} = R;
-      end
-      if doCache && (order==1)
-          obj.cache.DPhi{k{1}}{codim+1} = R;
-      end
-      if doCache && (order==2)
-          obj.cache.D2Phi{k{1}}{codim+1} = R;
+      %
+      if doCache
+        obj.cache.Phi{k{1}}{codim+1,order+1} = R;
       end
     end
     function [R, invR, jacR] = evalTrafoInfo(obj, points, codim, varargin) % [{k} or I]
@@ -310,32 +290,31 @@ classdef FESpace < SOFE
       % SOFE Toolbox.
       % Copyright 2017, Dr. Lars Ludwig
       %--------------------------------
-      block = false;
-      if ~isempty(varargin) && iscell(varargin{1})
-        block = true; k = varargin{1};
+      if isempty(points)
+        forcedPoints = obj.getQuadData(codim);
+      else
+        forcedPoints = points;
+        codim = obj.element.dimension-size(points,2);
       end
-      doCache =  obj.isCaching && block && isempty(points);
+      doCache = 0;
+      if ~isempty(varargin) && iscell(varargin{1})
+        doCache =  obj.isCaching && isempty(points);
+        k = varargin{1};
+        varargin{1} = obj.getBlock(codim, k{1});
+      end
       %
-      if doCache && ~isempty(obj.cache.DPhi{k{1}}{codim+1})
-        R = obj.cache.DPhi{k{1}}{codim+1};
+      if doCache && ~isempty(obj.cache.Phi{k{1}}{codim+1,2})
+        R = obj.cache.Phi{k{1}}{codim+1,2};
         invR = obj.cache.DPhiInv{k{1}}{codim+1};
         jacR = obj.cache.jac{k{1}}{codim+1};
-      else
-        if ~isempty(points)
-          codim = obj.element.dimension-size(points,2);
-        end
-        if block
-          varargin{1} = obj.getBlock(codim, k{1});
-        end
-        if isempty(points)
-          points = obj.getQuadData(codim);
-        end
-        [R, invR, jacR] = obj.mesh.evalTrafoInfo(points, varargin{:});
-        if doCache
-          obj.cache.DPhi{k{1}}{codim+1} = R;
-          obj.cache.DPhiInv{k{1}}{codim+1} = invR;
-          obj.cache.jac{k{1}}{codim+1} = jacR;
-        end
+        return
+      end
+      % ELSE
+      [R, invR, jacR] = obj.mesh.evalTrafoInfo(forcedPoints, varargin{:});
+      if doCache
+        obj.cache.Phi{k{1}}{codim+1,2} = R;
+        obj.cache.DPhiInv{k{1}}{codim+1} = invR;
+        obj.cache.jac{k{1}}{codim+1} = jacR;
       end
     end
     function R = computeGlobalBasis(obj, points, codim, order, varargin) % [{k} or I]
@@ -493,18 +472,14 @@ classdef FESpace < SOFE
         [~,I] = sort(obj.getBlock(codim));
         R = R(I,:,:,:);
       else
-        block = false;
         if ~isempty(varargin)
+          II = varargin{1};
           if iscell(varargin{1})
-            block = true; k = varargin{1};
+            k = varargin{1};
+            II = obj.getBlock(codim, k{1});
           elseif isempty(varargin{1})
             R = []; return
           end
-        end
-        II = varargin{1};
-        if block
-          II = obj.getBlock(codim, k{1});
-          if isempty(varargin{1}), R = []; return; end
         end
         assert(codim==0 || order==0, '! Derivatives for traces not supported !');
         basis = obj.evalGlobalBasis(points, codim, order, varargin{:}); % [1/nE]xnB[xnP]xnCx[nD]
