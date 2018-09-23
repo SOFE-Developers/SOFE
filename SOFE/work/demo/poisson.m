@@ -10,7 +10,6 @@ data = struct('a',1,'f', @(x)sin(16*pi*prod(x,2)));
 p = Poisson(data, fes);
 % SOLVE
 q = StaticAlg(p, IterativeSol('bicgstab', 'ichol'));
-%q.setSolver(DirectSol());
 q.compute();
 % VISUALIZE
 v = Visualizer.create(fes);

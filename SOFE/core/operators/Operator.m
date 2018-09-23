@@ -10,10 +10,11 @@ classdef Operator < SOFE
   end
   methods % constructor
     function obj = Operator(data, fesTrial, varargin) % [fesTest loc]
-      if isnumeric(data) && numel(data)<4
-        data = @(x)data+zeros(size(x,1),numel(data)); 
+      if isnumeric(data) && size(data,1)==1
+        obj.dataCache = @(x)data+zeros(size(x,1),numel(data)); 
+      else
+        obj.dataCache = data;
       end
-      obj.dataCache = data;
       obj.data = data;
       obj.fesTrial = fesTrial;
       obj.fesTrial.register(obj);
@@ -33,10 +34,6 @@ classdef Operator < SOFE
       if nargin > 3
         obj.loc = varargin{2};
       end
-%       try % deprecated
-%         obj.matrix0 = obj.assembleRef();
-%       catch
-%       end
     end
     function notify(obj, varargin) % [time, state, dState]
       if nargin < 2
@@ -114,10 +111,14 @@ classdef Operator < SOFE
       [~,~,jac] = obj.fesTrial.evalTrafoInfo([], obj.codim, {k}); % nExnP
       if hasCoeff
         if isnumeric(obj.data)
-          coef = obj.fesTrial.evalDoFVector(obj.data, [], obj.codim, 0, {k}); % nExnPx(nD*nD)
+          if size(obj.data,1)==1
+            coef = permute(obj.data, [3 1 2]); % 1x1xnC
+          else
+            coef = obj.fesTrial.evalDoFVector(obj.data, [], obj.codim, 0, {k}); % nExnPxnC
+          end
         else
           try S = obj.observers{1}.evalState(k); catch, S = obj.state; end
-          coef = obj.fesTrial.evalFunction(obj.data, [], obj.codim, S, {k}); % nExnP
+          coef = obj.fesTrial.evalFunction(obj.data, [], obj.codim, S, {k}); % nExnPxnC
         end
       else
         coef = 1.0;

@@ -9,10 +9,11 @@ classdef Functional < SOFE
   end
   methods % constructor
     function obj = Functional(data, fes, codim, varargin) % [loc]
-      if isnumeric(data) && numel(data)<4
-        data = @(x)data+zeros(size(x,1),numel(data)); 
+      if isnumeric(data) && size(data,1)==1
+        obj.dataCache = @(x)data+zeros(size(x,1),numel(data)); 
+      else
+        obj.dataCache = data;
       end
-      obj.dataCache = data;
       obj.data = data;
       obj.fes = fes;
       obj.fes.register(obj);

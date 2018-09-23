@@ -15,7 +15,7 @@ q.compute();
 v = Visualizer.create(fes);
 figure(1), clf
 for k = 1:nNonLin
-  v.show(q.history{k}, 'g', opt); view(3); axis normal
+  v.show(q.history{k}, 'g'); view(3); axis normal
   title(sprintf('Iteration: %d / %d', k, nNonLin));
   drawnow
 end

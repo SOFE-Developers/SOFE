@@ -66,7 +66,11 @@ classdef FESpace < SOFE
         obj.fixB = varargin{1};
         if nargin > 3 && ~isempty(varargin{2})
           obj.shift = varargin{2};
-          obj.narginShift = nargin(obj.shift);
+          try
+            obj.narginShift = nargin(obj.shift);
+          catch
+            obj.narginShift = 0; % scalar shift
+          end
         end
       end
     end
@@ -95,7 +99,7 @@ classdef FESpace < SOFE
     end
     function setBlockingGlobal(obj, N)
       obj.nBlockGlobal = N;
-      obj.setBlocking();
+      obj.resetCache();
     end
     function setBlocking(obj)
       if ~isempty(obj.nBlockGlobal)
@@ -211,11 +215,8 @@ classdef FESpace < SOFE
         points = obj.getQuadData(codim);
       else
         codim = obj.element.dimension-size(points,2);
-        points = {obj.evalReferenceMap(points, codim, 0, varargin{:})};
       end
-      if ~isempty(varargin) && iscell(varargin{1})
-        varargin{1} = obj.getBlock(codim, varargin{1}{1});
-      end
+      points = {obj.evalReferenceMap(points, codim, 0, varargin{:})};
       R = obj.mesh.evalFunction(F, points, S, varargin{:});
     end
     function R = evalReferenceMap(obj, points, codim, order, varargin) % [{k} or I]
@@ -257,9 +258,7 @@ classdef FESpace < SOFE
         R = obj.cache.Phi{k{1}}{codim+1,order+1};
         return
       end
-      % ELSE
       R = obj.mesh.evalReferenceMap(forcedPoints, order, varargin{:});
-      %
       if doCache
         obj.cache.Phi{k{1}}{codim+1,order+1} = R;
       end
@@ -304,12 +303,11 @@ classdef FESpace < SOFE
       end
       %
       if doCache && ~isempty(obj.cache.Phi{k{1}}{codim+1,2})
-        R = obj.cache.Phi{k{1}}{codim+1,2};
+        R = obj.cache.Phi{k{1}}{codim+1,1+1};
         invR = obj.cache.DPhiInv{k{1}}{codim+1};
         jacR = obj.cache.jac{k{1}}{codim+1};
         return
       end
-      % ELSE
       [R, invR, jacR] = obj.mesh.evalTrafoInfo(forcedPoints, varargin{:});
       if doCache
         obj.cache.Phi{k{1}}{codim+1,2} = R;
@@ -402,28 +400,30 @@ classdef FESpace < SOFE
       end      
       if doCache && ~isempty(obj.cache.basis{k{1}}{codim+1, order+1})
         R = obj.cache.basis{k{1}}{codim+1, order+1};
+        return
+      end
+      if ~isempty(points)
+        codim = obj.element.dimension-size(points,2);
+      end
+      if isempty(varargin) || (~isempty(varargin) && ischar(varargin{1}) && strcmp(varargin,':'))
+        assert(false, 'TODO: Never happens ... prepare for deletion & unify computeGlobalBasis with evalGlobalBasis');
+        keyboard
+        nBl = obj.nBlock(codim+1); R = cell(nBl,1);
+        for k = 1:nBl
+          R{k} = obj.evalGlobalBasis(points, codim, order, {k});
+        end
+        try
+          R = cell2mat(R);
+        catch
+          R = padcell2mat(R);
+        end
+        [~,I] = sort(obj.getBlock(codim));
+        R = R(I,:,:,:,:);
       else
-        if ~isempty(points)
-          codim = obj.element.dimension-size(points,2);
-        end
-        if nargin < 5 || (nargin == 5 && ischar(varargin{1}) && strcmp(varargin,':'))
-          nBl = obj.nBlock(codim+1); R = cell(nBl,1);
-          for k = 1:nBl
-            R{k} = obj.evalGlobalBasis(points, codim, order, {k});
-          end
-          try
-            R = cell2mat(R);
-          catch
-            R = padcell2mat(R);
-          end
-          [~,I] = sort(obj.getBlock(codim));
-          R = R(I,:,:,:,:);
-        else
-          R = obj.computeGlobalBasis(points, codim, order, varargin{:});
-        end
-        if doCache
-          obj.cache.basis{k{1}}{codim+1, order+1} = R;
-        end
+        R = obj.computeGlobalBasis(points, codim, order, varargin{:});
+      end
+      if doCache
+        obj.cache.basis{k{1}}{codim+1, order+1} = R;
       end
     end
     function R = evalDoFVector(obj, U, points, codim, order, varargin) % [{k} or I]
@@ -610,7 +610,7 @@ classdef FESpace < SOFE
     function R = getShift(obj, varargin) % [time]
       R = zeros(obj.getNDoF,1);
       if ~isempty(obj.shift)
-        if nargin(obj.shift) > 1
+        if obj.narginShift > 1
           if nargin > 1
             func = @(x)obj.shift(x, varargin{1});
           else
@@ -649,7 +649,11 @@ classdef FESpace < SOFE
       else
         basis = obj.evalGlobalBasis([], codim, 0, varargin{:}); % nExnBxnPxnC
         if isempty(basis), R = []; return; end
-        F = permute(obj.evalFunction(f, [], codim, [], varargin{:}), [1 4 2 3]); % nEx1xnPxnC
+        if isnumeric(f)
+          F = permute(f, [3 4 1 2]); % 1x1x1xnC
+        else
+          F = permute(obj.evalFunction(f, [], codim, [], varargin{:}), [1 4 2 3]); % nEx1xnPxnC
+        end
         [~,~,jac] = obj.evalTrafoInfo([], codim, varargin{:}); % nExnP
         [~, weights] = obj.getQuadData(codim); % nPx1
         dX = bsxfun(@times, abs(jac), weights'); % nExnP

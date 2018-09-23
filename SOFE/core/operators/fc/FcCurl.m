@@ -8,10 +8,14 @@ classdef FcCurl < Functional % ( F, curl(V) )
     function R = assembleOp(obj, k)
       [points, weights] = obj.fes.getQuadData(obj.codim); % nPx1
       if isnumeric(obj.data)
-        R = obj.fes.evalDoFVector(obj.data, [], obj.codim, 0, {k}); % nExnPx(nD*nD)
+        if size(obj.data,1)==1
+          R = permute(obj.data, [3 1 2]); % 1x1xnC
+        else
+          R = obj.fes.evalDoFVector(obj.data, [], obj.codim, 0, {k}); % nExnPxnC
+        end
       else
         try, S = obj.observers{1}.evalState(k); catch, S = obj.state; end
-        R = obj.fes.evalFunction(obj.data, [], obj.codim, S, {k}); % nExnP
+        R = obj.fes.evalFunction(obj.data, [], obj.codim, S, {k}); % nExnPxnC
       end
       if ~isempty(points)
         basis = obj.fes.evalGlobalBasis([], obj.codim, 1, {k}); % nExnBxnPxnCxnD
