@@ -33,7 +33,13 @@ classdef IterativeSol < Solver
       end
       b = b(I); %#ok<*NASGU>
       R = zeros(size(shift));
-      R(J) = eval([obj.type '(A, b, obj.tol, obj.maxit, M1, M2);']);
+      switch obj.type
+        case 'gmres'
+          nR = 40;
+          R(J) = eval([obj.type '(A, b,' num2str(nR) ', obj.tol, obj.maxit, M1, M2);']);
+        otherwise
+          R(J) = eval([obj.type '(A, b, obj.tol, obj.maxit, M1, M2);']);
+      end
       R = shift + R;
     end
   end

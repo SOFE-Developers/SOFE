@@ -1,5 +1,5 @@
 % PARAMETERS
-dim = 2; N = 50; order = 1; isTri = 1;
+dim = 2; N = 1024; order = 1; isTri = 0;
 % MESH
 m = RegularMesh(N*ones(dim,1), repmat([0 1],dim,1), isTri);
 % FESPACE
