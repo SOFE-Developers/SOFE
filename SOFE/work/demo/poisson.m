@@ -1,5 +1,5 @@
 % PARAMETERS
-dim = 2; N = 1024; order = 1; isTri = 0;
+dim = 2; N = 64; order = 4; isTri = 0;
 % MESH
 m = RegularMesh(N*ones(dim,1), repmat([0 1],dim,1), isTri);
 % FESPACE
@@ -9,7 +9,8 @@ fes = FESpace(m, e, @(x) x(:,1) < Inf);
 data = struct('a',1,'f', @(x)sin(16*pi*prod(x,2)));
 p = Poisson(data, fes);
 % SOLVE
-q = StaticAlg(p, IterativeSol('bicgstab', 'ichol'));
+%q = StaticAlg(p, IterativeSol('bicgstab', 'ilu'));
+q = StaticAlg(p, DirectSol());
 q.compute();
 % VISUALIZE
 v = Visualizer.create(fes);

@@ -150,12 +150,6 @@ classdef MeshTopologyHex < MeshTopology
     end
   end
   methods(Static = true)
-    function R = getQuadRule(order)
-      R{4} = GaussPoint();
-      R{3} = GaussInt(order);
-      R{2} = GaussQuad(order);
-      R{1} = GaussHex(order);
-    end
     function R = isFeasible(points, varargin) % [tol
       if ~isempty(varargin), tol = varargin{1}; else, tol = 1e-12; end
       R = (points(:,1)>-tol & points(:,1)<1+tol & ...

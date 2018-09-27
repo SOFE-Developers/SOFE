@@ -102,11 +102,6 @@ classdef MeshTopologyTri < MeshTopology
     function R = getCenterLoc()
       R = [1 1]/3;
     end
-    function R = getQuadRule(quadOrder)
-      R{3} = GaussPoint();
-      R{2} = GaussInt(quadOrder);
-      R{1} = GaussTri(quadOrder);
-    end
     function R = upliftPoints(points, fLoc, orient)
       % complies standard orientation
       zz = zeros(size(points));

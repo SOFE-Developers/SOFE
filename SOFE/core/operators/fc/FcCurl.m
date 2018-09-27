@@ -6,18 +6,8 @@ classdef FcCurl < Functional % ( F, curl(V) )
   end
   methods
     function R = assembleOp(obj, k)
-      [points, weights] = obj.fes.getQuadData(obj.codim); % nPx1
-      if isnumeric(obj.data)
-        if size(obj.data,1)==1
-          R = permute(obj.data, [3 1 2]); % 1x1xnC
-        else
-          R = obj.fes.evalDoFVector(obj.data, [], obj.codim, 0, {k}); % nExnPxnC
-        end
-      else
-        try, S = obj.observers{1}.evalState(k); catch, S = obj.state; end
-        R = obj.fes.evalFunction(obj.data, [], obj.codim, S, {k}); % nExnPxnC
-      end
-      if ~isempty(points)
+      curlBasis = [];
+      if obj.codim  <  obj.fes.element.dimension
         basis = obj.fes.evalGlobalBasis([], obj.codim, 1, {k}); % nExnBxnPxnCxnD
         if obj.fes.element.dimension == 2
           curlBasis = basis(:,:,:,2,1) - basis(:,:,:,1,2);
@@ -26,12 +16,8 @@ classdef FcCurl < Functional % ( F, curl(V) )
           curlBasis(:,:,:,2) = basis(:,:,:,1,3) - basis(:,:,:,3,1); % nExnBxnP
           curlBasis(:,:,:,1) = basis(:,:,:,3,2) - basis(:,:,:,2,3); % nExnBxnP
         end
-        %
-        [~,~,jac] = obj.fes.evalTrafoInfo([], obj.codim, {k}); % nExnP
-        dX = bsxfun(@times, abs(jac), weights'); % nExnP
-        R = sum(bsxfun(@times, permute(R, [1 4 2 3]), curlBasis), 4); % nExnBxnP
-        R = sum(bsxfun(@times, R, permute(dX, [1 3 2])), 3); % nExnB
       end
+      R = integrate(obj, curlBasis, k);
     end
   end
 end

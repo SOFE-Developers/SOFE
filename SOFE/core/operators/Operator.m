@@ -1,10 +1,9 @@
 classdef Operator < SOFE
   properties
-    codim = 0;
+    codim
     data, dataCache
     fesTrial, fesTest
     matrix
-    matrix0
     loc, idx
     state
   end
@@ -15,6 +14,7 @@ classdef Operator < SOFE
       else
         obj.dataCache = data;
       end
+      obj.codim = 0;
       obj.data = data;
       obj.fesTrial = fesTrial;
       obj.fesTrial.register(obj);
@@ -22,10 +22,10 @@ classdef Operator < SOFE
         obj.fesTest = varargin{1};
         obj.fesTest.register(obj);
         % sync quadRules
-        if obj.fesTrial.quadRule{1}.order > obj.fesTest.quadRule{1}.order
-          obj.fesTest.setQuadRule(obj.fesTrial.quadRule);
+        if obj.fesTrial.element.quadRule{1}.order > obj.fesTest.element.quadRule{1}.order
+          obj.fesTest.element.quadRule = obj.fesTrial.element.quadRule;
         else
-          obj.fesTrial.setQuadRule(obj.fesTest.quadRule);
+          obj.fesTrial.element.quadRule = obj.fesTest.element.quadRule;
         end
       else
         obj.fesTest = fesTrial;
@@ -68,9 +68,8 @@ classdef Operator < SOFE
       end
     end
   end
-  methods % assemble % apply
+  methods % assemble, integrate & apply
     function assemble(obj)
-      % single sparse assembly
       if ~isempty(obj.matrix), return, end
       M = obj.fesTest.getNDoF(); N = obj.fesTrial.getNDoF();
       obj.matrix = sparse(M, N);
@@ -107,7 +106,7 @@ classdef Operator < SOFE
       if k>1, fprintf('\n'); end
     end
     function R = integrate(obj, hasCoeff, basisI, basisJ, k)
-      [~, weights] = obj.fesTrial.getQuadData(obj.codim);
+      [~, weights] = obj.fesTrial.element.getQuadData(obj.codim);
       [~,~,jac] = obj.fesTrial.evalTrafoInfo([], obj.codim, {k}); % nExnP
       if hasCoeff
         if isnumeric(obj.data)
@@ -141,7 +140,7 @@ classdef Operator < SOFE
     end
     function R = apply(obj, x)
       R = obj.matrix*x; return
-      % assemble on the fly
+      % assemble on the fly (matrix0 one element stiffmat of mesh)
       dm = obj.fesTrial.getDoFMap(0); %#ok<UNRCH>
       R = accumarray(dm(:),reshape(obj.matrix0*x(dm),[],1));
     end

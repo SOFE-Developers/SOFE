@@ -10,7 +10,7 @@ classdef OpIdId < Operator % ( c*U, V )
   end
   methods
     function R = assembleOp(obj, k)
-      points = obj.fesTrial.getQuadData(obj.codim);
+      points = obj.fesTrial.element.getQuadData(obj.codim);
       if isempty(points) % 1D special case
         I = obj.fesTrial.getBlock(1,k);
         try S = obj.observers{1}.evalState(k); catch, S = []; end

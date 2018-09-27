@@ -6,6 +6,7 @@ classdef Element < SOFE
     doFTuple
     conformity
     isLagrange
+    quadRule
   end
   methods % constructor
     function obj = Element(dimension, nV, nB, order)
@@ -13,16 +14,48 @@ classdef Element < SOFE
       obj.nV = nV;
       obj.nB = nB;
       obj.order = order;
+      obj.quadRule = obj.getQuadRule();
     end
     function R = getDoFEnum(obj, dim, varargin) % [orient]
       if size(obj.doFTuple,1) == 1, obj.doFTuple(2,:) = 1; end
-      nDoF = obj.doFTuple(:,dim+1);
-      R = (1:prod(nDoF))';
+      R = (1:prod(obj.doFTuple(:,dim+1)))';
+    end
+    function R = getQuadRule(obj, r)
+      try r = varargin{:}; catch, r = max(2*(obj.order),1); end
+      switch obj.nV(obj.dimension)
+        case 2
+          R{2} = GaussPoint();
+          R{1} = GaussInt(r);
+        case 3
+          R{3} = GaussPoint();
+          R{2} = GaussInt(r);
+          R{1} = GaussTri(r);
+        case 4
+          if obj.dimension == 2
+            R{3} = GaussPoint();
+            R{2} = GaussInt(r);
+            R{1} = GaussQuad(r);
+          else
+            R{4} = GaussPoint();
+            R{3} = GaussInt(r);
+            R{2} = GaussTri(r);
+            R{1} = GaussTet(r);
+          end
+        case 8
+          R{4} = GaussPoint();
+          R{3} = GaussInt(r);
+          R{2} = GaussQuad(r);
+          R{1} = GaussHex(r);
+      end
+    end
+    function [Rp, Rw] = getQuadData(obj, codim)
+      Rp = obj.quadRule{codim+1}.points;
+      Rw = obj.quadRule{codim+1}.weights;
     end
   end
   methods(Static = true)
-    function R = create(N, dimP)
-      switch N
+    function R = create(nV, dimP)
+      switch nV
         case 2
           R = PpL(1,1);
         case 3

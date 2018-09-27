@@ -16,30 +16,28 @@ classdef FESpace < SOFE
 %   ----------
 %     mesh 
 %     element
-%     quadRule
 %     fixB
 %     shift
 %     freeDoFs
 % 
 %   public methods
 %   --------------
-%     setQuadRule / getQuadRule
 %     evalFunction / evalReferenceMap / evalTrafoInfo
 %     evalGlobalBasis / evalDoFVector
 %     getDoFMap / getNDoF / extractDoFs / getBoundaryDoFs / getFreeDoFs
 %     getL2Projection / getInterpolation
 %     evalJumpResidual
 %
-%     See also meshes/Mesh, elements/Element, quadrature/QuadRule.
+%     See also meshes/Mesh, elements/Element
 %
 % SOFE Toolbox.
 % Copyright 2018, Dr. Lars Ludwig
   properties
     mesh 
     element
-    quadRule
     fixB
-    shift, narginShift
+    shift
+    narginShift
     freeDoFs
     cache
     isCaching = false;
@@ -55,11 +53,9 @@ classdef FESpace < SOFE
         end
       catch
       end
-      obj.mesh = mesh;
       obj.element = element;
-      obj.quadRule = obj.mesh.topology.getQuadRule(max(2*(obj.element.order),1));
+      obj.mesh = mesh; obj.mesh.register(obj);
       obj.setBlocking();
-      obj.mesh.register(obj);
       obj.fixB = @(x)false(size(x,1),1);
       obj.shift = []; obj.narginShift = 0;
       if nargin > 2
@@ -76,7 +72,6 @@ classdef FESpace < SOFE
     end
     function setElement(obj, element)
       obj.element = element;
-      obj.quadRule = obj.mesh.topology.getQuadRule(max(2*(obj.element.order),1));
       obj.resetCache();
       obj.notifyObservers();
     end
@@ -92,7 +87,7 @@ classdef FESpace < SOFE
         obj.cache.jac{k} = cell(obj.element.dimension+1,1);
         obj.cache.basis{k} = cell(obj.element.dimension+1,3);
       end
-      if nargin < 2
+      if isempty(varargin)
         obj.cache.dM = [];
         obj.freeDoFs = [];
       end
@@ -106,11 +101,11 @@ classdef FESpace < SOFE
         obj.nBlock = obj.nBlockGlobal;
       else
         nC = obj.element.getNC(); nD = obj.element.dimension;
-        nB = obj.element.nB(end); nQ = numel(obj.quadRule{1}.weights);
+        nB = obj.element.nB(end); nQ = numel(obj.element.quadRule{1}.weights);
         elPerBlock = SOFE.getElementsPerBlock(nB, nQ, nC, nD);
         obj.nBlock = ceil(obj.mesh.topology.getNumber(nD)/elPerBlock);
         if obj.mesh.topology.dimP > 1
-          nB = obj.element.nB(end-1); nQ = numel(obj.quadRule{2}.weights);
+          nB = obj.element.nB(end-1); nQ = numel(obj.element.quadRule{2}.weights);
           elPerBlock = SOFE.getElementsPerBlock(nB, nQ, nC, nD);
           obj.nBlock(2) = ceil(obj.mesh.topology.getNumber(nD-1)/elPerBlock);
         else
@@ -138,48 +133,6 @@ classdef FESpace < SOFE
       obj.setBlocking();
       obj.resetCache();
       obj.notifyObservers();
-    end
-  end
-  methods % quadrature.
-    function setQuadRule(obj, quadRule)
-      % setQuadRule(obj, quadRule)
-      %   sets the quadrature rule
-      %
-      % Input
-      % -----
-      % quadRule
-      %   (sub)class of type QuadRule
-      %
-      %--------------------------------
-      % SOFE Toolbox.
-      % Copyright 2017, Dr. Lars Ludwig
-      %--------------------------------
-      obj.quadRule = quadRule;
-      obj.resetCache('Do not reset DoFMaps');
-      obj.notifyObservers();
-    end
-    function [Rp, Rw] = getQuadData(obj, codim)
-      % [Rp, Rw] = getQuadData(obj, codim)
-      %   returns quadrature points and weights
-      %
-      % Input
-      % -----
-      % codim
-      %   codimension of quadrature rule
-      %
-      % Output
-      % ------
-      % Rp
-      %   quadrature points
-      % Rw
-      %   quadrature weights
-      %
-      %--------------------------------
-      % SOFE Toolbox.
-      % Copyright 2017, Dr. Lars Ludwig
-      %--------------------------------
-      Rp = obj.quadRule{codim+1}.points;
-      Rw = obj.quadRule{codim+1}.weights;
     end
   end
   methods % evaluation.
@@ -212,7 +165,7 @@ classdef FESpace < SOFE
       % Copyright 2017, Dr. Lars Ludwig
       %--------------------------------
       if isempty(points)
-        points = obj.getQuadData(codim);
+        points = obj.element.getQuadData(codim);
       else
         codim = obj.element.dimension-size(points,2);
       end
@@ -242,7 +195,7 @@ classdef FESpace < SOFE
       % Copyright 2017, Dr. Lars Ludwig
       %--------------------------------
       if isempty(points)
-        forcedPoints = obj.getQuadData(codim);
+        forcedPoints = obj.element.getQuadData(codim);
       else
         forcedPoints = points;
         codim = obj.element.dimension-size(points,2);
@@ -290,7 +243,7 @@ classdef FESpace < SOFE
       % Copyright 2017, Dr. Lars Ludwig
       %--------------------------------
       if isempty(points)
-        forcedPoints = obj.getQuadData(codim);
+        forcedPoints = obj.element.getQuadData(codim);
       else
         forcedPoints = points;
         codim = obj.element.dimension-size(points,2);
@@ -322,7 +275,7 @@ classdef FESpace < SOFE
         pVec{2} = [2 3 1]; pVec{1} = [4 5 1 2 3];
       else
         if isempty(points)
-          forcedPoints = obj.getQuadData(codim);
+          forcedPoints = obj.element.getQuadData(codim);
         else
           forcedPoints = points;
           codim = obj.element.dimension-size(points,2);
@@ -655,7 +608,7 @@ classdef FESpace < SOFE
           F = permute(obj.evalFunction(f, [], codim, [], varargin{:}), [1 4 2 3]); % nEx1xnPxnC
         end
         [~,~,jac] = obj.evalTrafoInfo([], codim, varargin{:}); % nExnP
-        [~, weights] = obj.getQuadData(codim); % nPx1
+        [~, weights] = obj.element.getQuadData(codim); % nPx1
         dX = bsxfun(@times, abs(jac), weights'); % nExnP
         lhs = sum(bsxfun(@times, permute(basis,[1 2 5 3 4]), ...
                                  permute(basis,[1 5 2 3 4])), 5); % nExnBxnBxnP
