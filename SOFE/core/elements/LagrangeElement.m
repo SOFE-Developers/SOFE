@@ -19,7 +19,7 @@ classdef LagrangeElement < Element
       R = reshape((1:prod(nDoF))', [], nDoF(1));
       switch dim
         case 1
-          if obj.dimension > 1 && nargin > 2 && varargin{1} < 0
+          if obj.dimension > 1 && ~isempty(varargin) && varargin{1} < 0
             R = (-1)^strcmp(obj.conformity, 'HRot')*R(:,end:-1:1);
           end
         case 2

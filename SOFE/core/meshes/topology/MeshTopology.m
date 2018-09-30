@@ -35,9 +35,17 @@ classdef MeshTopology < SOFE
       if ischar(dim), dim  = obj.dimP - str2double(dim); end % dim to codim
       R = obj.connectivity{dim+1}(I,:);
     end
-    function R = getNumber(obj, dim)
-      if ischar(dim), dim  = obj.dimP - str2double(dim); end % dim to codim
-      R = numel(obj.connectivity{dim+1, dim+1});
+    function R = getNumber(obj, varargin) % [dim]
+      if isempty(varargin)
+        R = zeros(obj.dimP+1,1);
+        for d = 1:numel(R)
+          R(d) = numel(obj.connectivity{d, d});
+        end
+      else
+        dim = varargin{1};
+        if ischar(dim), dim  = obj.dimP - str2double(dim); end % dim to codim
+        R = numel(obj.connectivity{dim+1, dim+1});
+      end
     end
     function R = isBoundary(obj)
       e2F = obj.getElem2Face(); % nExnF

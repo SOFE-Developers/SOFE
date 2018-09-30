@@ -52,6 +52,26 @@ classdef Element < SOFE
       Rp = obj.quadRule{codim+1}.points;
       Rw = obj.quadRule{codim+1}.weights;
     end
+    function R = getNEntSub(obj, dim, d)
+      % number of sub-entities
+      switch dim
+        case 1
+          R = [2 1];
+        case 2
+          if obj.isSimplex
+            R = [3 3 1];
+          else
+            R = [4 4 1];
+          end
+        case 3
+          if obj.isSimplex
+            R = [4 6 4 1];
+          else
+            R = [8 12 6 1];
+          end
+      end
+      R = R(d+1);
+    end
   end
   methods(Static = true)
     function R = create(nV, dimP)

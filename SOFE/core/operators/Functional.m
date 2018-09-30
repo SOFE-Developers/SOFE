@@ -70,7 +70,7 @@ classdef Functional < SOFE
         e = []; r = [];
         if ~isempty(I)
           e = obj.assembleOp(k);
-          r = abs(obj.fes.getDoFMap(obj.codim, I))';
+          r = abs(obj.fes.getDoFMap(obj.codim, {k}))';
           if ~ischar(obj.idx)
             e = e(obj.idx(I),:); r = r(obj.idx(I),:);
           end

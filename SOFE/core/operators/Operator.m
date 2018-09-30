@@ -80,8 +80,8 @@ classdef Operator < SOFE
         I = obj.fesTrial.getBlock(obj.codim, k);
         if ~isempty(I)
           e = obj.assembleOp(k); % nExnBxnB
-          r = obj.fesTest.getDoFMap(obj.codim, I); % nBxnE
-          c = obj.fesTrial.getDoFMap(obj.codim, I); % nBxnE
+          r = obj.fesTest.getDoFMap(obj.codim, {k}); % nBxnE
+          c = obj.fesTrial.getDoFMap(obj.codim, {k}); % nBxnE
           r = repmat(abs(r)',[1 1 size(c,1)]); % nExnBxnB
           c = permute(repmat(abs(c)',[1 1 size(r,2)]), [1 3 2]); % nExnBxnB
           if ~ischar(obj.idx)
