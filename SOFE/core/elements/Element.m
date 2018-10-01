@@ -20,8 +20,8 @@ classdef Element < SOFE
       if size(obj.doFTuple,1) == 1, obj.doFTuple(2,:) = 1; end
       R = (1:prod(obj.doFTuple(:,dim+1)))';
     end
-    function R = getQuadRule(obj, r)
-      try r = varargin{:}; catch, r = max(2*(obj.order),1); end
+    function R = getQuadRule(obj, varargin) % [order]
+      try r = varargin{:}; catch, r = max(max(2*(obj.order)),1); end
       switch obj.nV(obj.dimension)
         case 2
           R{2} = GaussPoint();
@@ -52,9 +52,11 @@ classdef Element < SOFE
       Rp = obj.quadRule{codim+1}.points;
       Rw = obj.quadRule{codim+1}.weights;
     end
-    function R = getNEntSub(obj, dim, d)
+    function R = getNEntSub(obj, dim)
       % number of sub-entities
       switch dim
+        case 0
+          R = 1;
         case 1
           R = [2 1];
         case 2
@@ -70,7 +72,6 @@ classdef Element < SOFE
             R = [8 12 6 1];
           end
       end
-      R = R(d+1);
     end
   end
   methods(Static = true)

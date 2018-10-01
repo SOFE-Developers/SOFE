@@ -13,7 +13,7 @@ classdef QpL < LagrangeElement
       end
       obj.conformity = 'H1';
     end
-    function [R, data] = evalFunctionals(obj, dim)
+    function R = evalFunctionals(obj, dim)
       points = obj.getLagrangePoints(dim, obj.order);
       R = obj.source.evalBasis(points, 0); % nBxnP
     end

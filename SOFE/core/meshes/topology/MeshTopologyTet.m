@@ -46,13 +46,13 @@ classdef MeshTopologyTet < MeshTopology
       I = orientF(ind)<0;
       R(I,:) = R(I, [3 2 1]);
     end
-    function R = getOrientation(obj, dim1, dim2, varargin)
+    function R = getOrientation(obj, dim, d, varargin) % [I]
       R = [];
-      switch dim2
+      switch d
         case 1
-          switch dim1
+          switch dim
             case 3
-              e = obj.getEntity(3);
+              e = obj.getEntity(3, varargin{:});
               R = ones(size(e,1), 6);
               R(e(:,1)>e(:,2),1) = -1;
               R(e(:,2)>e(:,3),2) = -1;
@@ -60,15 +60,13 @@ classdef MeshTopologyTet < MeshTopology
               R(e(:,1)>e(:,4),4) = -1;
               R(e(:,2)>e(:,4),5) = -1;
               R(e(:,3)>e(:,4),6) = -1;
-            case 2
-              R = ones(obj.getNumber(2), 3);
             otherwise
               return
           end
         case 2
-          switch dim1
+          switch dim
             case 3
-              e = obj.getEntity(3);
+              e = obj.getEntity(3, varargin{:});
               face = [1 2 3; 1 2 4; 2 3 4; 1 3 4];
               R = zeros(size(e,1),4);
               for i = 1:4
@@ -85,12 +83,9 @@ classdef MeshTopologyTet < MeshTopology
         otherwise
           return
       end
-      if nargin > 3
-        R = R(varargin{1},:,:);
-      end
     end
-    function R = getNormalOrientation(obj)
-      R = sign(obj.getOrientation(3, 2)); % nEx4
+    function R = getNormalOrientation(obj, varargin) % [I]
+      R = sign(obj.getOrientation(3, 2, varargin{:})); % nEx4
       R(:,[1 4]) = -R(:,[1 4]);
     end
   end

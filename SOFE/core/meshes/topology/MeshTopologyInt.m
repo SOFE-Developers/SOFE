@@ -11,6 +11,11 @@ classdef MeshTopologyInt < MeshTopology
       obj.connectivity{2,2} = (1:size(obj.connectivity{2,1},1))';
     end
   end
+  methods % connectivity information
+    function R = getOrientation(obj, dim, d, varargin) %#ok<INUSD> % [I]
+      R = [];
+    end
+  end
   methods % refinement
     function P = uniformRefine(obj)
       el = obj.getEntity(1);

@@ -1,9 +1,9 @@
 % PARAMETERS
-dim = 3; N = 3; M = [5 ones(1,dim-1)]'; order = 2; isTri = 0;
+dim = 3; N = 3; M = [5 ones(1,dim-1)]'; order = 2; isTri = 1;
 % MESH
 m = RegularMesh(M*(N+1), [zeros(dim,1) M], isTri);
 % FESPACE
-if isTri, e = PpL(dim, order); else e = QpL(dim, order); end
+if isTri==1, e = PpL(dim, order); else, e = QpL(dim, order); end
 fes = FESpace(m, TPElem(e), @(x)x(:,1)==0, [0 0 0]);
 % PDE
 p = LinElast(struct('nu', 0.33,'E', 1e3, 'f', [zeros(1,dim-1) -1]), fes);

@@ -64,13 +64,13 @@ classdef MeshTopologyHex < MeshTopology
         end
       end
     end
-    function R = getOrientation(obj, dim1, dim2)
+    function R = getOrientation(obj, dim, d, varargin) % [I]
       R = [];
-      switch dim2
+      switch d
         case 1
-          switch dim1
+          switch dim
             case 3
-              e = obj.getEntity(3);   
+              e = obj.getEntity(3, varargin{:});   
               R = ones(size(e,1), 12);
               R(e(:,1)>e(:,2),1) = -1;
               R(e(:,3)>e(:,4),2) = -1;
@@ -85,46 +85,55 @@ classdef MeshTopologyHex < MeshTopology
               R(e(:,3)>e(:,7),11) = -1;
               R(e(:,4)>e(:,8),12) = -1;
             case 2
-              e = obj.getEntity(2);  
+              e = obj.getEntity(2, varargin{:});  
               R = ones(size(e));
               R(e(:,1)>e(:,2),1) = -1;
               R(e(:,3)>e(:,4),2) = -1;
               R(e(:,1)>e(:,3),3) = -1;
               R(e(:,2)>e(:,4),4) = -1;
+            otherwise
+              return
           end
         case 2
-          R = ones(3, obj.getNumber(3), 6); % ! three orient flags
-          e = obj.getEntity(3); 
-          face = [1 2 3 4;
-                  5 6 7 8;
-                  1 3 5 7;
-                  2 4 6 8;
-                  1 2 5 6;
-                  3 4 7 8];
-          for i = 1:6
-            [~, minVx] = min(e(:,face(i,:)),[],2);
-            I1p = (minVx == 1) & (e(:,face(i,2)) < e(:,face(i,3)));
-            I1n = (minVx == 1) & (e(:,face(i,2)) > e(:,face(i,3)));
-            I2n = (minVx == 2) & (e(:,face(i,1)) < e(:,face(i,4)));
-            I2p = (minVx == 2) & (e(:,face(i,1)) > e(:,face(i,4)));
-            I3p = (minVx == 3) & (e(:,face(i,1)) < e(:,face(i,4)));
-            I3n = (minVx == 3) & (e(:,face(i,1)) > e(:,face(i,4)));
-            I4n = (minVx == 4) & (e(:,face(i,2)) < e(:,face(i,3)));
-            I4p = (minVx == 4) & (e(:,face(i,2)) > e(:,face(i,3)));
-            R(:,I1p,i) = repmat([1 1 1]',   1, sum(I1p));
-            R(:,I1n,i) = repmat([1 1 -1]',  1, sum(I1n));
-            R(:,I2n,i) = repmat([-1 1 1]',  1, sum(I2n));
-            R(:,I2p,i) = repmat([1 -1 -1]', 1, sum(I2p));
-            R(:,I3p,i) = repmat([-1 1 -1]', 1, sum(I3p));
-            R(:,I3n,i) = repmat([1 -1 1]',  1, sum(I3n));
-            R(:,I4n,i) = repmat([-1 -1 -1]',1, sum(I4n));
-            R(:,I4p,i) = repmat([-1 -1 1]', 1, sum(I4p));
+          switch dim
+            case 3
+              e = obj.getEntity(3, varargin{:});
+              R = ones(3, size(e,1), 6); % ! three orient flags
+              face = [1 2 3 4;
+                      5 6 7 8;
+                      1 3 5 7;
+                      2 4 6 8;
+                      1 2 5 6;
+                      3 4 7 8];
+              for i = 1:6
+                [~, minVx] = min(e(:,face(i,:)),[],2);
+                I1p = (minVx == 1) & (e(:,face(i,2)) < e(:,face(i,3)));
+                I1n = (minVx == 1) & (e(:,face(i,2)) > e(:,face(i,3)));
+                I2n = (minVx == 2) & (e(:,face(i,1)) < e(:,face(i,4)));
+                I2p = (minVx == 2) & (e(:,face(i,1)) > e(:,face(i,4)));
+                I3p = (minVx == 3) & (e(:,face(i,1)) < e(:,face(i,4)));
+                I3n = (minVx == 3) & (e(:,face(i,1)) > e(:,face(i,4)));
+                I4n = (minVx == 4) & (e(:,face(i,2)) < e(:,face(i,3)));
+                I4p = (minVx == 4) & (e(:,face(i,2)) > e(:,face(i,3)));
+                R(:,I1p,i) = repmat([1 1 1]',   1, sum(I1p));
+                R(:,I1n,i) = repmat([1 1 -1]',  1, sum(I1n));
+                R(:,I2n,i) = repmat([-1 1 1]',  1, sum(I2n));
+                R(:,I2p,i) = repmat([1 -1 -1]', 1, sum(I2p));
+                R(:,I3p,i) = repmat([-1 1 -1]', 1, sum(I3p));
+                R(:,I3n,i) = repmat([1 -1 1]',  1, sum(I3n));
+                R(:,I4n,i) = repmat([-1 -1 -1]',1, sum(I4n));
+                R(:,I4p,i) = repmat([-1 -1 1]', 1, sum(I4p));
+              end
+              R = permute(R,[2 3 1]); % nEx6xnO
+            otherwise
+              return
           end
-          R = permute(R,[2 3 1]);
+        otherwise
+          return
       end
     end
-    function R = getNormalOrientation(obj)
-      R = prod(obj.getOrientation([], 2), 3); % nExnF
+    function R = getNormalOrientation(obj, varargin) % [I]
+      R = prod(obj.getOrientation(3, 2, varargin{:}), 3); % nExnF
       R(:,[1 3 5]) = -R(:,[1 3 5]);
     end
   end

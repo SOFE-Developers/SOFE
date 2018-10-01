@@ -709,21 +709,16 @@ classdef FESpace < SOFE
         R = zeros(obj.getNDoF(),1);
         R(obj.getDoFMap(codim)) = f(obj.mesh.nodes);
       else
-        I = unique(obj.mesh.topology.connectivity{dim+1, dim}(varargin{1})); % TODO
-        R = obj.getInterpolant(f, dim-1); % recursion
-        %
-        F = obj.evalFunction(f, [], codim, [], varargin{:}); % nExnPxnC
-        F = permute(F - obj.evalDoFVector(R,[],codim, 0, varargin{:}), [1 4 2 3]); % nEx1xnPxnC
+        I = unique(obj.mesh.topology.connectivity{dim+1, dim}(varargin{1}));
+        R = obj.getInterpolant(f, dim-1, I);
+        F = obj.evalFunction(f, [], codim, [], varargin{:});
+        F = permute(F + obj.evalDoFVector(R,[],codim,0,varargin{:}), [1 4 2 3]); % nEx1xnPxnC
         [~,~,jac] = obj.evalTrafoInfo([], codim, varargin{:}); % nExnP
         [~, weights] = obj.element.getQuadData(codim); % nPx1
         dX = bsxfun(@times, abs(jac), weights'); % nExnP
         basis = obj.evalGlobalBasis([], codim, 0, varargin{:}); % nExnBxnPxnC
-        nEntSub = obj.element.getNEntSub(dim);
-        doFTuple = obj.element.doFTuple(1:dim);
-        if dim==3 && obj.element.isSimplex
-          doFTuple(3) = 3*doFTuple(3);
-        end
-        offsetB = sum(doFTuple.*nEntSub(1:dim));
+        nEntSub = obj.element.getNEntSub(1);
+        offsetB = sum(obj.element.doFTuple(1:dim).*nEntSub(1:dim));
         basis = basis(:,offsetB+1:end,:);
         lhs = sum(bsxfun(@times, permute(basis,[1 2 5 3 4]), ...
                                  permute(basis,[1 5 2 3 4])), 5); % nExnBxnBxnP
@@ -734,7 +729,7 @@ classdef FESpace < SOFE
         dMap = reshape(dMap(offsetB+1:end,:),[],1); % nB*nE
         inZ = (dMap~=0); dMap = abs(dMap(inZ)); % 'nB*nE
         lhs = blockify(lhs); % (nB*nE)x(nB*nE)
-        R(dMap) = lhs(inZ,inZ)\reshape(rhs(inZ),[],1);
+        rhs = accumarray(dMap,lhs(inZ,inZ)\rhs(inZ));
       end
     end
   end

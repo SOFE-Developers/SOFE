@@ -18,19 +18,19 @@ classdef MeshTopologyQuad < MeshTopology
     end
   end
   methods % connectivity information   
-    function R = getOrientation(obj, varargin)
-      e = obj.getEntity('0');
-      R = ones(size(e));
-      R(e(:,1)>e(:,2),1) = -1;
-      R(e(:,3)>e(:,4),2) = -1;
-      R(e(:,1)>e(:,3),3) = -1;
-      R(e(:,2)>e(:,4),4) = -1;
-      if nargin > 3
-        R = R(varargin{3},:);
+    function R = getOrientation(obj, dim, d, varargin) % [I]
+      R = [];
+      if dim==2 && d == 1
+        e = obj.getEntity('0', varargin{:});
+        R = ones(size(e));
+        R(e(:,1)>e(:,2),1) = -1;
+        R(e(:,3)>e(:,4),2) = -1;
+        R(e(:,1)>e(:,3),3) = -1;
+        R(e(:,2)>e(:,4),4) = -1;
       end
     end
-    function R = getNormalOrientation(obj)
-      R = obj.getOrientation();
+    function R = getNormalOrientation(obj, varargin) % [I]
+      R = obj.getOrientation(2, 1, varargin{:});
       R(:,[2 3]) = -R(:,[2 3]);
     end
   end
