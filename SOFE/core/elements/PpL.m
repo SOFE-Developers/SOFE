@@ -20,7 +20,7 @@ classdef PpL < LagrangeElement
   methods(Static=true)
     function R = getLagrangePoints(dim, p)
       p1d = linspace(0,1,p+1)';
-%       p1d = (1+QuadRule.evalWeightedGaussPoints(p+1, @(x)1+0*x(:,1),'Lobatto'))/2;
+%      p1d = (1+QuadRule.evalWeightedGaussPoints(p+1, @(x)1+0*x(:,1),'Lobatto'))/2;
       p1d = p1d(2:p);
       switch dim
         case 1

@@ -61,7 +61,7 @@ classdef GlobalSearcher < SOFE
           if k>1
             fprintf(repmat('\b',1,length(s)));
           end
-          s = sprintf('Boild background mesh %d / %d', k, obj.nBlockGS);
+          s = sprintf('Build background mesh %d / %d', k, obj.nBlockGS);
           fprintf(s);
         end
       end

@@ -25,7 +25,7 @@ classdef FESpace < SOFE
 %     evalFunction / evalReferenceMap / evalTrafoInfo
 %     evalGlobalBasis / evalDoFVector
 %     getDoFMap / getNDoF / extractDoFs / getBoundaryDoFs / getFreeDoFs
-%     getL2Projection / getInterpolation
+%     getL2Projection / getL2Interpolant / getLInfInterpolant
 %     evalJumpResidual / getRecoveredGradient
 %
 %     See also meshes/Mesh, elements/Element
@@ -649,12 +649,7 @@ classdef FESpace < SOFE
         else
           func = obj.shift;
         end
-        %
-        if obj.mesh.element.dimension == 1
-          R = obj.getInterpolation(func, 0); % nDoFx1
-        else
-          R = obj.getInterpolation(func, 1, obj.mesh.isBoundary()); % nDoFx1
-        end
+        R = obj.getL2Interpolant(func, obj.mesh.element.dimension-1, obj.mesh.isBoundary()); % nDoFx1
       end
     end
     function R = getL2Projection(obj, f)
@@ -662,55 +657,28 @@ classdef FESpace < SOFE
       l2 = FcId(f, obj,0); l2.assemble();
       R = mass.matrix \ l2.matrix;
     end
-    function R = getInterpolation(obj, f, codim, varargin) % [{k} or I]
-      if isempty(varargin) || (ischar(varargin{1}) && strcmp(varargin{1},':'))
-        nBl = obj.nBlock(codim+1); R = cell(1,nBl); s = '';
-        for k = 1:nBl
-          R{k} = obj.getInterpolation(f, codim, {k});
-          if nBl>1
-            fprintf(repmat('\b',1,length(s)));
-            s = sprintf('progress evalInterpolation: %d / %d', k, nBl); fprintf(s);
-          end
-        end
-        if nBl>1, fprintf('\n'); end
-        R = cell2mat(R);
-        val = sum(abs(R)>0,2);
-        val(val==0) = 1;
-        R = sum(R,2)./val;
-      else
-        basis = obj.evalGlobalBasis([], codim, 0, varargin{:}); % nExnBxnPxnC
-        if isempty(basis), R = []; return; end
-        if isnumeric(f)
-          F = permute(f, [3 4 1 2]); % 1x1x1xnC
-        else
-          F = permute(obj.evalFunction(f, [], codim, [], varargin{:}), [1 4 2 3]); % nEx1xnPxnC
-        end
-        [~,~,jac] = obj.evalTrafoInfo([], codim, varargin{:}); % nExnP
-        [~, weights] = obj.element.getQuadData(codim); % nPx1
-        dX = bsxfun(@times, abs(jac), weights'); % nExnP
-        lhs = sum(bsxfun(@times, permute(basis,[1 2 5 3 4]), ...
-                                 permute(basis,[1 5 2 3 4])), 5); % nExnBxnBxnP
-        lhs = permute(sum(bsxfun(@times, lhs, permute(dX, [1 3 4 2])), 4),[2 3 1]); % nBxnBxnE
-        rhs = sum(bsxfun(@times, F, basis), 4); % nExnBxnP
-        rhs = sum(bsxfun(@times, rhs, permute(dX, [1 3 2])),3).'; % nBxnE
-        dMap = reshape(obj.getDoFMap(codim, varargin{:}),[],1); % nB*nE
-        inZ = (dMap~=0); dMap = abs(dMap(inZ)); % 'nB*nE'
-        lhs = blockify(lhs); % (nB*nE)x(nB*nE)
-        rhs = accumarray(dMap,lhs(inZ,inZ)\rhs(inZ))./accumarray(dMap,1);
-        I = unique(dMap);
-        R = zeros(obj.getNDoF(),1); % nDoFx1
-        R(I) = rhs(I);
-      end
-    end
-    function R = getInterpolant(obj, f, dim, varargin) % [I]
+    function R = getL2Interpolant(obj, f, dim, varargin) % [I]
       codim = obj.element.dimension - dim;
       if isempty(varargin), varargin{1} = ':'; end
       if dim==0
         R = zeros(obj.getNDoF(),1);
-        R(obj.getDoFMap(codim)) = f(obj.mesh.nodes);
+        dMap = obj.getDoFMap(codim, varargin{1}); % nBxnE
+        R(dMap') = f(obj.mesh.nodes(varargin{1},:));
       else
-        I = unique(obj.mesh.topology.connectivity{dim+1, dim}(varargin{1})); % TODO
-        R = obj.getInterpolant(f, dim-1); % recursion
+        I = unique(obj.mesh.topology.connectivity{dim+1, dim}(varargin{1},:));
+        R = obj.getL2Interpolant(f, dim-1, I); % recursion
+        %
+        nEntSub = obj.element.getNEntSub(dim);
+        doFTuple = prod(obj.element.doFTuple,1);
+        doFTuple = doFTuple(1:dim);
+        if dim==3 && obj.element.isSimplex && ~obj.element.isLagrange
+          doFTuple(3) = 3*doFTuple(3);
+        end
+        offsetB = sum(doFTuple.*nEntSub(1:dim));
+        dMap = obj.getDoFMap(codim, varargin{:}); % nBxnE
+        dMap = reshape(dMap(offsetB+1:end,:),[],1); % nB*nE
+        if isempty(dMap), return; end
+        inZ = (dMap~=0); dMap = abs(dMap(inZ)); % 'nB*nE
         %
         F = obj.evalFunction(f, [], codim, [], varargin{:}); % nExnPxnC
         F = permute(F - obj.evalDoFVector(R,[],codim, 0, varargin{:}), [1 4 2 3]); % nEx1xnPxnC
@@ -718,23 +686,43 @@ classdef FESpace < SOFE
         [~, weights] = obj.element.getQuadData(codim); % nPx1
         dX = bsxfun(@times, abs(jac), weights'); % nExnP
         basis = obj.evalGlobalBasis([], codim, 0, varargin{:}); % nExnBxnPxnC
-        nEntSub = obj.element.getNEntSub(dim);
-        doFTuple = obj.element.doFTuple(1:dim);
-        if dim==3 && obj.element.isSimplex
-          doFTuple(3) = 3*doFTuple(3);
-        end
-        offsetB = sum(doFTuple.*nEntSub(1:dim));
-        basis = basis(:,offsetB+1:end,:);
+        basis = basis(:,offsetB+1:end,:,:); % nExnBxnPxnC
         lhs = sum(bsxfun(@times, permute(basis,[1 2 5 3 4]), ...
                                  permute(basis,[1 5 2 3 4])), 5); % nExnBxnBxnP
         lhs = permute(sum(bsxfun(@times, lhs, permute(dX, [1 3 4 2])), 4),[2 3 1]); % nBxnBxnE
         rhs = sum(bsxfun(@times, F, basis), 4); % nExnBxnP
         rhs = sum(bsxfun(@times, rhs, permute(dX, [1 3 2])),3).'; % nBxnE
-        dMap = obj.getDoFMap(codim, varargin{:}); % nBxnE
-        dMap = reshape(dMap(offsetB+1:end,:),[],1); % nB*nE
-        inZ = (dMap~=0); dMap = abs(dMap(inZ)); % 'nB*nE
         lhs = blockify(lhs); % (nB*nE)x(nB*nE)
+        %
         R(dMap) = lhs(inZ,inZ)\reshape(rhs(inZ),[],1);
+      end
+    end
+    function R = getLagrangeInterpolant(obj, f, dim, varargin) % [I]
+      assert(obj.element.isLagrange, 'Element basis must have Lagrange property');
+      codim = obj.element.dimension - dim;
+      if isempty(varargin), varargin{1} = ':'; end
+      if dim==0
+        R = zeros(obj.getNDoF(),1); % nDoFx1
+        dMap = obj.getDoFMap(codim, varargin{1}); % nBxnE
+        R(dMap') = f(obj.mesh.nodes(varargin{1},:)); % nDoFx1
+      else
+        I = unique(obj.mesh.topology.connectivity{dim+1, dim}(varargin{1},:));
+        R = obj.getLagrangeInterpolant(f, dim-1, I); % recursion
+        %
+        nEntSub = obj.element.getNEntSub(dim);
+        offsetB = sum(obj.element.doFTuple(1,1:dim).*nEntSub(1:dim));
+        dMap = obj.getDoFMap(codim, varargin{:}); % nBxnE
+        dMap = reshape(dMap(obj.element.getNC()*offsetB+1:end,:),[],1); % nB*nE
+        if isempty(dMap), return; end
+        if isa(obj.element,'TPElem')
+          points = obj.element.scalarElement.getLagrangePoints(dim, obj.element.order); % nPxnD
+        else
+          points = obj.element.getLagrangePoints(dim, obj.element.order); % nPxnD
+        end
+        points = points(offsetB+1:end,:); % nPxnD
+        P = obj.mesh.evalReferenceMap(points, 0, varargin{1}); % nExnPxnD
+        F = f(reshape(P, [], size(P,3))); % (nE*nP)xnC
+        R(dMap(:)) = permute(reshape(F, size(P,1),[],size(F,2)), [3 2 1]); % nDoFx1
       end
     end
   end
@@ -772,6 +760,48 @@ classdef FESpace < SOFE
       for d = 1:nD
         rhs = sign(dMap).*(lhs\reshape(permute(dU(:,:,:,d), [2 3 1]), nB, [])); % nBxnE
         R(:,d) = accumarray(dMap(:),rhs(:))./accumarray(dMap(:),1); 
+      end
+    end
+  end
+  methods % deprecated
+    function R = getInterpolation(obj, f, codim, varargin) % [{k} or I] % deprecated
+      if isempty(varargin) || (ischar(varargin{1}) && strcmp(varargin{1},':'))
+        nBl = obj.nBlock(codim+1); R = cell(1,nBl); s = '';
+        for k = 1:nBl
+          R{k} = obj.getInterpolation(f, codim, {k});
+          if nBl>1
+            fprintf(repmat('\b',1,length(s)));
+            s = sprintf('progress evalInterpolation: %d / %d', k, nBl); fprintf(s);
+          end
+        end
+        if nBl>1, fprintf('\n'); end
+        R = cell2mat(R);
+        val = sum(abs(R)>0,2);
+        val(val==0) = 1;
+        R = sum(R,2)./val;
+      else
+        basis = obj.evalGlobalBasis([], codim, 0, varargin{:}); % nExnBxnPxnC
+        if isempty(basis), R = []; return; end
+        if isnumeric(f)
+          F = permute(f, [3 4 1 2]); % 1x1x1xnC
+        else
+          F = permute(obj.evalFunction(f, [], codim, [], varargin{:}), [1 4 2 3]); % nEx1xnPxnC
+        end
+        [~,~,jac] = obj.evalTrafoInfo([], codim, varargin{:}); % nExnP
+        [~, weights] = obj.element.getQuadData(codim); % nPx1
+        dX = bsxfun(@times, abs(jac), weights'); % nExnP
+        lhs = sum(bsxfun(@times, permute(basis,[1 2 5 3 4]), ...
+                                 permute(basis,[1 5 2 3 4])), 5); % nExnBxnBxnP
+        lhs = permute(sum(bsxfun(@times, lhs, permute(dX, [1 3 4 2])), 4),[2 3 1]); % nBxnBxnE
+        rhs = sum(bsxfun(@times, F, basis), 4); % nExnBxnP
+        rhs = sum(bsxfun(@times, rhs, permute(dX, [1 3 2])),3).'; % nBxnE
+        dMap = reshape(obj.getDoFMap(codim, varargin{:}),[],1); % nB*nE
+        inZ = (dMap~=0); dMap = abs(dMap(inZ)); % 'nB*nE'
+        lhs = blockify(lhs); % (nB*nE)x(nB*nE)
+        rhs = accumarray(dMap,lhs(inZ,inZ)\rhs(inZ))./accumarray(dMap,1);
+        I = unique(dMap);
+        R = zeros(obj.getNDoF(),1); % nDoFx1
+        R(I) = rhs(I);
       end
     end
   end
