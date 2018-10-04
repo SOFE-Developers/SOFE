@@ -439,123 +439,11 @@ classdef FESpace < SOFE
       end
     end
   end
-  methods % DoFManager.
-    function R = getDoFMap(obj, codim, varargin) % [{k} or I]
-      if ~isempty(obj.cache.dM)
-        R = obj.cache.dM.doFArrays;
-      else
-        R = obj.computeDoFMaps();
-        obj.cache.dM.doFArrays = R;
-      end % all blocks
-      R = R{codim+1}; % nBxnE
-      if ~isempty(varargin)
-        I = varargin{1};
-        if iscell(I)
-          I = obj.getBlock(codim, I{1});
-        end
-        R = R(:,I);
-      end
-    end
-    function R = computeDoFMaps(obj)
-      fprintf('Compute DoF maps ... ');
-      doFs = cell(obj.element.dimension+1,1);
-      R = cell(size(doFs));
-      nDoF = 0;
-      for dim = 0:numel(R)-1 % assemble doFMaps
-        R{dim+1} = cell(dim+1,1);
-        N = obj.mesh.topology.getNumber(dim) * prod(obj.element.doFTuple(:,dim+1));
-        doFs{dim+1} = reshape(nDoF+(1:N), [], obj.mesh.topology.getNumber(dim)); % nBLocxnE
-        nDoF = nDoF + N;
-        for d = 0:dim
-          C = obj.mesh.topology.connectivity{dim+1, d+1}; % nExnESub
-          R{dim+1}{d+1} = reshape(obj.orient(doFs{d+1}(:,C'), dim, d), [], size(C,1)); % {nD}{nD}(nBLoc*nESub)xnE
-        end
-        R{dim+1} = cell2mat(R{dim+1}); % {nD}(nBxnE)
-      end
-      R = R(end:-1:1); % dim+1 --> codim+1
-      fprintf('DONE\n');
-    end
-    function R = orient(obj, R, dim, d, varargin) % [I]
-      orient = permute(obj.mesh.topology.getOrientation(dim, d, varargin{:}),[2 1 3]); % nESubxnExnO
-      if isempty(orient), return; end
-      orient = reshape(orient, [], size(orient, 3)); % (nESub*nE)xnO
-      tmp = zeros(size(R)); % nBLocx(nESub*nE)
-      if d == 1 && dim > d % EDGE
-        for k = -1:2:1
-          I = obj.element.getDoFEnum(1,k); % nBLoc
-          if ~isempty(I)
-            iO = orient == k; % nESub*nE
-            tmp(abs(I),iO) = bsxfun(@times, sign(I(:)), R(1:numel(I), iO)); % nBLocx(nESub*nE)
-          end
-        end
-        R = tmp; % nBLocx(nESub*nE)
-      end
-      if d == 2 && dim > d % FACE
-        if obj.element.isSimplex()
-          for s = 3:-1:1
-            for k = -1:2:1
-              I = obj.element.getDoFEnum(2,s,k); % nBLoc
-              if ~isempty(I)
-                iO = orient==(k*s); % nESub*nE
-                tmp(abs(I),iO) = bsxfun(@times, sign(I), R(:, iO)); % nBLocx(nESub*nE)
-              end
-            end
-          end
-        else
-          for s1 = -1:2:1
-            for s2 = -1:2:1
-              for k = -1:2:1
-                I = obj.element.getDoFEnum(2,s1,s2,k); % nBLoc
-                if ~isempty(I)
-                  iO = all(bsxfun(@eq, orient, [s1 s2 k]),2); % (nESub*nE)
-                  tmp(abs(I),iO) = bsxfun(@times, sign(I(:)), R(:, iO)); % nBLocx(nESub*nE)
-                end
-              end
-            end
-          end
-        end
-        R = tmp; % nBLocx(nESub*nE)
-      end
-      if dim == obj.element.dimension && d == dim-1 && strcmp(obj.element.conformity, 'HDiv')
-        orient = reshape(obj.mesh.topology.getNormalOrientation().',1,[]); % 1x(nESub*nE)
-        R = bsxfun(@times, R, orient); % nBLocx(nESub*nE)
-      end
-    end
+  methods % dof mapping
     function R = getNDoF(obj)
       R = sum(prod(obj.element.doFTuple,1)'.*obj.mesh.topology.getNumber());
     end
-    function R = extractDoFs(obj, codim, I)
-      dMap = obj.getDoFMap(codim);
-      nDoF = obj.getNDoF();
-      %
-      nC = size(I,2);
-      doFs = cell(nC,1);
-      for d = 1:nC
-        doFs{d} = reshape(abs(dMap(d:nC:end, I(:,d))), [], 1);
-      end
-      doFs = cell2mat(doFs);
-      %
-      tmp = setdiff(unique(doFs(:)), 0);
-      R = accumarray(tmp(:), 1, [nDoF 1])>0;
-    end
-    function R = getBoundaryDoFs(obj, varargin) % [loc]
-      R = obj.extractDoFs(1, obj.mesh.isBoundary(varargin{:}));
-    end
-    function R = getFreeDoFs(obj)
-      if ~isempty(obj.freeDoFs)
-        R = obj.freeDoFs;
-      else
-        R = ~obj.getBoundaryDoFs(obj.fixB);
-        obj.freeDoFs = R;
-      end
-    end
-    function R = getProjector(obj)
-      R = obj.mesh.topology.getProjector();
-      if ~isempty(R), assert(obj.element.order==1, 'TODO: higher order projector'); end
-    end
-  end
-  methods % dof mapping
-    function R = getDoFMap_(obj, codim, varargin) % [{k} or I]
+    function R = getDoFMap(obj, codim, varargin) % [{k} or I]
       if isempty(varargin), varargin{1} = ':'; end
       if iscell(varargin{1})
         if ~isempty(obj.cache.doFMap{varargin{1}{1}}{codim+1})
@@ -571,7 +459,7 @@ classdef FESpace < SOFE
           C = obj.mesh.topology.connectivity{dim+1, d+1}; % nE(dim)xnE(d)
           R{d+1} = csnDoF(d+1) + (C(varargin{1},:)'-1)*doFTuple(d+1);
           R{d+1} = kron(R{d+1},ones(doFTuple(d+1),1)) + kron(ones(size(R{d+1})),(1:doFTuple(d+1))');
-          R{d+1} = obj.orient2(R{d+1}, dim, d, varargin{:}); % {nD+1}((nBLoc*nESub)*nE)
+          R{d+1} = obj.orient(R{d+1}, dim, d, varargin{:}); % {nD+1}((nBLoc*nESub)*nE)
         end
         R = cell2mat(R); % nBxnE
         obj.cache.doFMap{k{1}}{codim+1} = R;
@@ -585,12 +473,12 @@ classdef FESpace < SOFE
         R = R(:,varargin{1});
       end
     end
-    function R = orient2(obj, R, dim, d, varargin) % [I]
+    function R = orient(obj, R, dim, d, varargin) % [I]
       orient = permute(obj.mesh.topology.getOrientation(dim, d, varargin{:}),[2 1 3]); % nESubxnExnO
       if isempty(orient), return; end
       if isempty(varargin), nE = obj.mesh.topology.getNumber(dim); else, nE = numel(varargin{1}); end
       nEntSub = obj.element.getNEntSub(dim);
-      R = reshape(R, [], nEntSub(d)*nE); % nBLocx(nESub*nE)
+      R = reshape(R, [], nEntSub(d+1)*nE); % nBLocx(nESub*nE)
       orient = reshape(orient, [], size(orient, 3)); % (nESub*nE)xnO
       tmp = zeros(size(R)); % nBLocx(nESub*nE)
       if d == 1 && dim > d % EDGE
@@ -635,8 +523,37 @@ classdef FESpace < SOFE
       end
       R = reshape(R, [], nE); % (nBLoc*nESub)xnE
     end
+    function R = extractDoFs(obj, codim, I)
+      dMap = obj.getDoFMap(codim);
+      nDoF = obj.getNDoF();
+      %
+      nC = size(I,2);
+      doFs = cell(nC,1);
+      for d = 1:nC
+        doFs{d} = reshape(abs(dMap(d:nC:end, I(:,d))), [], 1);
+      end
+      doFs = cell2mat(doFs);
+      %
+      tmp = setdiff(unique(doFs(:)), 0);
+      R = accumarray(tmp(:), 1, [nDoF 1])>0;
+    end
+    function R = getBoundaryDoFs(obj, varargin) % [loc]
+      R = obj.extractDoFs(1, obj.mesh.isBoundary(varargin{:}));
+    end
+    function R = getFreeDoFs(obj)
+      if ~isempty(obj.freeDoFs)
+        R = obj.freeDoFs;
+      else
+        R = ~obj.getBoundaryDoFs(obj.fixB);
+        obj.freeDoFs = R;
+      end
+    end
+    function R = getProjector(obj)
+      R = obj.mesh.topology.getProjector();
+      if ~isempty(R), assert(obj.element.order==1, 'TODO: higher order projector'); end
+    end
   end
-  methods % interpolation.
+  methods % interpolation
     function R = getShift(obj, varargin) % [time]
       R = zeros(obj.getNDoF,1);
       if ~isempty(obj.shift)
@@ -654,7 +571,7 @@ classdef FESpace < SOFE
     end
     function R = getL2Projection(obj, f)
       mass = OpIdId(1, 0, obj); mass.assemble();
-      l2 = FcId(f, obj,0); l2.assemble();
+      l2 = FcId(f, obj, 0); l2.assemble();
       R = mass.matrix \ l2.matrix;
     end
     function R = getL2Interpolant(obj, f, dim, varargin) % [I]
@@ -663,6 +580,7 @@ classdef FESpace < SOFE
       if dim==0
         R = zeros(obj.getNDoF(),1);
         dMap = obj.getDoFMap(codim, varargin{1}); % nBxnE
+        if isempty(dMap), return; end
         R(dMap') = f(obj.mesh.nodes(varargin{1},:));
       else
         I = unique(obj.mesh.topology.connectivity{dim+1, dim}(varargin{1},:));
@@ -699,11 +617,13 @@ classdef FESpace < SOFE
     end
     function R = getLagrangeInterpolant(obj, f, dim, varargin) % [I]
       assert(obj.element.isLagrange, 'Element basis must have Lagrange property');
+      keyboard
       codim = obj.element.dimension - dim;
       if isempty(varargin), varargin{1} = ':'; end
       if dim==0
         R = zeros(obj.getNDoF(),1); % nDoFx1
         dMap = obj.getDoFMap(codim, varargin{1}); % nBxnE
+        if isempty(dMap), return; end
         R(dMap') = f(obj.mesh.nodes(varargin{1},:)); % nDoFx1
       else
         I = unique(obj.mesh.topology.connectivity{dim+1, dim}(varargin{1},:));
@@ -764,6 +684,87 @@ classdef FESpace < SOFE
     end
   end
   methods % deprecated
+    function R = getDoFMap_(obj, codim, varargin) % [{k} or I]
+      if ~isempty(obj.cache.dM)
+        R = obj.cache.dM.doFArrays;
+      else
+        R = obj.computeDoFMaps();
+        obj.cache.dM.doFArrays = R;
+      end % all blocks
+      R = R{codim+1}; % nBxnE
+      if ~isempty(varargin)
+        I = varargin{1};
+        if iscell(I)
+          I = obj.getBlock(codim, I{1});
+        end
+        R = R(:,I);
+      end
+    end
+    function R = computeDoFMaps(obj)
+      fprintf('Compute DoF maps ... ');
+      doFs = cell(obj.element.dimension+1,1);
+      R = cell(size(doFs));
+      nDoF = 0;
+      for dim = 0:numel(R)-1 % assemble doFMaps
+        R{dim+1} = cell(dim+1,1);
+        N = obj.mesh.topology.getNumber(dim) * prod(obj.element.doFTuple(:,dim+1));
+        doFs{dim+1} = reshape(nDoF+(1:N), [], obj.mesh.topology.getNumber(dim)); % nBLocxnE
+        nDoF = nDoF + N;
+        for d = 0:dim
+          C = obj.mesh.topology.connectivity{dim+1, d+1}; % nExnESub
+          R{dim+1}{d+1} = reshape(obj.orient_(doFs{d+1}(:,C'), dim, d), [], size(C,1)); % {nD}{nD}(nBLoc*nESub)xnE
+        end
+        R{dim+1} = cell2mat(R{dim+1}); % {nD}(nBxnE)
+      end
+      R = R(end:-1:1); % dim+1 --> codim+1
+      fprintf('DONE\n');
+    end
+    function R = orient_(obj, R, dim, d, varargin) % [I]
+      orient = permute(obj.mesh.topology.getOrientation(dim, d, varargin{:}),[2 1 3]); % nESubxnExnO
+      if isempty(orient), return; end
+      orient = reshape(orient, [], size(orient, 3)); % (nESub*nE)xnO
+      tmp = zeros(size(R)); % nBLocx(nESub*nE)
+      if d == 1 && dim > d % EDGE
+        for k = -1:2:1
+          I = obj.element.getDoFEnum(1,k); % nBLoc
+          if ~isempty(I)
+            iO = orient == k; % nESub*nE
+            tmp(abs(I),iO) = bsxfun(@times, sign(I(:)), R(1:numel(I), iO)); % nBLocx(nESub*nE)
+          end
+        end
+        R = tmp; % nBLocx(nESub*nE)
+      end
+      if d == 2 && dim > d % FACE
+        if obj.element.isSimplex()
+          for s = 3:-1:1
+            for k = -1:2:1
+              I = obj.element.getDoFEnum(2,s,k); % nBLoc
+              if ~isempty(I)
+                iO = orient==(k*s); % nESub*nE
+                tmp(abs(I),iO) = bsxfun(@times, sign(I), R(:, iO)); % nBLocx(nESub*nE)
+              end
+            end
+          end
+        else
+          for s1 = -1:2:1
+            for s2 = -1:2:1
+              for k = -1:2:1
+                I = obj.element.getDoFEnum(2,s1,s2,k); % nBLoc
+                if ~isempty(I)
+                  iO = all(bsxfun(@eq, orient, [s1 s2 k]),2); % (nESub*nE)
+                  tmp(abs(I),iO) = bsxfun(@times, sign(I(:)), R(:, iO)); % nBLocx(nESub*nE)
+                end
+              end
+            end
+          end
+        end
+        R = tmp; % nBLocx(nESub*nE)
+      end
+      if dim == obj.element.dimension && d == dim-1 && strcmp(obj.element.conformity, 'HDiv')
+        orient = reshape(obj.mesh.topology.getNormalOrientation().',1,[]); % 1x(nESub*nE)
+        R = bsxfun(@times, R, orient); % nBLocx(nESub*nE)
+      end
+    end
     function R = getInterpolation(obj, f, codim, varargin) % [{k} or I] % deprecated
       if isempty(varargin) || (ischar(varargin{1}) && strcmp(varargin{1},':'))
         nBl = obj.nBlock(codim+1); R = cell(1,nBl); s = '';

@@ -121,7 +121,7 @@ classdef Mesh < SOFE
       TOLREF = 1e-12;
       %
       gs = obj.getGlobalSearcher();
-      C = gs.findCandidates(points);
+      C = reshape(gs.findCandidates(points),size(points,1),[]);
       [nP, nC] = size(C);
       H = zeros(nP,1); L = zeros(size(points)); Ic = (1:nP)';
       for i = 1:nC
