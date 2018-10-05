@@ -6,7 +6,7 @@ classdef TPElem < Element
     function obj = TPElem(scalE)
       obj = obj@Element(scalE.dimension, scalE.nV, scalE.nB*scalE.dimension, scalE.order);
       obj.scalarElement = scalE;
-      obj.doFTuple = [scalE.doFTuple; scalE.dimension*ones(size(scalE.doFTuple))];
+      obj.doFTuple = [scalE.doFTuple(1,:); scalE.dimension*ones(size(scalE.doFTuple(1,:)))];
       obj.isLagrange = scalE.isLagrange;
       obj.conformity = 'H1';
     end

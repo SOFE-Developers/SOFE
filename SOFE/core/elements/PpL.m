@@ -2,12 +2,13 @@ classdef PpL < LagrangeElement
   methods % constructor
     function obj = PpL(dim, order)
       obj = obj@LagrangeElement(Pp(dim,order));
+      obj.doFTuple = zeros(2,dim+1);
       if order == 0
-        obj.doFTuple = zeros(1,dim+1);
-        obj.doFTuple(dim+1) = 1;
+        obj.doFTuple(:,dim+1) = 1;
       else
         for i = 0:dim
-          obj.doFTuple(i+1) = prod(order - (1:i))/factorial(i);
+          obj.doFTuple(1,i+1) = prod(order - (1:i))/factorial(i);
+          obj.doFTuple(2,i+1) = 1;
         end
       end
       obj.conformity = 'H1';

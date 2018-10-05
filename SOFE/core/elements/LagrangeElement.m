@@ -58,4 +58,27 @@ classdef LagrangeElement < Element
       B = reshape(obj.coeffMatrix{size(points,2)}*reshape(basis, size(basis,1), []), sizeVec);
     end
   end
+  methods % show
+    function showLagrangePoints(obj, dim, p)
+      P = obj.getLagrangePoints(dim, p);
+      switch dim
+        case 1
+          plot(P,zeros(size(P)),'*');
+          hold on
+          plot([0 1],[0 0],'r');
+          hold off
+        case 2
+          plot(P(:,1),P(:,2),'*'); axis equal
+          hold on
+          if obj.isSimplex()
+            plot([0 1 0 0]',[0 0 1 0],'r');
+          else
+            plot([0 1 1 0 0]',[0 0 1 1 0],'r');
+          end
+          hold off 
+        case 3
+          fprintf('TODO\n');
+      end
+    end
+  end
 end
