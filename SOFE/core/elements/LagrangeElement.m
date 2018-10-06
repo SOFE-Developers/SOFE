@@ -29,6 +29,8 @@ classdef LagrangeElement < Element
                 nCol = floor(sqrt(2*nDoF(1))):-1:1;
                 pVec = reshapeTop(nCol, 1:nDoF(1));
                 switch varargin{1}
+                  case 1
+                    % do noting
                   case 2
                     pVec = rot90(pVec);
                     pVec = rot90(reshapeTop(nCol,pVec(pVec>0)));

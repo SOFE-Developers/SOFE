@@ -109,6 +109,7 @@ classdef FESpace < SOFE
         nB = obj.element.nB(end); nQ = numel(obj.element.quadRule{1}.weights);
         obj.nBlock = ones(nD+1,1);
         elPerBlock = max(1,SOFE.getElementsPerBlock(nB, nQ, nC, nD));
+        obj.nBlock = ones(nD,1);
         obj.nBlock(1) = ceil(obj.mesh.topology.getNumber(nD)/elPerBlock);
         if nD > 1
           nB = obj.element.nB(end-1); nQ = numel(obj.element.quadRule{2}.weights);
@@ -117,8 +118,10 @@ classdef FESpace < SOFE
         end
         if nD > 2
           nB = obj.element.nB(end-2); nQ = numel(obj.element.quadRule{3}.weights);
-          elPerBlock = max(1,SOFE.getElementsPerBlock(nB, nQ, nC, nD));
-          obj.nBlock(3) = ceil(obj.mesh.topology.getNumber(nD-2)/elPerBlock);
+          if nB>0
+            elPerBlock = max(1,SOFE.getElementsPerBlock(nB, nQ, nC, nD));
+            obj.nBlock(3) = ceil(obj.mesh.topology.getNumber(nD-2)/elPerBlock);
+          end
         end
       end
       obj.nBlock(end) = 1;
