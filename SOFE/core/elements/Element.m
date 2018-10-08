@@ -112,7 +112,7 @@ classdef Element < SOFE
         error('XXX: There are only %d basis functions in dim %d!\n', obj.nB(dim), dim);
       end
       gridFine = linspace(0,1,300)';
-      gridCoarse = linspace(0,1,20)';
+%       gridCoarse = linspace(0,1,20)';
       clf
       switch dim
         case 1
@@ -120,7 +120,7 @@ classdef Element < SOFE
           plot(gridFine,Z(i,:));
         case 2
           [Xf,Yf] = meshgrid(gridFine, gridFine);
-          [Xc,Yc] = meshgrid(gridCoarse, gridCoarse);
+%           [Xc,Yc] = meshgrid(gridCoarse, gridCoarse);
           Z = obj.evalBasis([Xf(:) Yf(:)], 0); % nBxnPxnC
           if obj.nV(2) == 3
             Z(:,Xf+Yf>1) = NaN;

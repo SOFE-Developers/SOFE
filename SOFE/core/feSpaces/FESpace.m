@@ -109,7 +109,7 @@ classdef FESpace < SOFE
         nB = obj.element.nB(end); nQ = numel(obj.element.quadRule{1}.weights);
         obj.nBlock = ones(nD+1,1);
         elPerBlock = max(1,SOFE.getElementsPerBlock(nB, nQ, nC, nD));
-        obj.nBlock = ones(nD,1);
+        obj.nBlock = ones(nD+1,1);
         obj.nBlock(1) = ceil(obj.mesh.topology.getNumber(nD)/elPerBlock);
         if nD > 1
           nB = obj.element.nB(end-1); nQ = numel(obj.element.quadRule{2}.weights);
@@ -341,7 +341,7 @@ classdef FESpace < SOFE
                                        permute(R, [1 2 3 6 5 4])), 6); % nExnBxnPxnWxnW
                 R = bsxfun(@ldivide, trafo{3}, R); % nExnBxnPxnWxnW
             end
-          else % codim==1
+          else % codim == 1
             switch order
               case 0
                 R = basis; % 1xnBxnPxnC
@@ -365,15 +365,39 @@ classdef FESpace < SOFE
             end
           end
         case 'HRot'
-          switch order
-            case 0
-              R = sum(bsxfun(@times, permute(trafo{2}, [1 2 3 5 4]), ...
-                                     permute(basis, [1 2 3 5 4])), 5); % nExnBxnPxnW
-            case 1
-              R = sum(bsxfun(@times, permute(basis, [1 2 3 4 6 5]), ...
-                                     permute(trafo{2}, [1 2 3 6 5 4])), 6); % nExnBxnPxnCxnW
-              R = sum(bsxfun(@times, permute(trafo{2}, [1 2 3 5 6 4]), ...
-                                     permute(R, [1 2 3 6 5 4])), 6); % nExnBxnPxnWxnW
+          if codim == 0
+            switch order
+              case 0
+                R = sum(bsxfun(@times, permute(trafo{2}, [1 2 3 5 4]), ...
+                                       permute(basis, [1 2 3 5 4])), 5); % nExnBxnPxnW
+              case 1
+                R = sum(bsxfun(@times, permute(basis, [1 2 3 4 6 5]), ...
+                                       permute(trafo{2}, [1 2 3 6 5 4])), 6); % nExnBxnPxnCxnW
+                R = sum(bsxfun(@times, permute(trafo{2}, [1 2 3 5 6 4]), ...
+                                       permute(R, [1 2 3 6 5 4])), 6); % nExnBxnPxnWxnW
+            end
+          else % codim == 1
+            switch order
+              case 0
+                R = basis; % 1xnBxnPxnC
+              case 1
+                try
+                  basis = permute(basis,[2 3 4 5 1]);
+                  trafo{2} = permute(trafo{2},[1 3 4 5 2]);
+                  R = tprod(basis, trafo{2}, [2 3 4 -1], [1 3 -1 5]);
+                catch
+                  R = sum(bsxfun(@times, permute(basis,    [1 2 3 4 6 5]), ...
+                                       permute(trafo{2}, [1 2 3 6 5 4])), 6); % nExnBxnPxnCxnD
+                end
+              case 2
+                R = permute(basis, [1 2 3 6 4 5]); % % nExnBxnPxnD2xnCxnD1
+                R = sum(bsxfun(@times, permute(R,    [1 2 3 4 5 7 6]), ...
+                                       permute(trafo{2}, [1 2 3 7 6 5 4])), 7); % nExnBxnPxnD2xnCxnD1
+                R = permute(R, [1 2 3 6 5 4]); % % nExnBxnPxnD1xnCxnD2
+                R = sum(bsxfun(@times, permute(R,    [1 2 3 4 5 7 6]), ...
+                                       permute(trafo{2}, [1 2 3 7 6 5 4])), 7); % nExnBxnPxnD2xnCxnD1
+                R = permute(R, [1 2 3 5 4 6]); % % nExnBxnPxxnCxnD1xnD2
+            end
           end
       end
       if iscell(points)
@@ -453,7 +477,7 @@ classdef FESpace < SOFE
       else % all blocks
         nBl = obj.nBlock(codim+1); R = cell(nBl,1); s = '';
         for k = 1:nBl
-          R{k} = obj.evalDoFVector(U, points, codim, order, {k}); % nExnPxnCxnD
+          R{k} = obj.evalDoFVectorLocal(U, points, codim, order, {k}); % nExnPxnCxnD
           if nBl>1 
             fprintf(repmat('\b',1,length(s)));
             s = sprintf('progress evalDoFVector: %d / %d', k, nBl); fprintf(s);
@@ -532,10 +556,13 @@ classdef FESpace < SOFE
           for s1 = -1:2:1
             for s2 = -1:2:1
               for k = -1:2:1
-                doFEnum = obj.element.getDoFEnum(2,s1,s2,k); % nBLoc
-                if ~isempty(doFEnum)
-                  iO = all(bsxfun(@eq, orient, [s1 s2 k]),2); % (nESub*nE)
-                  tmp(abs(doFEnum),iO) = bsxfun(@times, sign(doFEnum(:)), R(:, iO)); % nBLocx(nESub*nE)
+                iO = all(bsxfun(@eq, orient, [s1 s2 k]),2); % (nESub*nE)
+                if any(iO)
+                  doFEnum = obj.element.getDoFEnum(2,s1,s2,k); % nBLoc
+                  if ~isempty(doFEnum)
+                    iO = all(bsxfun(@eq, orient, [s1 s2 k]),2); % (nESub*nE)
+                    tmp(abs(doFEnum),iO) = bsxfun(@times, sign(doFEnum(:)), R(:, iO)); % nBLocx(nESub*nE)
+                  end
                 end
               end
             end
@@ -631,16 +658,16 @@ classdef FESpace < SOFE
             if codim==1
               N = obj.evalReferenceMap([], codim, 1, varargin{1}); % nExnPxnD
               N = reshape(([0 1;-1 0]*reshape(N,[],2)')',size(F)); % nExnPxnD
-              F = dot(F,N,3);
+              F = dot(F,N,3); % nExnP
             end
           case 'HRot'
-            assert(obj.mesh.dimW==obj.element.dimension, 'TODO: HDiv-Interpolation for 3D and surfaces!');
+            assert(obj.mesh.dimW==obj.element.dimension, 'TODO: HRot-Interpolation for 3D and surfaces!');
             if codim==1
-                N = obj.evalReferenceMap([], codim, 1, varargin{1}); % nExnPxnD
-                F = dot(F,N,3);
+                T = obj.evalReferenceMap([], codim, 1, varargin{1}); % nExnPxnD
+                F = dot(F,T,3); % nExnP
             end
         end
-        F = F - obj.evalDoFVector(R,[],codim, 0, varargin{:}); % nxnPxnC
+        F = F - obj.evalDoFVector(R,[],codim, 0, varargin{:}); % nExnPxnC
         [~,~,jac] = obj.evalTrafoInfo([], codim, varargin{:}); % nExnP
         [~, weights] = obj.element.getQuadData(codim); % nPx1
         dX = bsxfun(@times, abs(jac), weights'); % nExnP
@@ -692,10 +719,10 @@ classdef FESpace < SOFE
             switch dim
               case 1
                 P = obj.mesh.evalReferenceMap(points, 0, varargin{1}); % nExnPxnD
-                N = obj.mesh.evalReferenceMap(points, 1, varargin{1}); % nExnPxnD
-                N = ([0 1;-1 0]*reshape(N,[],2)')'; % (nE*nP)xnD
+                T = obj.mesh.evalReferenceMap(points, 1, varargin{1}); % nExnPxnD
+                T = ([0 1;-1 0]*reshape(T,[],2)')'; % (nE*nP)xnD
                 F = f(reshape(P, [], size(P,3))); % (nE*nP)xnC
-                R(dMap(:)) = reshape(dot(F,N,2), size(P,1),[])'; % nDoFx1
+                R(dMap(:)) = reshape(dot(F,T,2), size(P,1),[])'; % nDoFx1
               case 2
                 P = obj.mesh.evalReferenceMap(points, 0, varargin{1}); % nExnPxnD
                 T = obj.mesh.evalReferenceMap(points, 1, varargin{1}); % nExnPxnCxnD
@@ -713,7 +740,31 @@ classdef FESpace < SOFE
                 end  
             end
           case 'HRot'
-            assert(0, 'TODO');
+            assert(obj.mesh.dimW==obj.element.dimension, 'TODO: HRot-Interpolation for 3D and surfaces!');
+            points = obj.element.getLagrangePoints(dim, obj.element.order); % nPxnD
+            points = points(offsetB+1:end,:); % nPxnD
+            switch dim
+              case 1
+                P = obj.mesh.evalReferenceMap(points, 0, varargin{1}); % nExnPxnD
+                T = obj.mesh.evalReferenceMap(points, 1, varargin{1}); % nExnPxnD
+                F = f(reshape(P, [], size(P,3))); % (nE*nP)xnC
+                R(dMap(:)) = reshape(dot(F,reshape(T,[],2),2), size(P,1),[])'; % nDoFx1
+              case 2
+                P = obj.mesh.evalReferenceMap(points, 0, varargin{1}); % nExnPxnD
+                T = obj.mesh.evalReferenceMap(points, 1, varargin{1}); % nExnPxnCxnD
+                F = f(reshape(P, [], size(P,3))); % (nE*nP)xnC
+                if obj.element.isSimplex()
+                  D = zeros(2,size(P,1),size(P,2)); % 2xnExnP
+                  D(2,:,:) = reshape(dot(F,reshape(T(:,:,:,2),size(F)),2),size(P,1),[]); % nExnP
+                  D(1,:,:) = reshape(dot(F,reshape(T(:,:,:,1),size(F)),2),size(P,1),[]); % nExnP
+                  R(dMap(:)) = permute(D,[1 3 2]); % nDoFx1
+                else
+                  TT = zeros(size(T(:,:,:,1)));
+                  TT(:,1:end/2,:) = T(:,1:end/2,:,2); % nExnPx2
+                  TT(:,end/2+1:end,:) = T(:,end/2+1:end,:,1); % nExnPx2,
+                  R(dMap(:)) = reshape(dot(F,reshape(TT,size(F)), 2), size(P,1), [])'; % nDoFx1
+                end  
+            end
         end
       end
     end

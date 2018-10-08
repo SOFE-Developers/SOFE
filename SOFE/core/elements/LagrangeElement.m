@@ -41,7 +41,8 @@ classdef LagrangeElement < Element
                 R = R(:,pVec(pVec>0));
               end
             else
-              pVec = reshape(1:nDoF(1), [], sqrt(nDoF(1)));
+              pVec = 1:nDoF(1);
+              if any(cell2mat(varargin(:))<0), pVec = reshape(1:nDoF(1), [], sqrt(nDoF(1))); end
               if varargin{1}<0, pVec = pVec(end:-1:1,:); end
               if varargin{2}<0, pVec = pVec(:,end:-1:1); end
               if varargin{3}<0, pVec = pVec.'; end

@@ -1,7 +1,7 @@
 classdef RegularMesh < Mesh
   methods % constructor
     function obj = RegularMesh(NVec, diam, varargin)
-      fprintf('Generate mesh ... \n');
+      fprintf('Generate regular mesh ... \n');
       dim = numel(NVec);
       GRID = cell(1,dim);
       for d = 1:dim
