@@ -376,7 +376,7 @@ classdef FESpace < SOFE
                 R = sum(bsxfun(@times, permute(trafo{2}, [1 2 3 5 6 4]), ...
                                        permute(R, [1 2 3 6 5 4])), 6); % nExnBxnPxnWxnW
             end
-          else % codim == 1, TODO!
+          else % codim == 1
             switch order
               case 0
                 R = basis; % 1xnBxnPxnC
