@@ -134,7 +134,7 @@ classdef MeshTopologyHex < MeshTopology
     end
     function R = getNormalOrientation(obj, varargin) % [I]
       R = prod(obj.getOrientation(3, 2, varargin{:}), 3); % nExnF
-      R(:,[1 3 5]) = -R(:,[1 3 5]);
+      R(:,[1 3 6]) = -R(:,[1 3 6]);
     end
   end
   methods % refine

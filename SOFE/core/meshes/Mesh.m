@@ -48,6 +48,21 @@ classdef Mesh < SOFE
       N = reshape(obj.nodes(entity(:),:),[],size(B,1),size(obj.nodes,2)); % nExnBxnW
       R = sum(bsxfun(@times, permute(N,pVecN), permute(B,pVecB)),5); % nExnPxnW[xnD] or nExnW[xnD]
     end
+    function R = evalNormalVector(obj, points, nFlag, varargin) % [I]
+      assert(size(points,2) == obj.topology.dimP-1, 'Normal only defined on codim 1');
+      R = obj.evalReferenceMap(points, 1, varargin{:}); % nExnPxnDx(nD-1)
+      sz = size(R);
+      switch obj.topology.dimP
+        case 2
+          R = ([0 1; -1 0]*reshape(R, [], sz(3))')';
+          R = reshape(R, sz); % nExnPxnD
+        case 3
+          R = cross(R(:,:,:,1), R(:,:,:,2), 3); % nExnPxnD
+      end
+      if nFlag
+        R = R./sum(R.^2,3).^(0.5*nFlag);
+      end
+    end
     function [R, invR, jacR] = evalTrafoInfo(obj, points, varargin) % [I]
       R = obj.evalReferenceMap(points, 1, varargin{:}); % nExnPxnWxnD or nExnWxnD
       if iscell(points)

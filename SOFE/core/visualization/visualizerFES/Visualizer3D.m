@@ -107,6 +107,12 @@ classdef Visualizer3D < Visualizer
             filter = ceil(N(:)./n);
             P = P(1:filter(1):end, 1:filter(2):end,:);
             W = W(1:filter(1):end, 1:filter(2):end,:);
+            if size(W,3)==2
+              try pad = varargin{1}.pad; catch, pad = 3; end
+              WN = zeros(size(P));
+              WN(:,:,setdiff(1:3,pad)) = W;
+              W = WN;
+            end
             hold on;
             h = quiver3(P(:,:,1),P(:,:,2),P(:,:,3),W(:,:,1),W(:,:,2),W(:,:,3), scale, ...
                         'linewidth', width, 'color',[0 0 1]);

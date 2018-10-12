@@ -229,6 +229,13 @@ classdef FESpace < SOFE
         obj.cache.Phi{k{1}}{codim+1,order+1} = R;
       end
     end
+    function R = evalNormalVector(obj, nFlag, varargin) % [{k} or I]
+      if ~isempty(varargin) && iscell(varargin{1})
+        varargin{1} = obj.getBlock(1, varargin{1}{1});
+      end
+      points = obj.element.getQuadData(1);
+      R = obj.mesh.evalNormalVector(points, nFlag, varargin{:});
+    end
     function [R, invR, jacR] = evalTrafoInfo(obj, points, codim, varargin) % [{k} or I]
       % [R, invR, jacR] = evalTrafoInfo(obj, points, codim [, idx])
       %   evaluates data for integral trafo in local/quadrature points
@@ -342,9 +349,10 @@ classdef FESpace < SOFE
                 R = bsxfun(@ldivide, trafo{3}, R); % nExnBxnPxnWxnW
             end
           else % codim == 1
+            N = obj.evalNormalVector(2, varargin{:}); % nExnPxnD
             switch order
               case 0
-                R = basis; % 1xnBxnPxnC
+                R = basis;
               case 1
                 try
                   basis = permute(basis,[2 3 4 5 1]);
@@ -352,7 +360,7 @@ classdef FESpace < SOFE
                   R = tprod(basis, trafo{2}, [2 3 4 -1], [1 3 -1 5]);
                 catch
                   R = sum(bsxfun(@times, permute(basis,    [1 2 3 4 6 5]), ...
-                                       permute(trafo{2}, [1 2 3 6 5 4])), 6); % nExnBxnPxnCxnD
+                                         permute(trafo{2}, [1 2 3 6 5 4])), 6); % nExnBxnPx(nC=1)xnD
                 end
               case 2
                 R = permute(basis, [1 2 3 6 4 5]); % % nExnBxnPxnD2xnCxnD1
@@ -363,6 +371,7 @@ classdef FESpace < SOFE
                                        permute(trafo{2}, [1 2 3 7 6 5 4])), 7); % nExnBxnPxnD2xnCxnD1
                 R = permute(R, [1 2 3 5 4 6]); % % nExnBxnPxxnCxnD1xnD2
             end
+            R = bsxfun(@times, R, permute(N, [1 4 2 3])); % nExnBxnPxnCx[...]
           end
         case 'HRot'
           if codim == 0
@@ -653,13 +662,6 @@ classdef FESpace < SOFE
         %
         F = obj.evalFunction(f, [], codim, [], varargin{:}); % nExnPxnC
         switch obj.element.conformity
-          case 'HDiv'
-            assert(obj.mesh.dimW==obj.element.dimension, 'TODO: HDiv-Interpolation for 3D and surfaces!');
-            if codim==1
-              N = obj.evalReferenceMap([], codim, 1, varargin{1}); % nExnPxnD
-              N = reshape(([0 1;-1 0]*reshape(N,[],2)')',size(F)); % nExnPxnD
-              F = dot(F,N,3); % nExnP
-            end
           case 'HRot'
             assert(obj.mesh.dimW==obj.element.dimension, 'TODO: HRot-Interpolation for 3D and surfaces!');
             if codim > 0
@@ -722,27 +724,30 @@ classdef FESpace < SOFE
             assert(obj.mesh.dimW==obj.element.dimension, 'TODO: HDiv-Interpolation for 3D and surfaces!');
             points = obj.element.getLagrangePoints(dim, obj.element.order); % nPxnD
             points = points(offsetB+1:end,:); % nPxnD
-            switch dim
+            switch codim
               case 1
                 P = obj.mesh.evalReferenceMap(points, 0, varargin{1}); % nExnPxnD
-                T = obj.mesh.evalReferenceMap(points, 1, varargin{1}); % nExnPxnD
-                T = ([0 1;-1 0]*reshape(T,[],2)')'; % (nE*nP)xnD
                 F = f(reshape(P, [], size(P,3))); % (nE*nP)xnC
-                R(dMap(:)) = reshape(dot(F,T,2), size(P,1),[])'; % nDoFx1
-              case 2
+                N = reshape(obj.mesh.evalNormalVector(points, 0, varargin{1}),[],size(F,2)); % (nE*nP)xnD
+                R(dMap(:)) = reshape(dot(F,N,2), size(P,1),[])'; % nDoFx1
+              case 0
                 P = obj.mesh.evalReferenceMap(points, 0, varargin{1}); % nExnPxnD
                 T = obj.mesh.evalReferenceMap(points, 1, varargin{1}); % nExnPxnCxnD
                 F = f(reshape(P, [], size(P,3))); % (nE*nP)xnC
                 if obj.element.isSimplex()
-                  D = zeros(2,size(P,1),size(P,2)); % 2xnExnP
-                  D(2,:,:) = reshape(dot(F,reshape(T(:,:,:,2),size(F)),2),size(P,1),[]); % nExnP
-                  D(1,:,:) = reshape(dot(F,reshape(T(:,:,:,1),size(F)),2),size(P,1),[]); % nExnP
+                  nD = obj.element.dimension;
+                  D = zeros(nD,size(P,1),size(P,2)); % nDxnExnP
+                  for d = 1:nD
+                    D(d,:,:) = reshape(dot(F,reshape(T(:,:,:,d),size(F)),2),size(P,1),[]); % nExnP
+                  end
                   R(dMap(:)) = permute(D,[1 3 2]); % nDoFx1
                 else
-                  TT = zeros(size(T(:,:,:,1)));
-                  TT(:,1:end/2,:) = T(:,1:end/2,:,1); % nExnPx2
-                  TT(:,end/2+1:end,:) = T(:,end/2+1:end,:,2); % nExnPx2,
-                  R(dMap(:)) = reshape(dot(F,reshape(TT,[],2), 2), size(P,1), [])'; % nDoFx1
+                  D = zeros(size(T(:,:,:,1)));
+                  nD = obj.element.dimension;
+                  for d = 1:nD
+                    D(:,(d-1)*size(D,2)/nD + (1:size(D,2)/nD),:) = T(:,1:size(D,2)/nD,:,d); % nExnPx2
+                  end
+                  R(dMap(:)) = reshape(dot(F,reshape(D,[],size(F,2)), 2), size(P,1), [])'; % nDoFx1
                 end  
             end
           case 'HRot'
@@ -765,10 +770,10 @@ classdef FESpace < SOFE
                   D(1,:,:) = reshape(dot(F,reshape(T(:,:,:,1),size(F)),2),size(P,1),[]); % nExnP
                   R(dMap(:)) = permute(D,[1 3 2]); % nDoFx1
                 else
-                  TT = zeros(size(T(:,:,:,1)));
-                  TT(:,1:end/2,:) = T(:,1:end/2,:,2); % nExnPx2
-                  TT(:,end/2+1:end,:) = T(:,end/2+1:end,:,1); % nExnPx2,
-                  R(dMap(:)) = reshape(dot(F,reshape(TT,size(F)), 2), size(P,1), [])'; % nDoFx1
+                  D = zeros(size(T(:,:,:,1)));
+                  D(:,1:end/2,:) = T(:,1:end/2,:,2); % nExnPx2
+                  D(:,end/2+1:end,:) = T(:,end/2+1:end,:,1); % nExnPx2,
+                  R(dMap(:)) = reshape(dot(F,reshape(D,size(F)), 2), size(P,1), [])'; % nDoFx1
                 end  
             end
         end
