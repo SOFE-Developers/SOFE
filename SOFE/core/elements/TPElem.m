@@ -38,4 +38,9 @@ classdef TPElem < Element
       end
     end
   end
+  methods
+    function R = getLagrangePoints(obj, dim, r)
+      R = obj.scalarElement.getLagrangePoints(dim, r); % nPxnD
+    end
+  end
 end

@@ -62,9 +62,9 @@ classdef LagrangeElement < Element
     end
   end
   methods % show
-    function showLagrangePoints(obj, dim, p)
-      P = obj.getLagrangePoints(dim, p);
-      switch dim
+    function showLagrangePoints(obj)
+      P = obj.getLagrangePoints(obj.dimension, obj.order);
+      switch obj.dimension
         case 1
           plot(P,zeros(size(P)),'*');
           hold on

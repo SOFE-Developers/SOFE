@@ -149,7 +149,7 @@ classdef Element < SOFE
       if obj.nV(2) == 3
         Z(:,X+Y>1) = NaN;
       end
-      quiver(X,Y,reshape(Z(i,:,1),size(X)),reshape(Z(i,:,2),size(X)), 2, varargin{:});
+      quiver(X,Y,reshape(Z(i,:,1),size(X)),reshape(Z(i,:,2),size(X)), 1, varargin{:});
       axis([0 1 0 1]); axis equal
     end
     function quiver3D(obj, i, varargin)
