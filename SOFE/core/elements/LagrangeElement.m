@@ -23,7 +23,7 @@ classdef LagrangeElement < Element
             R = (-1)^strcmp(obj.conformity, 'HRot')*R(:,end:-1:1);
           end
         case 2
-          if obj.dimension > 2 && nargin > 2
+          if obj.dimension > 2 && ~isempty(varargin) > 2
             if obj.isSimplex()
               if nDoF(1)>0
                 nCol = floor(sqrt(2*nDoF(1))):-1:1;
@@ -74,13 +74,22 @@ classdef LagrangeElement < Element
           plot(P(:,1),P(:,2),'*'); axis equal
           hold on
           if obj.isSimplex()
-            plot([0 1 0 0]',[0 0 1 0],'r');
+            plot([0 1 0 0],[0 0 1 0],'r');
           else
-            plot([0 1 1 0 0]',[0 0 1 1 0],'r');
+            plot([0 1 1 0 0],[0 0 1 1 0],'r');
           end
           hold off 
         case 3
-          fprintf('TODO\n');
+          plot3(P(:,1),P(:,2),P(:,3),'*'); axis equal
+          hold on
+          if obj.isSimplex()
+            plot3([0 1 0 0 0 1 0 0],[0 0 1 0 0 0 0 1],[0 0 0 0 1 0 1 0],'r');
+          else
+            plot3([0 1 1 0 0 0 1 1 1 1 1 1 0 0 0 0], ...
+                  [0 0 1 1 0 0 0 0 0 1 1 1 1 1 1 0], ...
+                  [0 0 0 0 0 1 1 0 1 1 0 1 1 0 1 1],'r');
+          end
+          hold off 
       end
     end
   end
