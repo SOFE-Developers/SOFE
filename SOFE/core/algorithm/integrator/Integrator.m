@@ -29,7 +29,7 @@ classdef Integrator < Algorithm
       obj.history{1} = cell(A.nEq,1);
       for k = 1:A.nEq
         if ~isempty(obj.initCond)
-          obj.history{1}{k} = A.fesTrial{k}.getInterpolation(obj.initCond{k}, 0);
+          obj.history{1}{k} = A.fesTrial{k}.getL2Interpolant(obj.initCond{k}, A.fesTrial{k}.mesh.element.dimension);
         else
           obj.history{1}{k} = zeros(A.J(k,2)-A.J(k,1)+1, 1);
         end

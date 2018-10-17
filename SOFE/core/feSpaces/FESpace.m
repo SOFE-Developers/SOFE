@@ -319,12 +319,10 @@ classdef FESpace < SOFE
               R = basis; % 1xnBxnPxnC
             case 1
               try
-                basis = permute(basis,[2 3 4 5 1]);
-                trafo{2} = permute(trafo{2},[1 3 4 5 2]);
-                R = tprod(basis, trafo{2}, [2 3 4 -1], [1 3 -1 5]);
+                R = tprod(permute(basis,[2 3 4 5 1]), permute(trafo{2},[1 3 4 5 2]), [2 3 4 -1], [1 3 -1 5]); % nExnBxnPxnCxnD
               catch
                 R = sum(bsxfun(@times, permute(basis,    [1 2 3 4 6 5]), ...
-                                     permute(trafo{2}, [1 2 3 6 5 4])), 6); % nExnBxnPxnCxnD
+                                       permute(trafo{2}, [1 2 3 6 5 4])), 6); % nExnBxnPxnCxnD
               end
             case 2
               R = permute(basis, [1 2 3 6 4 5]); % % nExnBxnPxnD2xnCxnD1
@@ -596,7 +594,8 @@ classdef FESpace < SOFE
     function R = getL2Projection(obj, f)
       mass = OpIdId(1, 0, obj); mass.assemble();
       l2 = FcId(f, obj, 0); l2.assemble();
-      R = mass.matrix \ l2.matrix;
+      solver = IterativeSol('pcg', 'ilu'); solver.tol = 1e-12;
+      R = solver.solve(mass.matrix, l2.matrix, ':', ':', zeros(obj.getNDoF(),1));
     end
     function R = getL2Interpolant(obj, f, dim, varargin) % [I]
       codim = obj.element.dimension - dim;

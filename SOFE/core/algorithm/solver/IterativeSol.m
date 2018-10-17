@@ -14,7 +14,6 @@ classdef IterativeSol < Solver
   end
   methods % solve
     function R = solve(obj, A, b, I, J, shift)
-      assert(obj.pde.createSys, 'System must be created');
       M1 = []; M2 = [];
       b = b - A*shift;
       A = A(I, J);

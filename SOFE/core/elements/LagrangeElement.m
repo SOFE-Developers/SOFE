@@ -23,7 +23,7 @@ classdef LagrangeElement < Element
             R = (-1)^strcmp(obj.conformity, 'HRot')*R(:,end:-1:1);
           end
         case 2
-          if obj.dimension > 2 && ~isempty(varargin) > 2
+          if obj.dimension > 2 && ~isempty(varargin)
             if obj.isSimplex()
               if nDoF(1)>0
                 nCol = floor(sqrt(2*nDoF(1))):-1:1;
