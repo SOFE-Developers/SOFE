@@ -19,7 +19,7 @@ classdef PpL < LagrangeElement
     end
   end
   methods(Static=true)
-    function R = getLagrangePoints(dim, p)
+    function [R,D] = getLagrangePoints(dim, p)
       p1d = linspace(0,1,p+1)';
 %      p1d = (1+QuadRule.evalWeightedGaussPoints(p+1, @(x)1+0*x(:,1),'Lobatto'))/2;
       p1d = p1d(2:p);
@@ -56,6 +56,7 @@ classdef PpL < LagrangeElement
           I = ix+iy+iz < p;
           R = [R; [px(I) py(I) pz(I)]];
       end
+      D = ones(size(R,1),1);
     end
   end
 end

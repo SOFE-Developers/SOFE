@@ -594,7 +594,7 @@ classdef FESpace < SOFE
     function R = getL2Projection(obj, f)
       mass = OpIdId(1, 0, obj); mass.assemble();
       l2 = FcId(f, obj, 0); l2.assemble();
-      solver = IterativeSol('pcg', 'ilu'); solver.tol = 1e-12;
+      solver = IterativeSol('pcg', 'ilu'); solver.tol = 1e-13;
       R = solver.solve(mass.matrix, l2.matrix, ':', ':', zeros(obj.getNDoF(),1));
     end
     function R = getL2Interpolant(obj, f, dim, varargin) % [I]
@@ -662,54 +662,30 @@ classdef FESpace < SOFE
         dMap = obj.getDoFMap(codim, varargin{:}); % nBxnE
         dMap = reshape(dMap(offsetB+1:end,:),[],1); % nB*nE
         if isempty(dMap), return; end
-        points = obj.element.getLagrangePoints(dim, obj.element.order); % nPxnD
+        [points, dir] = obj.element.getLagrangePoints(dim, obj.element.order); % nPxnD
         points = points(sum(obj.element.doFTuple(1,1:dim).*nEntSub(1:dim))+1:end,:); % nPxnD
+        dir = dir(sum(obj.element.doFTuple(1,1:dim).*nEntSub(1:dim))+1:end,:); % nPxnD
         P = obj.mesh.evalReferenceMap(points, 0, varargin{1}); % nExnPxnD
         F = f(reshape(P, [], size(P,3))); % (nE*nP)xnC
-        [nP, nD] = size(points);
         switch obj.element.conformity
           case 'H1'    
             R(dMap(:)) = permute(reshape(F, size(P,1),[],size(F,2)), [3 2 1]); % nDoFx1
+            return
           case 'HDiv'
             switch codim
               case 1
                 N = reshape(obj.mesh.evalNormalVector(points, 0, varargin{1}),[],size(F,2)); % (nE*nP)xnD
                 R(dMap(:)) = reshape(dot(F,N,2), size(P,1),[])'; % nDoFx1
+                return
               case 0
                 [~, D, J] = obj.mesh.evalTrafoInfo(points); % nExnPxnDxnD
                 D = J.*permute(D, [1 2 4 3]); % nExnPxnDxnD
-                if obj.element.isSimplex()
-                  dofs = zeros(nD,size(P,1),size(P,2)); % nDxnExnP
-                  for d = 1:nD
-                    dofs(d,:,:) = reshape(dot(F,reshape(D(:,:,:,d),size(F)),2),size(P,1),[]); % nExnP
-                  end
-                  R(dMap(:)) = permute(dofs,[1 3 2]); % nDoFx1
-                else
-                  DD = zeros(size(D(:,:,:,1))); % nExnPxnD
-                  for d = 1:nD
-                    I = (d-1)*nP/nD + (1:nP/nD);
-                    DD(:,I,:) = D(:,I,:,d); % nExnP1xnD
-                  end
-                  R(dMap(:)) = reshape(dot(F,reshape(DD,size(F)), 2), size(P,1), [])'; % nDoFx1
-                end  
             end
           case 'HRot'
             D = obj.mesh.evalReferenceMap(points, 1, varargin{1}); % nExnPxnCxnD
-            if obj.element.isSimplex()
-              dofs = zeros(nD,size(P,1),size(P,2)); % nDxnExnP
-              for d = 1:nD
-                dofs(d,:,:) = reshape(dot(F,reshape(D(:,:,:,d),size(F)),2),size(P,1),[]); % nExnP
-              end
-              R(dMap(:)) = permute(dofs,[1 3 2]); % nDoFx1
-            else
-              DD = zeros(size(D(:,:,:,1))); % nExnPxnD
-              for d = 1:nD
-                I = (d-1)*nP/nD + (1:nP/nD);
-                DD(:,I,:) = D(:,I,:,nD-d+1); % nExnP1xnD
-              end
-              R(dMap(:)) = reshape(dot(F,reshape(DD,size(F)), 2), size(P,1), [])'; % nDoFx1
-            end  
         end
+        D = sum(bsxfun(@times, D, permute(dir, [3 1 4 2])),4);
+        R(dMap(:)) = reshape(dot(F,reshape(D,size(F)), 2), size(P,1), [])'; % nDoFx1
       end
     end
   end

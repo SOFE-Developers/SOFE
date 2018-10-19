@@ -20,7 +20,7 @@ classdef QpL < LagrangeElement
     end
   end
   methods(Static=true)
-    function R = getLagrangePoints(dim, p)
+    function [R,D] = getLagrangePoints(dim, p)
       p = p(1);
       if p == 0
         p1d = 0.5;
@@ -58,6 +58,7 @@ classdef QpL < LagrangeElement
           [pz,py,px] = meshgrid(p1d,p1d,p1d);
           R = [R; [px(:) py(:) pz(:)]];
       end
+      D = ones(size(R,1),1);
     end
   end
 end

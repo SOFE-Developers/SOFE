@@ -42,8 +42,8 @@ classdef VecElem < Element
     end
   end
   methods
-    function R = getLagrangePoints(obj, dim, r)
-      R = obj.scalarElement.getLagrangePoints(dim, r); % nPxnD
+    function [R,D] = getLagrangePoints(obj, dim, r)
+      [R,D] = obj.scalarElement.getLagrangePoints(dim, r); % nPxnD
     end
   end
 end
