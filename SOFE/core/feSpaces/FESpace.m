@@ -617,6 +617,9 @@ classdef FESpace < SOFE
         if dim==3 && isa(obj.element, 'NdPp')
           doFTuple(3) = 1.5*doFTuple(3);
         end
+        if dim==3 && isa(obj.element, 'BDMPRot')
+          doFTuple(3) = 1.5*(doFTuple(3)-3*(doFTuple(2)-2)) + 3*(doFTuple(2)-2);
+        end
         offsetB = sum(doFTuple.*nEntSub(1:dim));
         dMap = obj.getDoFMap(codim, varargin{:}); % nBxnE
         dMap = reshape(dMap(offsetB+1:end,:),[],1); % nB*nE
@@ -657,6 +660,9 @@ classdef FESpace < SOFE
         doFTuple = prod(obj.element.doFTuple(:,1:dim),1);
         if dim==3 && isa(obj.element, 'NdPp')
           doFTuple(3) = 1.5*doFTuple(3);
+        end
+        if dim==3 && isa(obj.element, 'BDMPRot')
+          doFTuple(3) = 1.5*(doFTuple(3)-3*(doFTuple(2)-2)) + 3*(doFTuple(2)-2);
         end
         offsetB = sum(doFTuple.*nEntSub(1:dim));
         dMap = obj.getDoFMap(codim, varargin{:}); % nBxnE
