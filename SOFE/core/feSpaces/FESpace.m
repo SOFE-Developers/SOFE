@@ -669,8 +669,8 @@ classdef FESpace < SOFE
         dMap = reshape(dMap(offsetB+1:end,:),[],1); % nB*nE
         if isempty(dMap), return; end
         [points, dir] = obj.element.getLagrangePoints(dim, obj.element.order); % nPxnD
-        points = points(sum(obj.element.doFTuple(1,1:dim).*nEntSub(1:dim))+1:end,:); % nPxnD
-        dir = dir(sum(obj.element.doFTuple(1,1:dim).*nEntSub(1:dim))+1:end,:); % nPxnD
+        points = points(sum(prod(obj.element.doFTuple(:,1:dim),1).*nEntSub(1:dim))+1:end,:); % nPxnD
+        dir = dir(sum(prod(obj.element.doFTuple(:,1:dim),1).*nEntSub(1:dim))+1:end,:); % nPxnD
         P = obj.mesh.evalReferenceMap(points, 0, varargin{1}); % nExnPxnD
         F = f(reshape(P, [], size(P,3))); % (nE*nP)xnC
         switch obj.element.conformity
