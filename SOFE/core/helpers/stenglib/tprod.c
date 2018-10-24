@@ -8,7 +8,7 @@
 #include <math.h>
 
 #include "mex.h"
-#include "matrix.h"
+/*#include "matrix.h"*/
 
 /* Note: All integer arguments in calls to the BLAS function dgemm()
    will be casted according to (int *)&BLASINT. This is to provide for

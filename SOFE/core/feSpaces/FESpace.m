@@ -675,8 +675,7 @@ classdef FESpace < SOFE
         F = f(reshape(P, [], size(P,3))); % (nE*nP)xnC
         switch obj.element.conformity
           case 'H1'    
-            R(dMap(:)) = permute(reshape(F, size(P,1),[],size(F,2)), [3 2 1]); % nDoFx1
-            return
+            D = repmat(permute(eye(obj.element.getNC),[3 4 1 2]),size(P,1),size(P,2));
           case 'HDiv'
             switch codim
               case 1

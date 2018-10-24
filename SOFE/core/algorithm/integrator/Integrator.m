@@ -27,8 +27,9 @@ classdef Integrator < Algorithm
       A = obj.tStep.pde;
       % initial condition
       obj.history{1} = cell(A.nEq,1);
+      if ~iscell(obj.initCond), obj.initCond = {obj.initCond}; end
       for k = 1:A.nEq
-        if ~isempty(obj.initCond)
+        if ~isempty(obj.initCond{k})
           obj.history{1}{k} = A.fesTrial{k}.getL2Interpolant(obj.initCond{k}, A.fesTrial{k}.mesh.element.dimension);
         else
           obj.history{1}{k} = zeros(A.J(k,2)-A.J(k,1)+1, 1);
