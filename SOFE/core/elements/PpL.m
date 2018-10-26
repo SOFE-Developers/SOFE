@@ -31,8 +31,10 @@ classdef PpL < LagrangeElement
             R = [0; 1; p1d];
           end
         case 2
+          % edge
           R = [0 0; 1 0; 0 1];
           R = [R; [p1d zeros(p-1,1)]; [1-p1d p1d]; [zeros(p-1,1) p1d]];
+          % inner
           [py,px] = meshgrid(p1d,p1d);
           [iy,ix] = meshgrid(1:p-1, 1:p-1);
           I = ix+iy < p;
@@ -40,10 +42,10 @@ classdef PpL < LagrangeElement
         case 3
           zz = zeros(p-1,1);
           R = [0 0 0; 1 0 0; 0 1 0; 0 0 1];
-          % edges
+          % edge
           R = [R; [p1d zz zz]; [1-p1d p1d zz]; [zz p1d zz]; ...
                   [zz zz p1d]; [1-p1d zz p1d]; [zz 1-p1d p1d]];
-          % faces
+          % face
           [py,px] = meshgrid(p1d,p1d);
           [iy,ix] = meshgrid(1:p-1, 1:p-1);
           I = ix+iy < p;

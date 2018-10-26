@@ -594,8 +594,7 @@ classdef FESpace < SOFE
     function R = getL2Projection(obj, f)
       mass = OpIdId(1, 0, obj); mass.assemble();
       l2 = FcId(f, obj, 0); l2.assemble();
-      solver = IterativeSol('pcg', 'ilu'); solver.tol = 1e-13;
-      R = solver.solve(mass.matrix, l2.matrix, ':', ':', zeros(obj.getNDoF(),1));
+      R = mass.matrix\l2.matrix;
     end
     function R = getL2Interpolant(obj, f, dim, varargin) % [I]
       codim = obj.element.dimension - dim;
