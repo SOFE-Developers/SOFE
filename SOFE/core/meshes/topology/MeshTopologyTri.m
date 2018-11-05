@@ -4,6 +4,7 @@ classdef MeshTopologyTri < MeshTopology
       obj = obj@MeshTopology(2);
       obj.update(elem);
       obj.isSimplex = 1;
+      obj.nESub = [3 3 1];
     end
     function update(obj, elem)
       obj.connectivity = cell(obj.dimP+1);
@@ -103,9 +104,8 @@ classdef MeshTopologyTri < MeshTopology
       R = [1 1]/3;
     end
     function R = upliftPoints(points, fLoc, orient)
-      % complies standard orientation
       zz = zeros(size(points));
-      if orient<0
+      if orient==2
         points = 1-points;
       end
       switch fLoc
@@ -120,7 +120,7 @@ classdef MeshTopologyTri < MeshTopology
     function R = upliftPointsN(points, fLoc, orient)
       % complies normal orientation
       zz = zeros(size(points));
-      if orient<0
+      if orient==2
         points = 1-points;
       end
       switch fLoc

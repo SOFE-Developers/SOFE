@@ -52,6 +52,7 @@ classdef Visualizer2D < Visualizer
         vertices = obj.feSpace.mesh.evalReferenceMap([X(:) Y(:)],0); % nExnPxnW
         vertices = reshape(permute(vertices, [2 1 3]), [], size(vertices,3)); % (nP*nE)x2
         if size(vertices,2)==2
+%           vertices = [vertices, zeros(size(value))];
           vertices = [vertices, value];
         end
         h = patch('faces', reshape(elem, [], obj.feSpace.mesh.element.nV(end)), ...
@@ -99,9 +100,8 @@ classdef Visualizer2D < Visualizer
           try n = varargin{1}.n; catch, n = 40; end
           if numel(n) == 1, n = n*ones(2,1); end
           absZ = sum(Z.^2, 2).^0.5;
-          h = [];
           if abs
-            h = surf(X,Y,0*X,reshape(absZ,size(X))); shading interp
+            surf(X,Y,0*X,reshape(absZ,size(X))); shading interp
           end
           if vectors
             if normalize, Z = bsxfun(@rdivide, Z, absZ); Z(Z==Inf) = 0; end

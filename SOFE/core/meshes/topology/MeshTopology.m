@@ -3,6 +3,7 @@ classdef MeshTopology < SOFE
     dimP
     connectivity
     isSimplex
+    nESub
   end
   methods % constructor
     function obj = MeshTopology(dimP)
@@ -66,7 +67,7 @@ classdef MeshTopology < SOFE
         R = R(varargin{1},:);
       end
     end
-    function [R, fType] = getFace2Elem(obj)
+    function [R, fType, orient] = getFace2Elem(obj)
       if isempty(obj.connectivity{obj.dimP,obj.dimP+1})        
         nE = obj.getNumber('0'); nF = obj.getNumber('1');
         orient = 0.5*(3-obj.getNormalOrientation());
@@ -77,6 +78,14 @@ classdef MeshTopology < SOFE
       R = obj.connectivity{obj.dimP,obj.dimP+1}{1};
       if nargout>1
         fType = obj.connectivity{obj.dimP,obj.dimP+1}{2};
+      end
+      if nargout>2
+        orientE = obj.getNormalOrientation();
+        orient = zeros(size(R));
+        for i = 1:2
+          I = R(:,i) > 0;
+          orient(I,i) = orientE(R(I,i)+size(orientE,1)*(fType(I,i)-1));
+        end
       end
     end
     function R = getNodePatch(obj, dim)

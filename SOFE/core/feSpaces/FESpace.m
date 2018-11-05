@@ -311,9 +311,7 @@ classdef FESpace < SOFE
       end
       basis = permute(basis, [6 1 2 3 4 5]); % 1xnBxnPxnC[xnD]
       switch obj.element.conformity
-        case 'L2'
-          R = basis; % 1xnBxnPxnC[xnD]
-        case 'H1'
+        case {'L2', 'H1'}
           switch order
             case 0
               R = basis; % 1xnBxnPxnC
@@ -673,7 +671,7 @@ classdef FESpace < SOFE
         P = obj.mesh.evalReferenceMap(points, 0, varargin{1}); % nExnPxnD
         F = f(reshape(P, [], size(P,3))); % (nE*nP)xnC
         switch obj.element.conformity
-          case 'H1'    
+          case {'L2', 'H1'}
             D = repmat(permute(eye(obj.element.getNC),[3 4 1 2]),size(P,1),size(P,2));
           case 'HDiv'
             switch codim

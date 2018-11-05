@@ -4,6 +4,7 @@ classdef MeshTopologyQuad < MeshTopology
       obj = obj@MeshTopology(2);
       obj.update(elem);
       obj.isSimplex = 0;
+      obj.nESub = [4 4 1];
     end
     function update(obj, elem)
       obj.connectivity = cell(obj.dimP+1);
@@ -84,7 +85,7 @@ classdef MeshTopologyQuad < MeshTopology
     function R = upliftPoints(points, fLoc, orient)
       % complies standard orientation
       zz = zeros(size(points)); oo = ones(size(points));
-      if orient<0
+      if orient==2
         points = 1-points;
       end
       switch fLoc
@@ -101,7 +102,7 @@ classdef MeshTopologyQuad < MeshTopology
     function R = upliftPointsN(points, fLoc, orient)
       % complies normal orientation
       zz = zeros(size(points)); oo = ones(size(points));
-      if orient<0
+      if orient==2
         points = 1-points;
       end
       switch fLoc
