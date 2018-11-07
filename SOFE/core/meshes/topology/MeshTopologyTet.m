@@ -4,6 +4,7 @@ classdef MeshTopologyTet < MeshTopology
       obj = obj@MeshTopology(3);
       obj.update(elem);
       obj.isSimplex = 1;
+      obj.nESub = [4 6 4 1];
     end
     function update(obj, elem)
       obj.connectivity = cell(obj.dimP+1);
@@ -127,6 +128,22 @@ classdef MeshTopologyTet < MeshTopology
         elem(I,:) = elem(I, [2 1 3 4]);
       end
       R = elem;
+    end
+    function R = upliftPointsN(points, fLoc, orient)
+      % complies normal orientation
+      % TODO
+      zz = zeros(size(points));
+      if orient==2
+        points = 1-points;
+      end
+      switch fLoc
+        case 1
+          R = [points, zz];
+        case 2
+          R = [1-points, points];
+        case 3
+          R = [zz, 1 - points];
+      end
     end
   end
 end

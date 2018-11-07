@@ -4,6 +4,7 @@ classdef MeshTopologyHex < MeshTopology
       obj = obj@MeshTopology(3);
       obj.update(elem);
       obj.isSimplex = 0;
+      obj.nESub = [8 12 6 1];
     end
     function update(obj, elem)
       obj.connectivity = cell(obj.dimP+1);
