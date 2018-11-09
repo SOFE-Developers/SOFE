@@ -19,7 +19,7 @@ classdef LagrangeElement < Element
       R = reshape((1:prod(nDoF))', [], nDoF(1));
       switch dim
         case 1
-          if obj.dimension > 1 && ~isempty(varargin) && varargin{1} < 0
+          if obj.dimension > 1 && ~isempty(varargin) && varargin{1}==2
             R = (-1)^strcmp(obj.conformity, 'HRot')*R(:,end:-1:1);
           end
         case 2
@@ -28,7 +28,7 @@ classdef LagrangeElement < Element
               if nDoF(1)>0
                 nCol = floor(sqrt(2*nDoF(1))):-1:1;
                 pVec = reshapeTop(nCol, 1:nDoF(1));
-                switch varargin{1}
+                switch ceil(0.5*varargin{1})
                   case 1
                     % do noting
                   case 2
@@ -37,15 +37,20 @@ classdef LagrangeElement < Element
                   case 3
                     pVec = rot90(pVec);
                 end
-                if varargin{2} < 0, pVec = reshapeTop(nCol,pVec(pVec>0))'; end                
+                if mod(varargin{1},2)==0, pVec = reshapeTop(nCol,pVec(pVec>0))'; end
                 R = R(:,pVec(pVec>0));
               end
             else
-              pVec = 1:nDoF(1);
-              if any(cell2mat(varargin(:))<0), pVec = reshape(1:nDoF(1), [], sqrt(nDoF(1))); end
-              if varargin{1}<0, pVec = pVec(:,end:-1:1); end
-              if varargin{2}<0, pVec = pVec(end:-1:1,:); end
-              if varargin{3}<0, pVec = pVec'; end
+              pVec = reshape(1:nDoF(1), [], sqrt(nDoF(1)));
+              flags = [1 1 1;1 1 -1; 1 -1 -1; -1 1 1; -1 1 -1; 1 -1 1; -1 -1 1; -1 -1 -1];
+              if flags(varargin{1},3)<0
+                if flags(varargin{1},1)<0, pVec = pVec(:,end:-1:1); end
+                if flags(varargin{1},2)<0, pVec = pVec(end:-1:1,:); end
+                pVec = pVec';
+              else
+                if flags(varargin{1},1)<0, pVec = pVec(end:-1:1,:); end
+                if flags(varargin{1},2)<0, pVec = pVec(:,end:-1:1); end
+              end
               R = R(:,pVec);
             end
           end

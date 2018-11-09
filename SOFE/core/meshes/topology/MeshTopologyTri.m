@@ -5,6 +5,7 @@ classdef MeshTopologyTri < MeshTopology
       obj.update(elem);
       obj.isSimplex = 1;
       obj.nESub = [3 3 1];
+      obj.nO = 2;
     end
     function update(obj, elem)
       obj.connectivity = cell(obj.dimP+1);
@@ -24,13 +25,13 @@ classdef MeshTopologyTri < MeshTopology
       if dim==2 && d == 1
         e = obj.getEntity(2, varargin{:});
         R = ones(size(e));
-        R(e(:,1)>e(:,2),1) = -1;
-        R(e(:,2)>e(:,3),2) = -1;
-        R(e(:,1)>e(:,3),3) = -1;
+        R(e(:,1)>e(:,2),1) = 2;
+        R(e(:,2)>e(:,3),2) = 2;
+        R(e(:,1)>e(:,3),3) = 2;
       end
     end
     function R = getNormalOrientation(obj, varargin) % [I]
-      R = obj.getOrientation(2,1,varargin{:});
+      R = 2*mod(obj.getOrientation(2, 1, varargin{:}),2)-1; % nExnF
       R(:,3) = -R(:,3);
     end
   end
@@ -47,7 +48,7 @@ classdef MeshTopologyTri < MeshTopology
     end
     function R = uniformRefineFast(obj)
       fc = obj.getEntity(1); el = obj.getEntity(2);
-      e2F = obj.connectivity{3,2}; oo = obj.getOrientation()<0;
+      e2F = obj.connectivity{3,2}; oo = obj.getOrientation()==2;
       nN = obj.getNumber(0); nF = obj.getNumber(1); nE = obj.getNumber(2);
       fRange = (1:nF)'; eRange = (1:nE)';
       %

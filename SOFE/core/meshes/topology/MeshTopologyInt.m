@@ -3,6 +3,8 @@ classdef MeshTopologyInt < MeshTopology
     function obj = MeshTopologyInt(elem)
       obj = obj@MeshTopology(1);
       obj.update(elem);
+      obj.nESub = [2 1];
+      obj.nO = 2;
     end
     function update(obj, elem)
       obj.connectivity = cell(obj.dimP+1);

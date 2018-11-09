@@ -5,6 +5,7 @@ classdef MeshTopologyHex < MeshTopology
       obj.update(elem);
       obj.isSimplex = 0;
       obj.nESub = [8 12 6 1];
+      obj.nO = 8;
     end
     function update(obj, elem)
       obj.connectivity = cell(obj.dimP+1);
@@ -43,25 +44,19 @@ classdef MeshTopologyHex < MeshTopology
       e2F = obj.getElem2Face();
       e2E = obj.getElem2Edge();
       orientF = obj.getOrientation(3,2);
-      orient1 = orientF(:,:,1);
-      orient2 = orientF(:,:,2);
-      orient3 = orientF(:,:,3);
       [~, ind] = unique(e2F);
-      orient1 = orient1(ind); orient2 = orient2(ind); orient3 = orient3(ind);
+      orientF = orientF(ind);
       [father, type] = ind2sub([obj.getNumber(3), 6], ind);
       nodeIxAtFace = [1 2 5 7; 3 4 6 8; 5 6 9 11; 7 8 10 12; 1 3 9 10; 2 4 11 12];
+      flags = [1 1 1;1 1 -1; 1 -1 -1; -1 1 1; -1 1 -1; 1 -1 1; -1 -1 1; -1 -1 -1];
       for t = 1:6
-        for s1 = -1:2:1
-          for s2 = -1:2:1
-            for k = -1:2:1
-              I = (type == t) & (orient1 == s1) & (orient2 == s2) & (orient3 == k);
-              idxMap = [1 3; 2 4];
-              if k<0, idxMap = idxMap(:,[2 1]); end
-              if s1<0, idxMap(:,2) = idxMap([2 1],2); end
-              if s2<0, idxMap(:,1) = idxMap([2 1],1); end
-              R(I,:) = e2E(father(I), nodeIxAtFace(t,idxMap(:)));
-            end
-          end
+        for k = 1:8 % to check, compare with getDoFEnum@LagrangeElement
+          I = (type == t) & (orientF == k);
+          idxMap = [1 3; 2 4];
+          if flags(k,3)<0, idxMap = idxMap(:,[2 1]); end
+          if flags(k,1)<0, idxMap(:,2) = idxMap([2 1],2); end
+          if flags(k,2)<0, idxMap(:,1) = idxMap([2 1],1); end
+          R(I,:) = e2E(father(I), nodeIxAtFace(t,idxMap(:)));
         end
       end
     end
@@ -73,25 +68,25 @@ classdef MeshTopologyHex < MeshTopology
             case 3
               e = obj.getEntity(3, varargin{:});   
               R = ones(size(e,1), 12);
-              R(e(:,1)>e(:,2),1) = -1;
-              R(e(:,3)>e(:,4),2) = -1;
-              R(e(:,5)>e(:,6),3) = -1;
-              R(e(:,7)>e(:,8),4) = -1;
-              R(e(:,1)>e(:,3),5) = -1;
-              R(e(:,5)>e(:,7),6) = -1;
-              R(e(:,2)>e(:,4),7) = -1;
-              R(e(:,6)>e(:,8),8) = -1;
-              R(e(:,1)>e(:,5),9) = -1;
-              R(e(:,2)>e(:,6),10) = -1;
-              R(e(:,3)>e(:,7),11) = -1;
-              R(e(:,4)>e(:,8),12) = -1;
+              R(e(:,1)>e(:,2),1) = 2;
+              R(e(:,3)>e(:,4),2) = 2;
+              R(e(:,5)>e(:,6),3) = 2;
+              R(e(:,7)>e(:,8),4) = 2;
+              R(e(:,1)>e(:,3),5) = 2;
+              R(e(:,5)>e(:,7),6) = 2;
+              R(e(:,2)>e(:,4),7) = 2;
+              R(e(:,6)>e(:,8),8) = 2;
+              R(e(:,1)>e(:,5),9) = 2;
+              R(e(:,2)>e(:,6),10) = 2;
+              R(e(:,3)>e(:,7),11) = 2;
+              R(e(:,4)>e(:,8),12) = 2;
             case 2
               e = obj.getEntity(2, varargin{:});  
               R = ones(size(e));
-              R(e(:,1)>e(:,2),1) = -1;
-              R(e(:,3)>e(:,4),2) = -1;
-              R(e(:,1)>e(:,3),3) = -1;
-              R(e(:,2)>e(:,4),4) = -1;
+              R(e(:,1)>e(:,2),1) = 2;
+              R(e(:,3)>e(:,4),2) = 2;
+              R(e(:,1)>e(:,3),3) = 2;
+              R(e(:,2)>e(:,4),4) = 2;
             otherwise
               return
           end
@@ -99,7 +94,7 @@ classdef MeshTopologyHex < MeshTopology
           switch dim
             case 3
               e = obj.getEntity(3, varargin{:});
-              R = ones(3, size(e,1), 6); % ! three orient flags
+              R = ones(size(e,1), 6);
               face = [1 2 3 4;
                       5 6 7 8;
                       1 3 5 7;
@@ -108,24 +103,15 @@ classdef MeshTopologyHex < MeshTopology
                       3 4 7 8];
               for i = 1:6
                 [~, minVx] = min(e(:,face(i,:)),[],2);
-                I1p = (minVx == 1) & (e(:,face(i,2)) < e(:,face(i,3)));
-                I1n = (minVx == 1) & (e(:,face(i,2)) > e(:,face(i,3)));
-                I2n = (minVx == 2) & (e(:,face(i,1)) < e(:,face(i,4)));
-                I2p = (minVx == 2) & (e(:,face(i,1)) > e(:,face(i,4)));
-                I3p = (minVx == 3) & (e(:,face(i,1)) < e(:,face(i,4)));
-                I3n = (minVx == 3) & (e(:,face(i,1)) > e(:,face(i,4)));
-                I4n = (minVx == 4) & (e(:,face(i,2)) < e(:,face(i,3)));
-                I4p = (minVx == 4) & (e(:,face(i,2)) > e(:,face(i,3)));
-                R(:,I1p,i) = repmat([1 1 1]',   1, sum(I1p));
-                R(:,I1n,i) = repmat([1 1 -1]',  1, sum(I1n));
-                R(:,I2n,i) = repmat([-1 1 1]',  1, sum(I2n));
-                R(:,I2p,i) = repmat([1 -1 -1]', 1, sum(I2p));
-                R(:,I3p,i) = repmat([-1 1 -1]', 1, sum(I3p));
-                R(:,I3n,i) = repmat([1 -1 1]',  1, sum(I3n));
-                R(:,I4n,i) = repmat([-1 -1 -1]',1, sum(I4n));
-                R(:,I4p,i) = repmat([-1 -1 1]', 1, sum(I4p));
+                R((minVx == 1) & (e(:,face(i,2)) < e(:,face(i,3))),i) = 1;
+                R((minVx == 1) & (e(:,face(i,2)) > e(:,face(i,3))),i) = 2;
+                R((minVx == 2) & (e(:,face(i,1)) > e(:,face(i,4))),i) = 3;
+                R((minVx == 2) & (e(:,face(i,1)) < e(:,face(i,4))),i) = 4;
+                R((minVx == 3) & (e(:,face(i,1)) < e(:,face(i,4))),i) = 5;
+                R((minVx == 3) & (e(:,face(i,1)) > e(:,face(i,4))),i) = 6;
+                R((minVx == 4) & (e(:,face(i,2)) > e(:,face(i,3))),i) = 7;
+                R((minVx == 4) & (e(:,face(i,2)) < e(:,face(i,3))),i) = 8;
               end
-              R = permute(R,[2 3 1]); % nEx6xnO
             otherwise
               return
           end
@@ -134,7 +120,7 @@ classdef MeshTopologyHex < MeshTopology
       end
     end
     function R = getNormalOrientation(obj, varargin) % [I]
-      R = prod(obj.getOrientation(3, 2, varargin{:}), 3); % nExnF
+      R = 2*mod(obj.getOrientation(3, 2, varargin{:}),2)-1; % nExnF
       R(:,[1 3 6]) = -R(:,[1 3 6]);
     end
   end
@@ -168,6 +154,42 @@ classdef MeshTopologyHex < MeshTopology
     end
     function R = getCenterLoc()
       R = [1 1 1]/2;
+    end
+    function R = upliftPoints(points, fLoc, orient)
+      switch orient
+        case 1
+          B = [1 0;0 1]; b = [0;0];
+        case 2
+          B = [0 1;1 0]; b = [0;0];
+        case 3
+          B = [0 -1;1 0]; b = [1;0];
+        case 4
+          B = [-1 0;0 1]; b = [1;0];
+        case 5
+          B = [0 1;-1 0]; b = [0;1];
+        case 6
+          B = [1 0;0 -1]; b = [0;1];
+        case 7
+          B = [-1 0;0 -1]; b = [1;1];
+        case 8
+          B = [0 -1;-1 0]; b = [1;1];
+      end
+      R = bsxfun(@plus, B*points', b)';
+      switch fLoc
+        case 1
+          B = [1 0;0 1;0 0]; b = [0;0;0];
+        case 2
+          B = [1 0;0 1;0 0]; b = [0;0;1];
+        case 3
+          B = [0 0;1 0;0 1]; b = [0;0;0];
+        case 4
+          B = [0 0;1 0;0 1]; b = [1;0;0];
+        case 5
+          B = [1 0;0 0;0 1]; b = [0;0;0];
+        case 6
+          B = [1 0;0 0;0 1]; b = [0;1;0];
+      end
+      R = bsxfun(@plus, B*R', b)';
     end
   end
 end

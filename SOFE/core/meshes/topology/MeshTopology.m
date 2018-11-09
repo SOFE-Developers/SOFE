@@ -3,7 +3,7 @@ classdef MeshTopology < SOFE
     dimP
     connectivity
     isSimplex
-    nESub
+    nESub, nO
   end
   methods % constructor
     function obj = MeshTopology(dimP)
@@ -67,29 +67,28 @@ classdef MeshTopology < SOFE
         R = R(varargin{1},:);
       end
     end
-    function [R, fType, orientN, orient] = getFace2Elem(obj)
+    function [R, fType, fOrient] = getFace2Elem(obj)
       if isempty(obj.connectivity{obj.dimP,obj.dimP+1})        
         nE = obj.getNumber('0'); nF = obj.getNumber('1');
         orient = 0.5*(3-obj.getNormalOrientation());
         e2F = obj.getElem2Face();
         obj.connectivity{obj.dimP,obj.dimP+1}{1} = accumarray([e2F(:), orient(:)], repmat((1:nE)',size(orient,2),1),[nF 2]);
         obj.connectivity{obj.dimP,obj.dimP+1}{2} = accumarray([e2F(:), orient(:)], kron((1:size(orient,2))',ones(nE,1)),[nF 2]);
+        obj.connectivity{obj.dimP,obj.dimP+1}{3} = zeros(size(obj.connectivity{obj.dimP,obj.dimP+1}{1}));
+        orientE = obj.getOrientation(obj.dimP, obj.dimP-1);
+        for i = 1:2
+          I = obj.connectivity{obj.dimP,obj.dimP+1}{1}(:,i) > 0;
+          idx = obj.connectivity{obj.dimP,obj.dimP+1}{1}(I,i) + ...
+                size(orientE,1)*(obj.connectivity{obj.dimP,obj.dimP+1}{2}(I,i)-1);
+          obj.connectivity{obj.dimP,obj.dimP+1}{3}(I,i) = orientE(idx);
+        end
       end
       R = obj.connectivity{obj.dimP,obj.dimP+1}{1};
       if nargout>1
         fType = obj.connectivity{obj.dimP,obj.dimP+1}{2};
       end
       if nargout>2
-        orientE = obj.getNormalOrientation();
-        orientE2 = obj.getOrientation(obj.dimP, obj.dimP-1);
-        orientN = zeros(size(R));
-        orient = zeros(size(R));
-        for i = 1:2
-          I = R(:,i) > 0;
-          idx = R(I,i)+size(orientE,1)*(fType(I,i)-1);
-          orientN(I,i) = orientE(idx);
-          orient(I,i) = orientE2(idx);
-        end
+        fOrient = obj.connectivity{obj.dimP,obj.dimP+1}{3};
       end
     end
     function R = getNodePatch(obj, dim)

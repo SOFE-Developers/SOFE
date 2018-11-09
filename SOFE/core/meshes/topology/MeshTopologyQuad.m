@@ -5,6 +5,7 @@ classdef MeshTopologyQuad < MeshTopology
       obj.update(elem);
       obj.isSimplex = 0;
       obj.nESub = [4 4 1];
+      obj.nO = 2;
     end
     function update(obj, elem)
       obj.connectivity = cell(obj.dimP+1);
@@ -24,14 +25,14 @@ classdef MeshTopologyQuad < MeshTopology
       if dim==2 && d == 1
         e = obj.getEntity('0', varargin{:});
         R = ones(size(e));
-        R(e(:,1)>e(:,2),1) = -1;
-        R(e(:,3)>e(:,4),2) = -1;
-        R(e(:,1)>e(:,3),3) = -1;
-        R(e(:,2)>e(:,4),4) = -1;
+        R(e(:,1)>e(:,2),1) = 2;
+        R(e(:,3)>e(:,4),2) = 2;
+        R(e(:,1)>e(:,3),3) = 2;
+        R(e(:,2)>e(:,4),4) = 2;
       end
     end
     function R = getNormalOrientation(obj, varargin) % [I]
-      R = obj.getOrientation(2, 1, varargin{:});
+      R = 2*mod(obj.getOrientation(2, 1, varargin{:}),2)-1; % nExnF
       R(:,[2 3]) = -R(:,[2 3]);
     end
   end
@@ -50,7 +51,7 @@ classdef MeshTopologyQuad < MeshTopology
     end
     function P = uniformRefineFast(obj)
       fc = obj.getEntity(1); el = obj.getEntity(2);
-      e2F = obj.connectivity{3,2}; oo = obj.getOrientation()<0;
+      e2F = obj.connectivity{3,2}; oo = obj.getOrientation()==2;
       nN = obj.getNumber(0); nF = obj.getNumber(1); nE = obj.getNumber(2);
       fRange = (1:nF)'; eRange = (1:nE)';
       %
@@ -95,23 +96,6 @@ classdef MeshTopologyQuad < MeshTopology
           R = [points, oo];
         case 3
           R = [zz, points];
-        case 4
-          R = [oo, points];
-      end
-    end
-    function R = upliftPointsN(points, fLoc, orient)
-      % complies normal orientation
-      zz = zeros(size(points)); oo = ones(size(points));
-      if orient==2
-        points = 1-points;
-      end
-      switch fLoc
-        case 1
-          R = [points, zz];
-        case 2
-          R = [1 - points, oo];
-        case 3
-          R = [zz, 1 - points];
         case 4
           R = [oo, points];
       end

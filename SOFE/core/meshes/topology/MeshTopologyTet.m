@@ -5,6 +5,7 @@ classdef MeshTopologyTet < MeshTopology
       obj.update(elem);
       obj.isSimplex = 1;
       obj.nESub = [4 6 4 1];
+      obj.nO = 6;
     end
     function update(obj, elem)
       obj.connectivity = cell(obj.dimP+1);
@@ -39,12 +40,12 @@ classdef MeshTopologyTet < MeshTopology
       [elems, type] = ind2sub([obj.getNumber(3), 4], ind);
       nodeIxAtFace = [1 2 3; 1 5 4; 2 6 5; 3 6 4];
       for t = 1:4
-        for k = 0:2
-          I = reshape(type == t,[],1) & (abs(reshape(orientF(ind),[],1)) == k+1);
-          R(I,:) = e2E(elems(I), circshift(nodeIxAtFace(t,:)',-k));
+        for k = 1:3
+          I = reshape(type == t,[],1) & (ceil(0.5*reshape(orientF(ind),[],1)) == k);
+          R(I,:) = e2E(elems(I), circshift(nodeIxAtFace(t,:)',1-k));
         end
       end
-      I = orientF(ind)<0;
+      I = mod(orientF(ind),2)==0;
       R(I,:) = R(I, [3 2 1]);
     end
     function R = getOrientation(obj, dim, d, varargin) % [I]
@@ -55,12 +56,12 @@ classdef MeshTopologyTet < MeshTopology
             case 3
               e = obj.getEntity(3, varargin{:});
               R = ones(size(e,1), 6);
-              R(e(:,1)>e(:,2),1) = -1;
-              R(e(:,2)>e(:,3),2) = -1;
-              R(e(:,1)>e(:,3),3) = -1;
-              R(e(:,1)>e(:,4),4) = -1;
-              R(e(:,2)>e(:,4),5) = -1;
-              R(e(:,3)>e(:,4),6) = -1;
+              R(e(:,1)>e(:,2),1) = 2;
+              R(e(:,2)>e(:,3),2) = 2;
+              R(e(:,1)>e(:,3),3) = 2;
+              R(e(:,1)>e(:,4),4) = 2;
+              R(e(:,2)>e(:,4),5) = 2;
+              R(e(:,3)>e(:,4),6) = 2;
             otherwise
               return
           end
@@ -71,12 +72,13 @@ classdef MeshTopologyTet < MeshTopology
               face = [1 2 3; 1 2 4; 2 3 4; 1 3 4];
               R = zeros(size(e,1),4);
               for i = 1:4
-                  [~, R(:,i)] = min(e(:,face(i,:)),[],2);
-                  [~, P] = sort(e(:,face(i,:)),2);
-                  even = (P(:,1)<P(:,2) & P(:,2)<P(:,3)) | ...
-                         (P(:,2)<P(:,3) & P(:,3)<P(:,1)) | ...
-                         (P(:,3)<P(:,1) & P(:,1)<P(:,2));
-                  R(~even, i) = -R(~even, i);
+                [~, R(:,i)] = min(e(:,face(i,:)),[],2);
+                [~, P] = sort(e(:,face(i,:)),2);
+                even = (P(:,1)<P(:,2) & P(:,2)<P(:,3)) | ...
+                       (P(:,2)<P(:,3) & P(:,3)<P(:,1)) | ...
+                       (P(:,3)<P(:,1) & P(:,1)<P(:,2));
+                R(:,i) = 2*R(:,i) - 1;
+                R(~even, i) = R(~even, i) + 1;
               end
             otherwise
               return
@@ -86,7 +88,7 @@ classdef MeshTopologyTet < MeshTopology
       end
     end
     function R = getNormalOrientation(obj, varargin) % [I]
-      R = sign(obj.getOrientation(3, 2, varargin{:})); % nEx4
+      R = 2*mod(obj.getOrientation(3, 2, varargin{:}),2)-1; % nExnF
       R(:,[1 4]) = -R(:,[1 4]);
     end
   end
@@ -129,21 +131,33 @@ classdef MeshTopologyTet < MeshTopology
       end
       R = elem;
     end
-    function R = upliftPointsN(points, fLoc, orient)
-      % complies normal orientation
-      % TODO
-      zz = zeros(size(points));
-      if orient==2
-        points = 1-points;
+    function R = upliftPoints(points, fLoc, orient)
+      switch orient
+        case 1
+          B = [1 0;0 1]; b = [0;0];
+        case 2
+          B = [0 1;1 0]; b = [0;0];
+        case 3
+          B = [-1 -1;1 0]; b = [1;0];
+        case 4
+          B = [-1 -1;0 1]; b = [1;0];
+        case 5
+          B = [0 1;-1 -1]; b = [0;1];
+        case 6
+          B = [1 0;-1 -1]; b = [0;1];
       end
+      R = bsxfun(@plus, B*points', b)';
       switch fLoc
         case 1
-          R = [points, zz];
+          B = [1 0;0 1;0 0]; b = [0;0;0];
         case 2
-          R = [1-points, points];
+          B = [1 0;0 0;0 1]; b = [0;0;0];
         case 3
-          R = [zz, 1 - points];
+          B = [-1 -1;1 0;0 1]; b = [1;0;0];
+        case 4
+          B = [0 0;1 0;0 1]; b = [0;0;0];
       end
+      R = bsxfun(@plus, B*R', b)';
     end
   end
 end
