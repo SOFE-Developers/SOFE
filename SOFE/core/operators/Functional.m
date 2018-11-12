@@ -19,7 +19,7 @@ classdef Functional < SOFE
       obj.fes.register(obj);
       obj.codim = codim;
       obj.idx = ':';
-      if nargin > 3
+      if ~isempty(varargin)
         obj.loc = varargin{1};
       elseif codim == 1
         obj.loc = @(x)~obj.fes.fixB(x);
@@ -71,7 +71,7 @@ classdef Functional < SOFE
         if ~isempty(I)
           e = obj.assembleOp(k);
           r = abs(obj.fes.getDoFMap(obj.codim, {k}))';
-          if ~ischar(obj.idx)
+          if isnumeric(obj.idx)
             e = e(obj.idx(I),:); r = r(obj.idx(I),:);
           end
         end

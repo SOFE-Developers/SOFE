@@ -48,7 +48,7 @@ classdef Mesh < SOFE
       N = reshape(obj.nodes(entity(:),:),[],size(B,1),size(obj.nodes,2)); % nExnBxnW
       R = sum(bsxfun(@times, permute(N,pVecN), permute(B,pVecB)),5); % nExnPxnW[xnD] or nExnW[xnD]
     end
-    function R = evalNormalVector(obj, points, nFlag, varargin) % [I]
+    function [R, h] = evalNormalVector(obj, points, nFlag, varargin) % [I]
       assert(size(points,2) == obj.topology.dimP-1, 'Normal only defined on codim 1');
       R = obj.evalReferenceMap(points, 1, varargin{:}); % nExnPxnDx(nD-1)
       sz = size(R);
@@ -58,6 +58,9 @@ classdef Mesh < SOFE
           R = reshape(R, sz); % nExnPxnD
         case 3
           R = cross(R(:,:,:,1), R(:,:,:,2), 3); % nExnPxnD
+      end
+      if nargout>1
+        h = sum(R.^2,3).^0.5; % nExnP
       end
       if nFlag
         R = R./sum(R.^2,3).^(0.5*nFlag);
