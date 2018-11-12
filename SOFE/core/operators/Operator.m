@@ -131,10 +131,10 @@ classdef Operator < SOFE
                   reshape(basisJ,nE,nBJ,[]), [1 2 -1], [1 3 -1]);
       catch err
         fprintf(['tprod:' err.message '\n']);
-        basisI = reshape(basisI, nE, nBI, nP, []);
-        basisJ = reshape(basisJ, nE, nBJ, nP, []);
+        basisI = reshape(basisI, nE, nBI, nP, []); % nExnBIxnBJxnPx(nC*nD)
+        basisJ = reshape(basisJ, nE, nBJ, nP, []); % nExnBIxnBJxnPx(nC*nD)
         R = sum(bsxfun(@times, permute(basisI, [1 2 5 3 4]), ...
-                               permute(basisJ, [1 5 2 3 4])), 5); % nExnBIxnBJxnPx(nC*nD)
+                               permute(basisJ, [1 5 2 3 4])), 5); % nExnBIxnBJxnP
         R = sum(bsxfun(@times, R, permute(dX, [1 3 4 2])), 4); % nExnBIxnBJ
       end
     end
