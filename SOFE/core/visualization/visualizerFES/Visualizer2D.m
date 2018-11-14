@@ -211,4 +211,21 @@ classdef Visualizer2D < Visualizer
       axis(box(:)); view(2), axis equal; axis tight
     end
   end
+  methods(Static=true)
+    function surfFunction(f, varargin) % [xgrid, ygrid]
+      try
+        xgrid = varargin{1};
+      catch
+        xgrid = linspace(0,1,400);
+      end
+      try
+        ygrid = varargin{2};
+      catch
+        ygrid = linspace(0,1,400);
+      end
+      [X,Y] = meshgrid(xgrid, ygrid);
+      surf(X,Y,reshape(f([X(:),Y(:)]),size(X)));
+      shading interp
+    end
+  end
 end
