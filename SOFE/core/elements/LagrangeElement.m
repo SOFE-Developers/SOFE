@@ -4,12 +4,12 @@ classdef LagrangeElement < Element
     coeffMatrix
   end
   methods % constructor & DoFEnum
-    function obj = LagrangeElement(source)
+    function obj = LagrangeElement(source, varargin) % [lagPLoc]
       obj = obj@Element(source.dimension, source.nV, source.nB, source.order);
       obj.isLagrange = true;
       obj.source = source;
       for d = obj.dimension:-1:1
-        R = obj.evalFunctionals(d);
+        R = obj.evalFunctionals(d, varargin{:});
         obj.coeffMatrix{d} = eye(size(R,2))/R; % nBxnBs        
         obj.coeffMatrix{d}(abs(obj.coeffMatrix{d})<1e-12) = 0;
       end

@@ -4,7 +4,7 @@ classdef Functional < SOFE
     data, dataCache
     fes
     matrix
-    loc, idx
+    loc
     state
   end
   methods % constructor
@@ -18,7 +18,6 @@ classdef Functional < SOFE
       obj.fes = fes;
       obj.fes.register(obj);
       obj.codim = codim;
-      obj.idx = ':';
       if ~isempty(varargin)
         obj.loc = varargin{1};
       elseif codim == 1
@@ -28,7 +27,6 @@ classdef Functional < SOFE
     function notify(obj, varargin) % [time, state, dState]
       if nargin < 2
         obj.matrix = [];
-        obj.idx = ':';
         obj.notifyObservers();
       else
         try obj.state.U =  varargin{2}; catch, end
@@ -45,16 +43,6 @@ classdef Functional < SOFE
             obj.data = @(x, U, d)obj.dataCache(x, varargin{1}, U, d);
           end
         end
-        if ~isempty(obj.loc)
-          if nargin(obj.loc) > 1 % loc(x,t)
-            obj.matrix = [];
-            obj.idx = obj.fes.mesh.isBoundary(@(x)obj.loc(x, varargin{1}));
-          else
-            if strcmp(obj.idx, ':')
-              obj.idx = obj.fes.mesh.isBoundary(@(x)obj.loc(x));
-            end
-          end
-        end
       end
     end
   end
@@ -62,7 +50,12 @@ classdef Functional < SOFE
     function assemble(obj)
       if ~isempty(obj.matrix), return, end
       obj.matrix = zeros(obj.fes.getNDoF(), 1);
-      if ~any(obj.idx), return, end
+      if ~isempty(obj.loc)
+        idx = obj.fes.mesh.isBoundary(@(x)obj.loc(x));
+      else
+        idx = ':';
+      end
+      if ~any(idx), return, end
       nBlock = obj.fes.nBlock(obj.codim+1);
       re = cell(nBlock,1);
       for k = 1:nBlock
@@ -71,8 +64,9 @@ classdef Functional < SOFE
         if ~isempty(I)
           e = obj.assembleOp(k);
           r = abs(obj.fes.getDoFMap(obj.codim, {k}))';
-          if ~ischar(obj.idx)
-            e = e(obj.idx(I),:); r = r(obj.idx(I),:);
+          if ~strcmp(idx,':')
+            e = e(idx(I),:);
+            r = r(idx(I),:);
           end
         end
         I = (r==0); if any(I(:)), r(I) = []; e(I) = []; end %#ok<AGROW>

@@ -15,7 +15,11 @@ classdef MeshTopologyInt < MeshTopology
   end
   methods % connectivity information
     function R = getOrientation(obj, dim, d, varargin) %#ok<INUSD> % [I]
-      R = [];
+      R = ones(obj.getNumber(1),2);
+    end
+    function R = getNormalOrientation(obj, varargin) % [I]
+      R = ones(obj.getNumber(1),2);
+      R(:,2) = -1;
     end
   end
   methods % refinement

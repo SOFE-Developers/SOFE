@@ -4,7 +4,7 @@ classdef Operator < SOFE
     data, dataCache
     fesTrial, fesTest
     matrix
-    loc, idx
+    loc
     state
   end
   methods % constructor
@@ -30,7 +30,6 @@ classdef Operator < SOFE
       else
         obj.fesTest = fesTrial;
       end
-      obj.idx = ':';
       if nargin > 3
         obj.loc = varargin{2};
       end
@@ -38,11 +37,10 @@ classdef Operator < SOFE
     function notify(obj, varargin) % [time, state, dState]
       if nargin < 2
         obj.matrix = [];
-        obj.idx = ':';
         obj.notifyObservers();
       else
-        try obj.state.U =  varargin{2}; end
-        try obj.state.dU =  varargin{3}; end
+        try obj.state.U =  varargin{2}; catch, end
+        try obj.state.dU =  varargin{3}; catch, end
         if ~isnumeric(obj.dataCache)
           if nargin(obj.dataCache) == 2 % f(x,t)
             obj.matrix = [];
@@ -55,16 +53,6 @@ classdef Operator < SOFE
               obj.data = @(x, U, d)obj.dataCache(x, varargin{1}, U, d);
           end
         end
-        if ~isempty(obj.loc)
-          if nargin(obj.loc) > 1 % loc(x,t)
-            obj.matrix = [];
-            obj.idx = obj.fesTrial.mesh.isBoundary(@(x)obj.loc(x, varargin{1}));
-          else
-            if strcmp(obj.idx, ':')
-              obj.idx = obj.fesTrial.mesh.isBoundary(@(x)obj.loc(x));
-            end
-          end
-        end
       end
     end
   end
@@ -73,7 +61,12 @@ classdef Operator < SOFE
       if ~isempty(obj.matrix), return, end
       M = obj.fesTest.getNDoF(); N = obj.fesTrial.getNDoF();
       obj.matrix = sparse(M, N);
-      if ~any(obj.idx), return, end
+      if ~isempty(obj.loc)
+        idx = obj.fesTrial.mesh.isBoundary(@(x)obj.loc(x));
+      else
+        idx = ':';
+      end
+      if ~any(idx), return, end
       nBlock = obj.fesTrial.nBlock(obj.codim+1);
       for k = 1:nBlock
         e = []; r = []; c = [];
@@ -84,8 +77,10 @@ classdef Operator < SOFE
           c = obj.fesTrial.getDoFMap(obj.codim, {k}); % nBxnE
           r = repmat(abs(r)',[1 1 size(c,1)]); % nExnBxnB
           c = permute(repmat(abs(c)',[1 1 size(r,2)]), [1 3 2]); % nExnBxnB
-          if ~ischar(obj.idx)
-            e=e(obj.idx(I),:,:); r=r(obj.idx(I),:,:); c=c(obj.idx(I),:,:);
+          if ~strcmp(idx,':')
+            e = e(idx(I),:,:);
+            r = r(idx(I),:,:);
+            c = c(idx(I),:,:);
           end
         end
         I = (r.*c==0); if any(I(:)), r(I) = []; c(I) = []; e(I) = []; end %#ok<AGROW>

@@ -406,7 +406,7 @@ classdef FESpace < SOFE
       end
     end
     function R = evalDoFVector(obj, U, points, codim, order, varargin) % [{k} or I]
-      assert(numel(U)==obj.getNDoF(), 'First argument must be DoFVector(s)!');
+      assert(size(U,1)==obj.getNDoF(), 'First argument must be DoFVector(s)!');
       if iscell(points)
         R = obj.evalDoFVectorGlobal(U, points, order);
       else
@@ -436,11 +436,14 @@ classdef FESpace < SOFE
       end
       if iscell(varargin{1})
         assert(codim==0 || order==0, '! Derivatives for traces not supported !');
-        basis = obj.evalGlobalBasis(points, codim, order, varargin{:}); % [1/nE]xnB[xnP]xnCx[nD]
+        basis = obj.evalGlobalBasis(points, codim, order, varargin{:}); % [1/nE]xnB[xnP]xnCx[nD]x[nD]
         dMap = abs(obj.getDoFMap(codim, obj.getBlock(codim, varargin{1}{1}))).'; % nExnB
         if isempty(dMap), R = []; return; end
-        R = zeros(size(dMap)); I = dMap > 0; R(I) = U(dMap(I)); % nExnB
-        R = sum(bsxfun(@times,permute(R,[1 3:6 2]),permute(basis,[1 3:6 2])),6); % nExnPxnCx[nD]
+        R = zeros(numel(dMap), size(U,2)); I = dMap > 0; R(I,:) = U(dMap(I),:); % (nE*nB)xN
+        R = reshape(R, size(dMap,1), size(dMap,2), []); % nExnBxN
+        R = sum(bsxfun(@times,permute(R,[1 4:7 3 2]),permute(basis,[1 3:7 2])),7); % nExnPxnCx[nD]x[nD]xN
+        sz = [size(R) ones(1,6-ndims(R))]; 
+        R = reshape(permute(R, [1 2 3 6 4 5]), [sz([1 2])  sz(3)*sz(6) sz([4 5])]); % nExnPx[nC*N]x[nD]x[nD]
       else % all blocks
         nBl = obj.nBlock(codim+1); R = cell(nBl,1); s = '';
         for k = 1:nBl
@@ -452,7 +455,7 @@ classdef FESpace < SOFE
         end
         if nBl>1, fprintf('\n'); end
         try R = cell2mat(R); catch, R = padcell2mat(R); end
-        R = R(varargin{1},:,:,:);
+        R = R(varargin{1},:,:,:,:);
       end
     end
   end
@@ -492,7 +495,7 @@ classdef FESpace < SOFE
     end
     function R = orient(obj, D, dim, d, varargin) % [I]
       orient = permute(obj.mesh.topology.getOrientation(dim, d, varargin{:}),[2 1 3]); % nESubxnExnO
-      if isempty(orient), R=D; return; end
+      if isempty(orient) || ~any(orient(:)>1), R=D; return; end
       if isempty(varargin), nE = obj.mesh.topology.getNumber(dim); else, nE = numel(varargin{1}); end
       nEntSub = obj.element.getNEntSub(dim);
       D = reshape(D, [], nEntSub(d+1)*nE); % nBLocx(nESub*nE)
