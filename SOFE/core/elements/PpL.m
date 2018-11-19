@@ -24,7 +24,7 @@ classdef PpL < LagrangeElement
   methods(Static=true)
     function [R,D] = getLagrangePoints(dim, p, varargin) % [lagPLoc]
       if ~isempty(varargin)
-        p1d = varargin{1}(:)';
+        p1d = varargin{1}(:);
       else
         p1d = linspace(0,1,p+1)';
 %         p1d = (1+QuadRule.evalWeightedGaussPoints(p+1, @(x)1+0*x(:,1),'Lobatto'))/2;
@@ -34,7 +34,6 @@ classdef PpL < LagrangeElement
           if p == 0
             R = 0.5;
           else
-            p1d = [0;1;p1d(2:p)];
             R = p1d;
           end
         case 2
