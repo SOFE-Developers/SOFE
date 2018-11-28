@@ -53,7 +53,6 @@ classdef Element < SOFE
       Rw = obj.quadRule{codim+1}.weights;
     end
     function R = getNEntSub(obj, dim)
-      % number of sub-entities
       switch dim
         case 0
           R = 1;
@@ -92,7 +91,7 @@ classdef Element < SOFE
       end
     end
   end
-  methods % evaluation local
+  methods % evaluation
     function R = evalBasis(obj, points, order) %#ok<STOUT,INUSL>
       eval(['R = obj.evalD' num2str(order) 'Basis(points);']);
     end
@@ -172,27 +171,62 @@ classdef Element < SOFE
     end
   end
   methods(Static = true)
-    function dkN = getLegendreFunctions(x, N, k)
-      dkN = zeros(numel(x),numel(N));
+    function R = evalLegendre(x, N, order)
+      R = zeros(numel(x),numel(N));
       for i = 1:numel(N)
         n = N(i);
-        if(n<k)
-          dkN(:,i) = zeros(size(x));
+        if n < order
+          R(:,i) = zeros(size(x));
         else
-          dkN(:,i) = prod(n+(1:k))*Element.getJacobi(x,n-k,k,k)/2^k;
+          R(:,i) = prod(n+(1:order))*Element.getJacobi(x,n-order,order,order)/2^order;
+          %
+%           c = Element.getLegendreCoefficients(n, order);
+%           R(:,i) = polyval(c(end,:), x);
         end
       end
     end
-    function jac = getJacobi(x, N, alpha, beta)
-       jac = zeros(numel(x),numel(N));
+    function R = evalLegendre2(x, N, varargin) % [order]
+      if ~isempty(varargin), order = varargin{1}; else, order = 0; end
+      R = zeros(numel(x),numel(N));
+      for i = 1:numel(N)
+        n = N(i);
+        if n < order
+          R(:,i) = zeros(size(x));
+        else
+          c = Element.getLegendreCoefficients(n, order);
+          R(:,i) = polyval(c(end,:), x);
+        end
+      end
+    end
+    function R = getLegendreCoefficients(N, varargin) % [order]
+      if ~isempty(varargin), order = varargin{1}; else, order = 0; end
+      if N==0
+        R = 1;
+      elseif N==1
+        R = [0 1;1 0];
+      else
+        R = zeros(N+1);
+        R(1,end) = 1;
+        R(2,end-1) = 1;
+        for n = 3:N+1
+          R(n,:) = (-(n-2)*R(n-2,:) + (2*n-3)*[R(n-1,2:end) 0])/(n-1);
+        end
+      end
+      for k = 1:order
+        R = R.*(N:-1:0);
+        R = R(:,1:end-1);
+      end
+    end
+    function R = getJacobi(x, N, alpha, beta)
+       R = zeros(numel(x),numel(N));
        for i = 1:numel(N)
          n = N(i);
-         if (n < 0)
-            jac(:,i) = zeros(size(x));
+         if n < 0
+            R(:,i) = zeros(size(x));
          elseif (n == 0)
-           jac(:,i) = ones(size(x));
+           R(:,i) = ones(size(x));
          elseif (n == 1)
-           jac(:,i) = 0.5*(alpha - beta + (alpha + beta + 2)*x);
+           R(:,i) = 0.5*(alpha - beta + (alpha + beta + 2)*x);
          else
            sumAB = alpha + beta;
            jacPrevPrev = ones(size(x));
@@ -203,34 +237,34 @@ classdef Element < SOFE
              a3 = (2*k + sumAB - 2)*(2*k + sumAB - 1)*(2*k + sumAB);
              a4 =  2*(k + alpha - 1)*(k + beta - 1)*(2*k + sumAB);
              %
-             jac(:,i)   = ((a2 + a3*x).*jacPrev - a4*jacPrevPrev)/a1;
+             R(:,i)   = ((a2 + a3*x).*jacPrev - a4*jacPrevPrev)/a1;
              jacPrevPrev = jacPrev;
-             jacPrev = jac(:,i);
+             jacPrev = R(:,i);
            end
          end
        end
     end
-    function dkN = getShapeFunctions(x, N, k)
-      dkN = zeros(numel(x),numel(N));
+    function R = getShapeFunctions(x, N, k)
+      R = zeros(numel(x),numel(N));
       for i = 1:numel(N)
         n = N(i);
         if(n==0 && k==0)
-          dkN(:,i) = 0.5*(1-x);
+          R(:,i) = 0.5*(1-x);
         end
         if(n==0 && k==1)
-          dkN(:,i) = -0.5.*ones(size(x));
+          R(:,i) = -0.5.*ones(size(x));
         end
         if(n==1 && k==0)
-          dkN(:,i) = 0.5*(1+x);
+          R(:,i) = 0.5*(1+x);
         end
         if(n==1 && k==1)
-          dkN(:,i) = 0.5.*ones(size(x));
+          R(:,i) = 0.5.*ones(size(x));
         end
         if(n<k && n>=2)
-          dkN(:,i) = zeros(size(x));
+          R(:,i) = zeros(size(x));
         end
         if(n>=k && n>=2)
-          dkN(:,i) = (prod(n+(1:k))*Element.getJacobi(x,n-k,k,k) - ...
+          R(:,i) = (prod(n+(1:k))*Element.getJacobi(x,n-k,k,k) - ...
           prod(n+(1:k)-2)*Element.getJacobi(x,n-k-2,k,k))/(2^k*sqrt(4*n-2));
         end
       end

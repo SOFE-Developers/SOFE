@@ -17,7 +17,7 @@ classdef Qp < Element
       for d = 1:nD
         N{d} = cell(max(p)+1,1);
         for i = 1:max(p)+1
-          N{d}{i} = obj.getLegendreFunctions(points(:,d), i-1, 0);
+          N{d}{i} = obj.evalLegendre(points(:,d), i-1, 0);
         end
       end
       switch nD
@@ -52,8 +52,8 @@ classdef Qp < Element
         N{d} = cell(max(p)+1,1);
         dN{d} = cell(max(p)+1,1);
         for i = 1:max(p)+1
-          N{d}{i} = obj.getLegendreFunctions(points(:,d), i-1, 0);
-          dN{d}{i} = 2*obj.getLegendreFunctions(points(:,d), i-1, 1);
+          N{d}{i} = obj.evalLegendre(points(:,d), i-1, 0);
+          dN{d}{i} = 2*obj.evalLegendre(points(:,d), i-1, 1);
         end
       end
       switch nD
@@ -93,9 +93,9 @@ classdef Qp < Element
         dN{d} = cell(max(p)+1,1);
         d2N{d} = cell(max(p)+1,1);
         for i = 1:max(p)+1
-          N{d}{i} = obj.getLegendreFunctions(points(:,d), i-1, 0);
-          dN{d}{i} = 2*obj.getLegendreFunctions(points(:,d), i-1, 1);
-          d2N{d}{i} = 4*obj.getLegendreFunctions(points(:,d), i-1, 2);
+          N{d}{i} = obj.evalLegendre(points(:,d), i-1, 0);
+          dN{d}{i} = 2*obj.evalLegendre(points(:,d), i-1, 1);
+          d2N{d}{i} = 4*obj.evalLegendre(points(:,d), i-1, 2);
         end
       end
       switch nD
