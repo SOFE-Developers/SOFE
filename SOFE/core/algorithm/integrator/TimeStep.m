@@ -14,13 +14,12 @@ classdef TimeStep < Algorithm
       obj.setSolver(solver);
       obj.M0 = M0;
       obj.M0.assemble();
+      obj.pde.assemble();
     end
     function setFreeDoFs(obj)
       [obj.freeI, obj.freeJ] = obj.pde.getFreeDoFs();
-      if obj.nK>1
-        obj.FREEI = kron(ones(obj.nK,1), obj.freeI)>0;
-        obj.FREEJ = kron(ones(obj.nK,1), obj.freeJ)>0;
-      end
+      obj.FREEI = kron(ones(obj.nK,1), obj.freeI)>0;
+      obj.FREEJ = kron(ones(obj.nK,1), obj.freeJ)>0;
     end
   end
   methods(Static = true)
@@ -113,10 +112,9 @@ classdef TimeStep < Algorithm
           R = MultiStepMethod(struct('alpha',[1 -1 0 0], 'beta',[9 19 -5 1]/24), M0, pde, solver);
         case 'AM5'
           R = MultiStepMethod(struct('alpha',[1 -1 0 0 0], 'beta',[251 646 -264 106 -19]/720), M0, pde, solver);
-        case 'DG1'
-          R = VariationalIntegrator(M0, pde, intType, solver);
-        case 'CG2'
-          R = VariationalIntegrator(M0, pde, intType, solver);
+        case {'dG0','dG1','dG2','dG3','dG4','dG5','dG6','dG7','dG8','dG9','dG10',...
+                    'cG1','cG2','cG3','cG4','cG5','cG6','cG7','cG8','cG9','cG10'}
+          R = VariationalIntegrator(M0, pde, intType, solver);          
       end
     end
     function list()
@@ -148,8 +146,8 @@ classdef TimeStep < Algorithm
       fprintf('AM1, ... AM5\n');
       fprintf('Variational Methods\n');
       fprintf('-------------------\n');
-      fprintf('DG1\n');
-      fprintf('CG2\n');
+      fprintf('dG0,...,dG10\n');
+      fprintf('cG1,...,dG10\n');
     end
   end
 end

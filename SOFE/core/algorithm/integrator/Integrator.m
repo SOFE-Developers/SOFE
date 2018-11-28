@@ -4,6 +4,7 @@ classdef Integrator < Algorithm
     timeline
     initCond, nT, dt
     history
+    fullHistory
   end
   methods % constructor
     function obj = Integrator(timeline, tStep, varargin) % [initCond]
@@ -19,6 +20,7 @@ classdef Integrator < Algorithm
         end
       end
       obj.history = cell(1,obj.nT);
+      obj.fullHistory = cell(1,obj.nT);
     end
   end
   methods % integration
@@ -28,6 +30,7 @@ classdef Integrator < Algorithm
       % initial condition
       obj.history{1} = cell(A.nEq,1);
       if ~iscell(obj.initCond), obj.initCond = {obj.initCond}; end
+      if numel(obj.initCond) < A.nEq, repmat(obj.initCond, 1,A.nEq); end
       for k = 1:A.nEq
         if ~isempty(obj.initCond{k})
           obj.history{1}{k} = A.fesTrial{k}.getL2Interpolant(obj.initCond{k}, A.fesTrial{k}.mesh.element.dimension);
@@ -39,56 +42,78 @@ classdef Integrator < Algorithm
       % starting values
       kS = 1;
       if obj.tStep.nS>1
-%        q = TimeStep.create('CG2',  obj.tStep.M0, obj.tStep.pde, DirectSol(1));
         for kS = 2:obj.tStep.nS
           obj.history{kS} = obj.history{1};
-%          obj.history{kS} = q.compute(obj.timeline.nodes([kS-1, kS]), obj.history{kS-1});
         end
       end
       % time loop
       for k = kS:obj.nT-1
         cTime = tic;
-        obj.history{k+1} = obj.tStep.compute(obj.timeline.nodes([k, k+1]), cell2mat(obj.history(k-obj.tStep.nS+1:k)));
+        obj.fullHistory{k+1} = obj.tStep.compute(obj.timeline.nodes([k, k+1]), cell2mat(obj.history(k-obj.tStep.nS+1:k))); % check cGP!!!
+        try
+          obj.history{k+1} = obj.tStep.eval(obj.fullHistory{k+1}, 1.0);
+        catch
+          obj.history{k+1} = obj.fullHistory{k+1}(:,1);
+        end
         fprintf('timestep: %d / %d: %f sec\n', k, obj.nT-1, toc(cTime));
       end
+      % constant "approximation" of initial value
+      obj.fullHistory{1} = zeros(size(obj.fullHistory{2})); 
+      obj.fullHistory{1}(:,1) = obj.history{1}; % left linear part
+      obj.fullHistory{1}(:,2) = obj.history{1}; % right linear part
     end
   end
   methods(Static=true) % Test
-    function R = testConvergence(intType, dim, pSpace)
-      doVis = 0;
-      T = 1; epsilon = 1e-0; omega = 1; isHom = 0;
+    function R = testConvergence(intType, dim, pSpace, varargin)
+      try doVis = varargin{1}.doVis; catch, doVis = false; end
+      try T = varargin{1}.T; catch, T = 1; end
+      try NVec = varargin{1}.NVec(:); catch, NVec = (10:10:50)'; end
+      try omega = varargin{1}.omega; catch, omega = 1; end
+      try isHom = varargin{1}.isHom; catch, isHom = true; end
+      try aTime = varargin{1}.aTime; catch, aTime = false; end
+      try mTime = varargin{1}.mTime; catch, mTime = false; end
+      if aTime
+        aCoeff = @(x,t)(1+0.5*sin(2*pi/T*t)) + 0*x(:,1);
+      else
+        aCoeff = @(x,t)1+0*x(:,1);
+      end
+      if mTime
+        mCoeff = @(x,t)(1+0.5*cos(2*pi/T*t)) + 0*x(:,1);
+      else
+        mCoeff = @(x,t)1+0*x(:,1);
+      end
       switch dim
         case 1
           if isHom
             uEx = @(x,t)sin(pi*x(:,1)).*sin(2*pi*omega*t);
-            f = @(x,t)2*pi*omega*sin(pi*x(:,1)).*cos(2*pi*omega*t) + (pi)^2*epsilon*uEx(x,t);
+            f = @(x,t)2*pi*omega*sin(pi*x(:,1)).*cos(2*pi*omega*t).*mCoeff(x,t) + ...
+                      (pi)^2*aCoeff(x,t).*uEx(x,t);
           else
             uEx = @(x,t)cos(pi/2*x(:,1)).*sin(2*pi*omega*t);
-            f = @(x,t)2*pi*omega*cos(pi/2*x(:,1)).*cos(2*pi*omega*t) + pi^2/4*epsilon*uEx(x,t);
+            f = @(x,t)2*pi*omega*cos(pi/2*x(:,1)).*cos(2*pi*omega*t).*mCoeff(x,t) + ...
+                      pi^2/4*aCoeff(x,t).*uEx(x,t);
           end
-          qr = GaussInt(5);
+          qr = GaussInt(2*pSpace+1);
         case 2
           if isHom
             uEx = @(x,t)sin(pi*x(:,1)).*sin(pi*x(:,2)).*sin(2*pi*omega*t);
-            f = @(x,t)2*pi*omega*sin(pi*x(:,1)).*sin(pi*x(:,2)).*cos(2*pi*omega*t) + 2*pi^2*epsilon*uEx(x,t);
+            f = @(x,t)2*pi*omega*sin(pi*x(:,1)).*sin(pi*x(:,2)).*cos(2*pi*omega*t).*mCoeff(x,t) + ...
+                      2*pi^2*aCoeff(x,t).*uEx(x,t);
           else
             uEx = @(x,t)cos(pi/2*x(:,1)).*sin(pi*x(:,2)).*sin(2*pi*omega*t);
-            f = @(x,t)2*pi*omega*cos(pi/2*x(:,1)).*sin(pi*x(:,2)).*cos(2*pi*omega*t) + (pi^2/4 + pi^2)*epsilon*uEx(x,t);
+            f = @(x,t)2*pi*omega*cos(pi/2*x(:,1)).*sin(pi*x(:,2)).*cos(2*pi*omega*t).*mCoeff(x,t) + ...
+                      (pi^2/4 + pi^2)*aCoeff(x,t).*uEx(x,t);
           end
-         %
-         qr = GaussQuad(5);
+          qr = GaussQuad(2*pSpace+1);
       end
-%       NN = 50;
-      NN = (10:20:70);
-%       NN = [5 10 15 20];
-      R = zeros(numel(NN),1); cnt = 1;
-      for N = NN
+      R = zeros(numel(NVec),1); cnt = 1;
+      for N = NVec'
         M = N;
         % SOLVE
         m = RegularMesh(repmat(N,dim,1), repmat([0 1],dim,1), 0);
         fes = FESpace(m, QpL(dim, pSpace), @(x)x(:,1)<Inf, uEx);
-        p = Poisson(struct('a',epsilon, 'f',f), fes);
-        q = Integrator(RegularMesh(M, [0 T]), TimeStep.create(intType, Mass(fes), p, DirectSol()));
+        p = Poisson(struct('a',aCoeff, 'f',f), fes);
+        q = Integrator(RegularMesh(M, [0 T]), TimeStep.create(intType, Mass2({mCoeff}, {fes}), p, DirectSol()));
         q.compute();
         % COMPUTE ERROR
         err = zeros(M+1,1);
@@ -102,13 +127,13 @@ classdef Integrator < Algorithm
         cnt = cnt + 1;
       end
       clf
-      loglog(NN,R); hold on
-      loglog(NN,1./NN.^1);
-      loglog(NN,1./NN.^2);
-      loglog(NN,1./NN.^3);
-      loglog(NN,1./NN.^4);
-      loglog(NN,1./NN.^5);
-      loglog(NN,1./NN.^6); hold off
+      loglog(NVec,R); 
+      hold on
+      for k=1:7
+        loglog(NVec,1./NVec.^k,'k');
+      end
+      hold off
+      R = [R [0; -log2(R(2:end)./R(1:end-1))./log2(NVec(2:end)./NVec(1:end-1))]];
       %
       if ~doVis, return; end
       v = Visualizer.create(fes);

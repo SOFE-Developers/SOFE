@@ -6,7 +6,7 @@ classdef DirectSol < Solver
   methods % constructor
     function obj = DirectSol(varargin) % [isLU]
       obj = obj@Solver();
-      if ~isempty(varargin), obj.isLU = varargin{1}; else isLU = 0; end
+      if ~isempty(varargin), obj.isLU = varargin{1}; else, obj.isLU = 0; end
     end
     function notify(obj)
       obj.cache = [];

@@ -6,7 +6,7 @@ function R = spcell2mat(C)
   %
   szI = [0; cumsum(sz(:,1,1))]; nI = numel(szI) - 1;
   szJ = [0; permute(cumsum(sz(1,:,2)), [2 1 3])]; nJ = numel(szJ) - 1;
-  var = 1;
+  var = 2;
   switch var
     case 1
       R = sparse(szI(end), szJ(end));
