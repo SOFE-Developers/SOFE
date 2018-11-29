@@ -35,6 +35,9 @@ classdef PpL < LagrangeElement
             R = 0.5;
           else
             R = p1d;
+            if isempty(varargin)
+              R = R([1 p+1 2:p]);
+            end              
           end
         case 2
           p1d = p1d(2:p);

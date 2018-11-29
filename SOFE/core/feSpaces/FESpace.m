@@ -495,18 +495,22 @@ classdef FESpace < SOFE
     end
     function R = orient(obj, D, dim, d, varargin) % [I]
       orient = permute(obj.mesh.topology.getOrientation(dim, d, varargin{:}),[2 1 3]); % nESubxnExnO
-      if isempty(orient) || ~any(orient(:)>1), R=D; return; end
+      if size(orient, 2)==1, R=D; return; end % 4VariationalIntegrator
       if isempty(varargin), nE = obj.mesh.topology.getNumber(dim); else, nE = numel(varargin{1}); end
-      nEntSub = obj.element.getNEntSub(dim);
-      D = reshape(D, [], nEntSub(d+1)*nE); % nBLocx(nESub*nE)
-      orient = reshape(orient, [], size(orient, 3)); % (nESub*nE)xnO
-      R = zeros(size(D)); % nBLocx(nESub*nE)
-      for k = 1:obj.mesh.topology.nO
-        iO = orient==k; % (nESub*nE)
-        if any(iO)
-          doFEnum = obj.element.getDoFEnum(d,k); % nBLoc
-          if ~isempty(doFEnum)
-            R(abs(doFEnum),iO) = bsxfun(@times, sign(doFEnum(:)), D(:, iO)); % nBLocx(nESub*nE)
+      if isempty(orient)
+        R=D;
+      else 
+        nEntSub = obj.element.getNEntSub(dim);
+        D = reshape(D, [], nEntSub(d+1)*nE); % nBLocx(nESub*nE)
+        orient = reshape(orient, [], size(orient, 3)); % (nESub*nE)xnO
+        R = zeros(size(D)); % nBLocx(nESub*nE)
+        for k = 1:obj.mesh.topology.nO
+          iO = orient==k; % (nESub*nE)
+          if any(iO)
+            doFEnum = obj.element.getDoFEnum(d,k); % nBLoc
+            if ~isempty(doFEnum)
+              R(abs(doFEnum),iO) = bsxfun(@times, sign(doFEnum(:)), D(:, iO)); % nBLocx(nESub*nE)
+            end
           end
         end
       end
@@ -741,44 +745,45 @@ classdef FESpace < SOFE
     end
     function R = orient_(obj, R, dim, d, varargin) % [I]
       orient = permute(obj.mesh.topology.getOrientation(dim, d, varargin{:}),[2 1 3]); % nESubxnExnO
-      if isempty(orient), return; end
-      orient = reshape(orient, [], size(orient, 3)); % (nESub*nE)xnO
-      tmp = zeros(size(R)); % nBLocx(nESub*nE)
-      if d == 1 && dim > d % EDGE
-        for k = -1:2:1
-          I = obj.element.getDoFEnum(1,k); % nBLoc
-          if ~isempty(I)
-            iO = orient == k; % nESub*nE
-            tmp(abs(I),iO) = bsxfun(@times, sign(I(:)), R(1:numel(I), iO)); % nBLocx(nESub*nE)
-          end
-        end
-        R = tmp; % nBLocx(nESub*nE)
-      end
-      if d == 2 && dim > d % FACE
-        if obj.element.isSimplex()
-          for s = 3:-1:1
-            for k = -1:2:1
-              I = obj.element.getDoFEnum(2,s,k); % nBLoc
-              if ~isempty(I)
-                iO = orient==(k*s); % nESub*nE
-                tmp(abs(I),iO) = bsxfun(@times, sign(I), R(:, iO)); % nBLocx(nESub*nE)
-              end
+      if ~isempty(orient)
+        orient = reshape(orient, [], size(orient, 3)); % (nESub*nE)xnO
+        tmp = zeros(size(R)); % nBLocx(nESub*nE)
+        if d == 1 && dim > d % EDGE
+          for k = -1:2:1
+            I = obj.element.getDoFEnum(1,k); % nBLoc
+            if ~isempty(I)
+              iO = orient == k; % nESub*nE
+              tmp(abs(I),iO) = bsxfun(@times, sign(I(:)), R(1:numel(I), iO)); % nBLocx(nESub*nE)
             end
           end
-        else
-          for s1 = -1:2:1
-            for s2 = -1:2:1
+          R = tmp; % nBLocx(nESub*nE)
+        end
+        if d == 2 && dim > d % FACE
+          if obj.element.isSimplex()
+            for s = 3:-1:1
               for k = -1:2:1
-                I = obj.element.getDoFEnum(2,s1,s2,k); % nBLoc
+                I = obj.element.getDoFEnum(2,s,k); % nBLoc
                 if ~isempty(I)
-                  iO = all(bsxfun(@eq, orient, [s1 s2 k]),2); % (nESub*nE)
-                  tmp(abs(I),iO) = bsxfun(@times, sign(I(:)), R(:, iO)); % nBLocx(nESub*nE)
+                  iO = orient==(k*s); % nESub*nE
+                  tmp(abs(I),iO) = bsxfun(@times, sign(I), R(:, iO)); % nBLocx(nESub*nE)
+                end
+              end
+            end
+          else
+            for s1 = -1:2:1
+              for s2 = -1:2:1
+                for k = -1:2:1
+                  I = obj.element.getDoFEnum(2,s1,s2,k); % nBLoc
+                  if ~isempty(I)
+                    iO = all(bsxfun(@eq, orient, [s1 s2 k]),2); % (nESub*nE)
+                    tmp(abs(I),iO) = bsxfun(@times, sign(I(:)), R(:, iO)); % nBLocx(nESub*nE)
+                  end
                 end
               end
             end
           end
+          R = tmp; % nBLocx(nESub*nE)
         end
-        R = tmp; % nBLocx(nESub*nE)
       end
       if dim == obj.element.dimension && d == dim-1 && strcmp(obj.element.conformity, 'HDiv')
         orient = reshape(obj.mesh.topology.getNormalOrientation().',1,[]); % 1x(nESub*nE)
