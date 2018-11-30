@@ -15,9 +15,9 @@ grid = [g1(1:end-1) g2 g3(2:end)];
 m = Mesh(nodes, elem);
 %% FESPACE
 if isTri
-  E = TPElem(PpL(2,order)); e = PpL(2,order-1);
+  E = VecElem(PpL(2,order)); e = PpL(2,order-1);
 else
-  E = TPElem(QpL(2,order)); e = QpL(2,order-1);
+  E = VecElem(QpL(2,order)); e = QpL(2,order-1);
 end
 FES = FESpace(m, E, data.dLoc, data.ud);
 fes = FESpace(m, e);

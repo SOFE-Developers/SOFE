@@ -6,7 +6,7 @@ m = RegularMesh(ll*(N+1), [zeros(dim,1) ll], isTri);
 % ELEMENT
 if isTri, e = PpL(dim, order); else e = QpL(dim, order); end
 % FESPACE
-fes = FESpace(m, TPElem(e), @(x)x(:,1)==0, @(x)0*x);
+fes = FESpace(m, VecElem(e), @(x)x(:,1)==0, @(x)0*x);
 % PDE
 p = LinElast(struct('nu', 0.33,'E', 1e3, 'f', [zeros(1,dim-1) -1]), fes);
 m0 = Mass(fes);

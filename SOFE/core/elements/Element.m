@@ -178,23 +178,10 @@ classdef Element < SOFE
         if n < order
           R(:,i) = zeros(size(x));
         else
-          R(:,i) = prod(n+(1:order))*Element.getJacobi(x,n-order,order,order)/2^order;
+%          R(:,i) = prod(n+(1:order))*Element.getJacobi(x,n-order,order,order)/2^order;
           %
-%           c = Element.getLegendreCoefficients(n, order);
-%           R(:,i) = polyval(c(end,:), x);
-        end
-      end
-    end
-    function R = evalLegendre2(x, N, varargin) % [order]
-      if ~isempty(varargin), order = varargin{1}; else, order = 0; end
-      R = zeros(numel(x),numel(N));
-      for i = 1:numel(N)
-        n = N(i);
-        if n < order
-          R(:,i) = zeros(size(x));
-        else
-          c = Element.getLegendreCoefficients(n, order);
-          R(:,i) = polyval(c(end,:), x);
+           c = Element.getLegendreCoefficients(n, order);
+           R(:,i) = polyval(c(end,:), x);
         end
       end
     end
@@ -212,9 +199,14 @@ classdef Element < SOFE
           R(n,:) = (-(n-2)*R(n-2,:) + (2*n-3)*[R(n-1,2:end) 0])/(n-1);
         end
       end
-      for k = 1:order
-        R = R.*(N:-1:0);
-        R = R(:,1:end-1);
+      if order<0
+        for k = 1:-order
+          R = [R./(N+k:-1:1) zeros(N+1,1)];
+        end
+      else
+        for k = 1:order
+          R = R(:,1:end-1).*(N+1-k:-1:1);
+        end
       end
     end
     function R = getJacobi(x, N, alpha, beta)
@@ -264,8 +256,14 @@ classdef Element < SOFE
           R(:,i) = zeros(size(x));
         end
         if(n>=k && n>=2)
-          R(:,i) = (prod(n+(1:k))*Element.getJacobi(x,n-k,k,k) - ...
-          prod(n+(1:k)-2)*Element.getJacobi(x,n-k-2,k,k))/(2^k*sqrt(4*n-2));
+%          R(:,i) = (prod(n+(1:k))*Element.getJacobi(x,n-k,k,k) - ...
+%          prod(n+(1:k)-2)*Element.getJacobi(x,n-k-2,k,k))/(2^k*sqrt(4*n-2));
+          %
+          c = sqrt((2*n-1)/2)*Element.getLegendreCoefficients(n-1, k-1);
+          R(:,i) = polyval(c(end,:), x);
+          if k==0
+            R(:,i) = R(:,i) - polyval(c(end,:), -1);
+          end
         end
       end
     end
