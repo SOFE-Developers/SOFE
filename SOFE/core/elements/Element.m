@@ -171,20 +171,6 @@ classdef Element < SOFE
     end
   end
   methods(Static = true)
-    function R = evalLegendre(x, N, order)
-      R = zeros(numel(x),numel(N));
-      for i = 1:numel(N)
-        n = N(i);
-        if n < order
-          R(:,i) = zeros(size(x));
-        else
-%          R(:,i) = prod(n+(1:order))*Element.getJacobi(x,n-order,order,order)/2^order;
-          %
-           c = Element.getLegendreCoefficients(n, order);
-           R(:,i) = polyval(c(end,:), x);
-        end
-      end
-    end
     function R = getLegendreCoefficients(N, varargin) % [order]
       if ~isempty(varargin), order = varargin{1}; else, order = 0; end
       if N==0
@@ -199,71 +185,24 @@ classdef Element < SOFE
           R(n,:) = (-(n-2)*R(n-2,:) + (2*n-3)*[R(n-1,2:end) 0])/(n-1);
         end
       end
-      if order<0
-        for k = 1:-order
-          R = [R./(N+k:-1:1) zeros(N+1,1)];
-        end
+      if order==-1
+        R = R./(N+1:-1:1);
+        R = [R -R*(-1).^(size(R,2):-1:1)'];
       else
         for k = 1:order
           R = R(:,1:end-1).*(N+1-k:-1:1);
         end
       end
     end
-    function R = getJacobi(x, N, alpha, beta)
-       R = zeros(numel(x),numel(N));
-       for i = 1:numel(N)
-         n = N(i);
-         if n < 0
-            R(:,i) = zeros(size(x));
-         elseif (n == 0)
-           R(:,i) = ones(size(x));
-         elseif (n == 1)
-           R(:,i) = 0.5*(alpha - beta + (alpha + beta + 2)*x);
-         else
-           sumAB = alpha + beta;
-           jacPrevPrev = ones(size(x));
-           jacPrev = 0.5*(alpha - beta + (alpha + beta + 2)*x);
-           for k = 2:n
-             a1 =  2*k*(k + sumAB)*(2*k + sumAB - 2);
-             a2 = (2*k + sumAB - 1)*(alpha*alpha - beta*beta);
-             a3 = (2*k + sumAB - 2)*(2*k + sumAB - 1)*(2*k + sumAB);
-             a4 =  2*(k + alpha - 1)*(k + beta - 1)*(2*k + sumAB);
-             %
-             R(:,i)   = ((a2 + a3*x).*jacPrev - a4*jacPrevPrev)/a1;
-             jacPrevPrev = jacPrev;
-             jacPrev = R(:,i);
-           end
-         end
-       end
-    end
-    function R = getShapeFunctions(x, N, k)
+    function R = evalLegendre(x, N, order)
       R = zeros(numel(x),numel(N));
       for i = 1:numel(N)
         n = N(i);
-        if(n==0 && k==0)
-          R(:,i) = 0.5*(1-x);
-        end
-        if(n==0 && k==1)
-          R(:,i) = -0.5.*ones(size(x));
-        end
-        if(n==1 && k==0)
-          R(:,i) = 0.5*(1+x);
-        end
-        if(n==1 && k==1)
-          R(:,i) = 0.5.*ones(size(x));
-        end
-        if(n<k && n>=2)
+        if n < order
           R(:,i) = zeros(size(x));
-        end
-        if(n>=k && n>=2)
-%          R(:,i) = (prod(n+(1:k))*Element.getJacobi(x,n-k,k,k) - ...
-%          prod(n+(1:k)-2)*Element.getJacobi(x,n-k-2,k,k))/(2^k*sqrt(4*n-2));
-          %
-          c = sqrt((2*n-1)/2)*Element.getLegendreCoefficients(n-1, k-1);
-          R(:,i) = polyval(c(end,:), x);
-          if k==0
-            R(:,i) = R(:,i) - polyval(c(end,:), -1);
-          end
+        else
+           c = Element.getLegendreCoefficients(n, order);
+           R(:,i) = polyval(c(end,:), x);
         end
       end
     end
