@@ -495,7 +495,6 @@ classdef FESpace < SOFE
     end
     function R = orient(obj, D, dim, d, varargin) % [I]
       orient = permute(obj.mesh.topology.getOrientation(dim, d, varargin{:}),[2 1 3]); % nESubxnExnO
-      if size(orient, 2)==1, R=D; return; end % 4VariationalIntegrator
       if isempty(varargin), nE = obj.mesh.topology.getNumber(dim); else, nE = numel(varargin{1}); end
       if isempty(orient)
         R=D;
