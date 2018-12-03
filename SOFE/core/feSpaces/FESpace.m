@@ -502,7 +502,11 @@ classdef FESpace < SOFE
         nEntSub = obj.element.getNEntSub(dim);
         D = reshape(D, [], nEntSub(d+1)*nE); % nBLocx(nESub*nE)
         orient = reshape(orient, [], size(orient, 3)); % (nESub*nE)xnO
-        R = zeros(size(D)); % nBLocx(nESub*nE)
+        if isa(obj.element, 'PpH1') && dim==3 && d==2
+          R = zeros(3*size(D,1),size(D,2)); % nBLocx(nESub*nE)
+        else
+          R = zeros(size(D)); % nBLocx(nESub*nE)
+        end
         for k = 1:obj.mesh.topology.nO
           iO = orient==k; % (nESub*nE)
           if any(iO)

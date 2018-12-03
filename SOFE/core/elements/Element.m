@@ -206,6 +206,52 @@ classdef Element < SOFE
         end
       end
     end
+    function R = evalShapeFunctions(x, N, k)
+      R = zeros(numel(x),numel(N));
+      for i = 1:numel(N)
+        n = N(i);
+        if n==0
+          switch k
+            case 0
+              R(:,i) = 0.5*(1-x);
+            case 1
+              R(:,i) = -0.5.*ones(size(x));
+          end
+        end
+        if n==1
+          switch k
+            case 0
+              R(:,i) = 0.5*(1+x);
+            case 1
+              R(:,i) = 0.5.*ones(size(x));
+          end
+        end
+        if n>1 && k<n+1
+          c = sqrt((2*n-1)/2)*Element.getLegendreCoefficients(n-1, k-1);
+          R(:,i) = polyval(c(end,:), x);
+        end
+      end
+    end
+    function R = evalReducedLegendre(x, N, k)
+      R = zeros(numel(x), N-1);
+      for n = N:-1:2
+        c = 2*cumsum(sqrt((2*n-1)/2)*Element.getLegendreCoefficients(n-1,-1),2);
+        c = 2*cumsum(c(:,1:end-1).*(-1).^(2:n+1),2);
+        c = c(:,1:end-1).*(-1).^(1:n-1);
+        %
+        switch k
+          case 0
+            c = c(end,1:end);
+          case 1
+            c = c(end,1:end-1).*(n-2:-1:1);
+          case 2
+            c = (c(end,1:end-2).*(n-2:-1:2)).*(n-3:-1:1);
+          case 3
+            c = ((c(end,1:end-3).*(n-2:-1:3)).*(n-3:-1:2)).*(n-4:-1:1);
+        end
+        R(:,n-1) = polyval(c, x);
+      end
+    end
   end
 end
 
