@@ -30,7 +30,7 @@ classdef Integrator < Algorithm
       % initial condition
       obj.history{1} = cell(A.nEq,1);
       if ~iscell(obj.initCond), obj.initCond = {obj.initCond}; end
-      if numel(obj.initCond) < A.nEq, repmat(obj.initCond, 1,A.nEq); end
+      if numel(obj.initCond) < A.nEq, obj.initCond = repmat(obj.initCond, 1,A.nEq); end
       for k = 1:A.nEq
         if ~isempty(obj.initCond{k})
           obj.history{1}{k} = A.fesTrial{k}.getL2Interpolant(obj.initCond{k}, A.fesTrial{k}.mesh.element.dimension);

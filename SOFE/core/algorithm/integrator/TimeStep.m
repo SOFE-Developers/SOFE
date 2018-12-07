@@ -23,7 +23,7 @@ classdef TimeStep < Algorithm
     end
   end
   methods(Static = true)
-    function R = create(intType, M0, pde, solver) % [solver]
+    function R = create(intType, M0, pde, solver, varargin) % [weightfunction]
       if numel(intType)>4 && strcmp(intType(1:5),'theta')
         th = str2double(intType(6:end));
         R = Theta(th, M0, pde, solver);
@@ -114,7 +114,7 @@ classdef TimeStep < Algorithm
           R = MultiStepMethod(struct('alpha',[1 -1 0 0 0], 'beta',[251 646 -264 106 -19]/720), M0, pde, solver);
         case {'dG0','dG1','dG2','dG3','dG4','dG5','dG6','dG7','dG8','dG9','dG10',...
                     'cG1','cG2','cG3','cG4','cG5','cG6','cG7','cG8','cG9','cG10'}
-          R = VariationalIntegrator(M0, pde, intType, solver);          
+          R = VariationalIntegrator(M0, pde, intType, solver, varargin{:});          
       end
     end
     function list()
