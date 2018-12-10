@@ -52,8 +52,8 @@ classdef Visualizer2D < Visualizer
         vertices = obj.feSpace.mesh.evalReferenceMap([X(:) Y(:)],0); % nExnPxnW
         vertices = reshape(permute(vertices, [2 1 3]), [], size(vertices,3)); % (nP*nE)x2
         if size(vertices,2)==2
-%           vertices = [vertices, zeros(size(value))];
-          vertices = [vertices, value];
+          vertices = [vertices, zeros(size(value))];
+%           vertices = [vertices, value];
         end
         h = patch('faces', reshape(elem, [], obj.feSpace.mesh.element.nV(end)), ...
                   'vertices', vertices , ... 
