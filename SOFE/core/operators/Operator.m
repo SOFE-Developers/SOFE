@@ -27,6 +27,9 @@ classdef Operator < SOFE
         else
           obj.fesTrial.element.quadRule = obj.fesTest.element.quadRule;
         end
+        nBlock = max(obj.fesTrial.nBlock, obj.fesTest.nBlock);
+        obj.fesTrial.setBlockingGlobal(nBlock);
+        obj.fesTest.setBlockingGlobal(nBlock);
       else
         obj.fesTest = fesTrial;
       end
