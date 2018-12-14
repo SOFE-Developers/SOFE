@@ -39,8 +39,9 @@ classdef VariationalIntegrator < TimeStep
       obj.t   = e.quadRule{1}.points';
       obj.fesTrial = FESpace(RegularMesh(1,[0,1]), e);
       obj.fesTest  = FESpace(RegularMesh(1,[0,1]), eTest);
-      mass  = OpIdId(1, 0, obj.fesTrial,obj.fesTest); mass.assemble();
+      mass  = OpIdId(1, 0, obj.fesTrial,obj.fesTest);
       stiff = OpGradId(1, obj.fesTrial, obj.fesTest);
+      mass.assemble();
       stiff.assemble();
       load = FcId(1, obj.fesTest, 0); load.assemble();
       obj.basis0I = obj.fesTest.element.evalBasis(0, 0); % nB
