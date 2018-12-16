@@ -26,7 +26,8 @@ classdef VecElem < Element
       nD = size(points, 2);
       nC = obj.components;
       Bscalar = obj.scalarElement.evalBasis(points, 0);
-      B = zeros(obj.nB(nD), size(points,1), nC);
+      sz = size(Bscalar);
+      B = zeros(nC*sz(1), sz(2), nC);
       for d = 1:nC
         B(d:nC:end,:,d) = Bscalar;
       end

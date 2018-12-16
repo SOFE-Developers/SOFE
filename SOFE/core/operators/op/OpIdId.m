@@ -10,16 +10,9 @@ classdef OpIdId < Operator % ( c*U, V )
   end
   methods
     function R = assembleOp(obj, k)
-      points = obj.fesTrial.element.getQuadData(obj.codim);
-      if isempty(points) % 1D special case
-        I = obj.fesTrial.getBlock(1,k);
-        try S = obj.observers{1}.evalState(k); catch, S = []; end
-        R = obj.fesTrial.mesh.evalFunction(obj.data, points, S, I); % nExnP
-      else
-        basisJ = obj.fesTrial.evalGlobalBasis([], obj.codim, 0, {k}); % nExnBxnPxnC
-        basisI = obj.fesTest.evalGlobalBasis([], obj.codim, 0, {k});
-        R = obj.integrate(true, basisI, basisJ, k);
-      end
+      basisJ = obj.fesTrial.evalGlobalBasis([], obj.codim, 0, {k}); % nExnBxnPxnC
+      basisI = obj.fesTest.evalGlobalBasis([], obj.codim, 0, {k});
+      R = obj.integrate(true, basisI, basisJ, k);
     end
   end
 end

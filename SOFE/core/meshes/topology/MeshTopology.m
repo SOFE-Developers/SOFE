@@ -13,6 +13,8 @@ classdef MeshTopology < SOFE
   methods(Static = true)
     function R = create(nodes, elem, dimP)
       switch size(elem, 2)
+        case 1
+          R = MeshTopologyPoint(elem);
         case 2
           R = MeshTopologyInt(elem);
         case 3

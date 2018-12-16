@@ -108,19 +108,21 @@ classdef FESpace < SOFE
         nC = obj.element.getNC(); nD = obj.element.dimension;
         nB = obj.element.nB(end); nQ = numel(obj.element.quadRule{1}.weights);
         obj.nBlock = ones(nD+1,1);
-        elPerBlock = max(1,SOFE.getElementsPerBlock(nB, nQ, nC, nD));
-        obj.nBlock = ones(nD+1,1);
-        obj.nBlock(1) = ceil(obj.mesh.topology.getNumber(nD)/elPerBlock);
         if nD > 1
-          nB = obj.element.nB(end-1); nQ = numel(obj.element.quadRule{2}.weights);
           elPerBlock = max(1,SOFE.getElementsPerBlock(nB, nQ, nC, nD));
-          obj.nBlock(2) = ceil(obj.mesh.topology.getNumber(nD-1)/elPerBlock);
-        end
-        if nD > 2
-          nB = obj.element.nB(end-2); nQ = numel(obj.element.quadRule{3}.weights);
-          if nB>0
+          obj.nBlock = ones(nD+1,1);
+          obj.nBlock(1) = ceil(obj.mesh.topology.getNumber(nD)/elPerBlock);
+          if nD > 1
+            nB = obj.element.nB(end-1); nQ = numel(obj.element.quadRule{2}.weights);
             elPerBlock = max(1,SOFE.getElementsPerBlock(nB, nQ, nC, nD));
-            obj.nBlock(3) = ceil(obj.mesh.topology.getNumber(nD-2)/elPerBlock);
+            obj.nBlock(2) = ceil(obj.mesh.topology.getNumber(nD-1)/elPerBlock);
+          end
+          if nD > 2
+            nB = obj.element.nB(end-2); nQ = numel(obj.element.quadRule{3}.weights);
+            if nB>0
+              elPerBlock = max(1,SOFE.getElementsPerBlock(nB, nQ, nC, nD));
+              obj.nBlock(3) = ceil(obj.mesh.topology.getNumber(nD-2)/elPerBlock);
+            end
           end
         end
       end
@@ -546,7 +548,11 @@ classdef FESpace < SOFE
       if ~isempty(obj.freeDoFs)
         R = obj.freeDoFs;
       else
-        R = ~obj.getBoundaryDoFs(obj.fixB);
+        if obj.element.dimension > 0
+          R = ~obj.getBoundaryDoFs(obj.fixB);
+        else
+          R = true(obj.getNDoF(),1);
+        end
         obj.freeDoFs = R;
       end
     end

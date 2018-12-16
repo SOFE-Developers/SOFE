@@ -6,10 +6,7 @@ classdef FcId < Functional % ( F, V )
   end
   methods
     function R = assembleOp(obj, k)
-      basis = [];
-      if obj.codim  <  obj.fes.element.dimension
-        basis = obj.fes.evalGlobalBasis([], obj.codim, 0, {k}); % nExnBxnPxnC
-      end
+      basis = obj.fes.evalGlobalBasis([], obj.codim, 0, {k});
       R = integrate(obj, basis, k);
     end
   end

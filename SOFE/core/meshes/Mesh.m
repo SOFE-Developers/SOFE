@@ -32,6 +32,7 @@ classdef Mesh < SOFE
   methods % reference map
     function R = evalReferenceMap(obj, points, order, varargin) % [I]
       I = ':'; if nargin > 3, I = varargin{1}; end
+      if isempty(obj.nodes), R = []; return; end
       if isempty(points)
         R = permute(obj.nodes(I,:), [1 3 2]); % nEx1xnW
         return;
@@ -72,9 +73,14 @@ classdef Mesh < SOFE
         nD = size(points{1}, 2); nP = -1;
       else
         [nP,nD] = size(points);
-        R = reshape(R,[],obj.dimW,nD); % (nE*nP)xnWxnD
+        if nD>0
+          R = reshape(R,[],obj.dimW,nD); % (nE*nP)xnWxnD
+        end
       end
       switch nD
+        case 0 % point
+          invR = [];
+          jacR = 1;
         case 1 % line
           switch obj.dimW
             case 1

@@ -22,7 +22,9 @@ classdef Element < SOFE
     end
     function R = getQuadRule(obj, varargin) % [order]
       try r = varargin{:}; catch, r = max(max(2*(obj.order)),1); end
-      switch obj.nV(obj.dimension)
+      switch obj.nV(end)
+        case 1
+          R{1} = GaussPoint();
         case 2
           R{2} = GaussPoint();
           R{1} = GaussInt(r);
@@ -76,6 +78,8 @@ classdef Element < SOFE
   methods(Static = true)
     function R = create(nV, dimP)
       switch nV
+        case 1
+          R = E0();
         case 2
           R = PpL(1,1);
         case 3
