@@ -210,6 +210,7 @@ classdef Mesh < SOFE
       P = reshape(P, nE*nP, nD); % (nE*nP)xnW
       switch nargin(F)
         case 1 % F(x)
+          nE = max(nE,1); nP = max(nP,1);
           R = reshape(F(P), nE, nP, []);
         case 2 % F(x,U)
           if ~iscell(S.U); S.U = {S.U}; end

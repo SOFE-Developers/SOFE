@@ -14,7 +14,7 @@ data = struct('a',0.001, 'b', @(x)0.5*[-x(:,2), x(:,1), 0*x(:,1)] + ...
       [-x(:,3).*x(:,1)./sqrt(x(:,1).^2 + x(:,2).^2), -x(:,3).*x(:,2)./sqrt(x(:,1).^2 + x(:,2).^2), sqrt(x(:,1).^2 + x(:,2).^2)-R]);
 initialC = @(x)0.2*exp(-(sum((x-[-(R+r) 0 0]).^2,2))/0.1);
 p = CDR(data, fes);
-q = TimeStep.create('DG1', Mass(fes), p, DirectSol(1));
+q = TimeStep.create('dG1', Mass(fes), p, DirectSol(1));
 q = Integrator(RegularMesh(M, [0 T]), q, initialC);
 q.compute();
 %% VISUALIZE
