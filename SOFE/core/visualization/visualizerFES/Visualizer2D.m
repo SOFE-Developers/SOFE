@@ -83,6 +83,7 @@ classdef Visualizer2D < Visualizer
         Z = Z(:,2,1) - Z(:,1,2);
       else
         Z = obj.feSpace.evalDoFVector(U,{P}, [], 0); % nPxnC
+        try, Z = Z(:,varargin{1}.component); catch, end
       end
       if ~isempty(factor), Z = bsxfun(@times, Z, factor(P)); end
       if size(Z,2) == 1
