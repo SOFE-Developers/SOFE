@@ -45,6 +45,7 @@ classdef Visualizer2D < Visualizer
         view(2), axis equal;
       else
         value = obj.feSpace.evalDoFVector(U,[X(:) Y(:)],[],0); % nExnPxnC
+        try value = value(:,:,varargin{1}.component); catch, end
         if size(value,3)>1
           value = sum(value.^2,3).^0.5; % nExnP
         end
@@ -83,7 +84,7 @@ classdef Visualizer2D < Visualizer
         Z = Z(:,2,1) - Z(:,1,2);
       else
         Z = obj.feSpace.evalDoFVector(U,{P}, [], 0); % nPxnC
-        try, Z = Z(:,varargin{1}.component); catch, end
+        try Z = Z(:,varargin{1}.component); catch, end
       end
       if ~isempty(factor), Z = bsxfun(@times, Z, factor(P)); end
       if size(Z,2) == 1

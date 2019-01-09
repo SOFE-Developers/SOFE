@@ -1,5 +1,4 @@
 classdef L2Projection < PDE
-% Id(1) = FId(f)
   methods % constructor
     function obj = L2Projection(data, fesTrial, varargin)
       if ~isempty(varargin), fesTest = varargin{:}; else, fesTest = fesTrial; end
