@@ -190,11 +190,11 @@ classdef Element < SOFE
         end
       end
       if order==-1
-        R = R./(N+1:-1:1);
+        R = bsxfun(@rdivide,R,(N+1:-1:1)); % R = R./(N+1:-1:1);
         R = [R -R*(-1).^(size(R,2):-1:1)'];
       else
         for k = 1:order
-          R = R(:,1:end-1).*(N+1-k:-1:1);
+          R = bsxfun(@times,R(:,1:end-1),(N+1-k:-1:1));
         end
       end
     end

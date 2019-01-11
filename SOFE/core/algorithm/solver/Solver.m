@@ -6,7 +6,7 @@ classdef Solver < SOFE
   methods % constructor
     function obj = Solver(varargin)
       obj = obj@SOFE();
-      if ~isempty(varargin),
+      if ~isempty(varargin)
         warning('deprecated');
         obj.pde = varargin{1};
       end
