@@ -65,7 +65,7 @@ classdef PDE < SOFE
   end
   methods
     function assemble(obj)
-      if obj.stateChanged && (isempty(obj.stiffMat) || (obj.nArgIn.coeff > 1))
+      if obj.stateChanged && (isempty(obj.loadVec) || isempty(obj.stiffMat) || (obj.nArgIn.coeff > 1))
         obj.stateChanged = false;
         obj.stiffMat = []; obj.loadVec = [];
         for k = 1:obj.nOp
