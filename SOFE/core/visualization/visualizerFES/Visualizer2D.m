@@ -70,6 +70,7 @@ classdef Visualizer2D < Visualizer
       try deform = varargin{1}.deform; catch, deform = false; end
       try curl = varargin{1}.curl; catch, curl = 0; end
       try factor = varargin{1}.factor; catch, factor = []; end
+      try isContour = varargin{1}.isContour; catch, isContour = false; end
       try
         box = varargin{1}.box;
       catch
@@ -88,7 +89,11 @@ classdef Visualizer2D < Visualizer
       end
       if ~isempty(factor), Z = bsxfun(@times, Z, factor(P)); end
       if size(Z,2) == 1
-        h = surf(X,Y,reshape(Z,size(X))); shading interp
+        if isContour
+          h = contour(X,Y,reshape(Z,size(X)));
+        else
+          h = surf(X,Y,reshape(Z,size(X))); shading interp
+        end
       else
         if deform
           absZ = reshape(sum(Z.^2, 2).^0.5, size(X));
