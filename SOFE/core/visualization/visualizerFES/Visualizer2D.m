@@ -71,6 +71,7 @@ classdef Visualizer2D < Visualizer
       try curl = varargin{1}.curl; catch, curl = 0; end
       try factor = varargin{1}.factor; catch, factor = []; end
       try isContour = varargin{1}.isContour; catch, isContour = false; end
+      try width = varargin{1}.width; catch, width = 1; end
       try
         box = varargin{1}.box;
       catch
@@ -90,7 +91,7 @@ classdef Visualizer2D < Visualizer
       if ~isempty(factor), Z = bsxfun(@times, Z, factor(P)); end
       if size(Z,2) == 1
         if isContour
-          h = contour(X,Y,reshape(Z,size(X)));
+          h = contour(X,Y,reshape(Z,size(X)),'LineWidth',width);
         else
           h = surf(X,Y,reshape(Z,size(X))); shading interp
         end
@@ -100,7 +101,6 @@ classdef Visualizer2D < Visualizer
           h = surf(X+reshape(Z(:,1),size(X)), Y+reshape(Z(:,2),size(X)), absZ); shading interp;
         else
           try scale = varargin{1}.scale; catch, scale = 1.0; end
-          try width = varargin{1}.width; catch, width = 1; end
           try normalize = varargin{1}.normalize; catch, normalize = true; end
           try vectors = varargin{1}.vectors; catch, vectors = true; end
           try abs = varargin{1}.abs; catch, abs = true; end
