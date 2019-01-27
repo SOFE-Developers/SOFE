@@ -81,7 +81,7 @@ classdef PDE < SOFE
         keyboard
         return;
       end
-      obj.stiffMat = sparse(obj.nDoF, obj.nDoF);
+      if obj.createSys, obj.stiffMat = sparse(obj.nDoF, obj.nDoF); end
       obj.loadVec = zeros(obj.nDoF, 1);
       for i = 1:obj.nEq
         % rhs
@@ -118,7 +118,7 @@ classdef PDE < SOFE
         end
       end
     end
-    function R = applySystem(obj, x, varargin) % [onFreeDoFs or {freeI, freeJ}]
+    function R = applySystem(obj, x, varargin) % [freeI, freeJ]
       if isempty(varargin)
         freeI = ':'; freeJ = ':';
       else
@@ -135,8 +135,8 @@ classdef PDE < SOFE
               if adj
                 dR = (X(obj.J(j,1):obj.J(j,2))'*obj.list{obj.lhs.sys{i,j}{k}}.matrix)';
               else
-                %dR = obj.list{obj.lhs.sys{i,j}{k}}.matrix*X(obj.J(j,1):obj.J(j,2));
-                dR = obj.list{obj.lhs.sys{i,j}{k}}.apply(X(obj.J(j,1):obj.J(j,2)));
+                dR = obj.list{obj.lhs.sys{i,j}{k}}.matrix*X(obj.J(j,1):obj.J(j,2));
+%                dR = obj.list{obj.lhs.sys{i,j}{k}}.apply(X(obj.J(j,1):obj.J(j,2)));
               end
               try dR = obj.lhs.coeff{i,j}{k}*dR; catch, end
               R(obj.I(i,1):obj.I(i,2)) = R(obj.I(i,1):obj.I(i,2)) + dR;
