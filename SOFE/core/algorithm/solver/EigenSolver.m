@@ -1,15 +1,17 @@
 classdef EigenSolver < Algorithm
   properties
     mass
-    nEig
+    nEig,
+    sigma
     eigenVal
     eigenVec
   end
   methods % constructor
-    function obj = EigenSolver(pde, nEig)
+    function obj = EigenSolver(pde, nEig, varargin) % [sigma]
       obj = obj@Algorithm(pde);
       obj.mass = Mass(pde.list{1}.fesTest);
       obj.nEig = nEig;
+      if ~isempty(varargin), obj.sigma = varargin{:}; else, obj.sigma = 'sm'; end
     end
   end
   methods % solve
@@ -25,7 +27,7 @@ classdef EigenSolver < Algorithm
       A = obj.pde.stiffMat(freeI, freeJ);
       M = obj.mass.stiffMat(freeI, freeJ);
       obj.eigenVec = zeros(size(freeI,1), obj.nEig);
-      [obj.eigenVec(freeJ,:), obj.eigenVal] = eigs(A,M,obj.nEig,'sm',struct('v0',ones(sum(freeI),1)));
+      [obj.eigenVec(freeJ,:), obj.eigenVal] = eigs(A,M,obj.nEig,obj.sigma,struct('v0',ones(sum(freeI),1)));
       obj.eigenVal = diag(obj.eigenVal);
       obj.output(['... solved (',num2str(toc(t)),' sec)'], 1);
     end
