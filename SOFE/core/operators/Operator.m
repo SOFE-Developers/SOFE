@@ -5,7 +5,6 @@ classdef Operator < SOFE
     fesTrial, fesTest
     matrix
     loc
-    state
   end
   methods % constructor
     function obj = Operator(data, fesTrial, varargin) % [fesTest loc]
@@ -18,7 +17,7 @@ classdef Operator < SOFE
       obj.data = data;
       obj.fesTrial = fesTrial;
       obj.fesTrial.register(obj);
-      if nargin > 2 && ~isempty(varargin{1})
+      if ~isempty(varargin) && ~isempty(varargin{1})
         obj.fesTest = varargin{1};
         obj.fesTest.register(obj);
         % sync quadRules
@@ -37,13 +36,11 @@ classdef Operator < SOFE
         obj.loc = varargin{2};
       end
     end
-    function notify(obj, varargin) % [time, state, dState]
+    function notify(obj, varargin) % [time]
       if nargin < 2
         obj.matrix = [];
         obj.notifyObservers();
       else
-        try obj.state.U =  varargin{2}; catch, end
-        try obj.state.dU =  varargin{3}; catch, end
         if ~isnumeric(obj.dataCache)
           if nargin(obj.dataCache) == 2 % f(x,t)
             obj.matrix = [];
@@ -114,7 +111,7 @@ classdef Operator < SOFE
             coef = obj.fesTrial.evalDoFVector(obj.data, [], obj.codim, 0, {k}); % nExnPxnC
           end
         else
-          try S = obj.observers{1}.evalState(k); catch, S = obj.state; end
+          S = obj.observers{1}.evalState(k);
           coef = obj.fesTrial.evalFunction(obj.data, [], obj.codim, S, {k}); % nExnPxnC
         end
       else

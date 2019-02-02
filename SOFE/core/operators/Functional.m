@@ -5,7 +5,6 @@ classdef Functional < SOFE
     fes
     matrix
     loc
-    state
   end
   methods % constructor
     function obj = Functional(data, fes, codim, varargin) % [loc]
@@ -24,13 +23,11 @@ classdef Functional < SOFE
         obj.loc = @(x)~obj.fes.fixB(x);
       end
     end
-    function notify(obj, varargin) % [time, state, dState]
+    function notify(obj, varargin) % [time]
       if nargin < 2
         obj.matrix = [];
         obj.notifyObservers();
       else
-        try obj.state.U =  varargin{2}; catch, end
-        try obj.state.dU =  varargin{3}; catch, end
         if ~isnumeric(obj.dataCache)
           if nargin(obj.dataCache) == 2 % f(x,t)
             obj.matrix = [];
@@ -92,7 +89,7 @@ classdef Functional < SOFE
           R = obj.fes.evalDoFVector(obj.data, [], obj.codim, 0, {k}); % nExnPxnC
         end
       else
-        try S = obj.observers{1}.evalState(k); catch, S = obj.state; end
+        S = obj.observers{1}.evalState(k);
         R = obj.fes.evalFunction(obj.data, [], obj.codim, S, {k}); % nExnPxnC
       end
       if ~isempty(basis)

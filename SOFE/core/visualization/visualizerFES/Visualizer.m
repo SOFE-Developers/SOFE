@@ -39,5 +39,11 @@ classdef Visualizer < SOFE
       dim = fes.mesh.topology.dimP;
       eval(['R = Visualizer' num2str(dim) 'D(fes);']);
     end
+    function rotate()
+      for k = 1:360
+        view(k,ceil(k/4));
+        drawnow;
+      end
+    end
   end
 end

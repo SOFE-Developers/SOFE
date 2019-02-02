@@ -3,7 +3,7 @@ classdef OpIdId < Operator % ( c*U, V )
     function obj = OpIdId(coeff, codim, fesTrial, varargin) % [fesTest loc]
       obj = obj@Operator(coeff, fesTrial, varargin{:});
       obj.codim = codim;
-      if codim == 1 && nargin < 6
+      if codim == 1 && isempty(obj.loc)
         obj.loc = @(x)~obj.fesTest.fixB(x);
       end
     end

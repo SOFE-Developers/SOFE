@@ -151,7 +151,7 @@ classdef PDE < SOFE
       R.dU = cell(obj.nEq, 1); % {nEq}xnExnPxnCxnD
       if obj.nArgIn.coeff > 2
         for j = 1:obj.nEq
-          U = obj.state(obj.J(j,1):obj.J(j,2));
+          U = obj.getStateCmp(j);
           R.U{j} = obj.fesTrial{j}.evalDoFVector(U,[],0,0, {k});
           if obj.nArgIn.coeff > 3
             R.dU{j} = obj.fesTrial{j}.evalDoFVector(U,[],0,1, {k});
@@ -169,7 +169,7 @@ classdef PDE < SOFE
         R = cell2mat(obj.shift);
       end
     end
-    function R = getState(obj, varargin) % [idx]
+    function R = getStateCmp(obj, varargin) % [idx]
       if isempty(varargin)
         R = obj.state;
       else
