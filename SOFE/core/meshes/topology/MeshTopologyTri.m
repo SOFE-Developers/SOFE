@@ -48,7 +48,7 @@ classdef MeshTopologyTri < MeshTopology
     end
     function R = uniformRefineFast(obj)
       fc = obj.getEntity(1); el = obj.getEntity(2);
-      e2F = obj.connectivity{3,2}; oo = obj.getOrientation()==2;
+      e2F = obj.connectivity{3,2}; oo = obj.getOrientation(2,1)==2;
       nN = obj.getNumber(0); nF = obj.getNumber(1); nE = obj.getNumber(2);
       fRange = (1:nF)'; eRange = (1:nE)';
       %

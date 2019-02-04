@@ -133,11 +133,17 @@ classdef Operator < SOFE
         R = sum(bsxfun(@times, R, permute(dX, [1 3 4 2])), 4); % nExnBIxnBJ
       end
     end
-    function R = apply(obj, x)
-      R = obj.matrix*x; return
-      % assemble on the fly (matrix0 one element stiffmat of mesh)
-      dm = obj.fesTrial.getDoFMap(0); %#ok<UNRCH>
-      R = accumarray(dm(:),reshape(obj.matrix0*x(dm),[],1));
+    function R = apply(obj, x, varargin) % [freeI, freeJ]
+      freeI = ':'; freeJ = ':';
+      if ~isempty(varargin), freeI = varargin{1}; freeJ = varargin{2}; end
+      R = zeros(obj.fesTrial.getNDoF(), 1);
+      X = zeros(obj.fesTrial.getNDoF(), 1);
+      X(freeJ) = x;
+      R = obj.matrix*X;
+      R = R(freeI);
+      % TODO: assemble on the fly (matrix0 one element stiffmat of mesh)
+%      dm = obj.fesTrial.getDoFMap(0); %#ok<UNRCH>
+%      R = accumarray(dm(:),reshape(obj.matrix0*x(dm),[],1));
     end
   end
 end

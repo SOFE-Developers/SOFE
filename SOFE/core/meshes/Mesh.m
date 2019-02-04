@@ -239,25 +239,29 @@ classdef Mesh < SOFE
     end
   end
   methods % refinement
-    function uniformRefine(obj, varargin) % [N]
+    function R = uniformRefine(obj, varargin) % [N]
       if ~isempty(varargin), N = varargin{1}; else, N = 1; end
       fprintf('Uniform refinement /');
+      R = 1;
       for i = 1:N
-        obj.nodes = obj.topology.uniformRefine()*obj.nodes;
+        R = obj.topology.uniformRefine()*R;
         fprintf([num2str(i) '/']);
       end
+      obj.nodes = R*obj.nodes;
       fprintf(' DONE\n');
-      obj.notifyObservers();
+      obj.notify();
     end
     function uniformRefineFast(obj, varargin) % [N]
       if ~isempty(varargin), N = varargin{1}; else, N = 1; end
       fprintf('Fast uniform refinement /');
+      R = 1;
       for i = 1:N
-        obj.nodes = obj.topology.uniformRefineFast()*obj.nodes;
+        R = obj.topology.uniformRefineFast()*R;
         fprintf([num2str(i) '/']);
       end
+      obj.nodes = R*obj.nodes;
       fprintf(' DONE\n');
-      obj.notifyObservers();
+      obj.notify();
     end
   end
   methods % mesh operations
@@ -272,11 +276,11 @@ classdef Mesh < SOFE
     end
     function translate(obj, vec)
       obj.nodes = bsxfun(@plus, obj.nodes, vec(:)');
-      obj.notifyObservers();
+      obj.notify();
     end
     function applyLinearMap(obj, A)
       obj.nodes = (A*obj.nodes')';
-      obj.notifyObservers();
+      obj.notify();
     end
   end
   methods % mesh information

@@ -4,6 +4,7 @@ classdef PDE < SOFE
     list, lhs, rhs
     %
     stiffMat, loadVec, shift
+    freeI, freeJ
     createSys = true;
     %
     mesh
@@ -51,7 +52,9 @@ classdef PDE < SOFE
       obj.J = [[1;nTrial(1:end-1)+1], nTrial];
       %
       obj.nDoF = nTrial(obj.nEq);
-      obj.stiffMat = []; obj.loadVec = []; obj.shift = [];
+      obj.stiffMat = [];
+      obj.loadVec = []; obj.shift = [];
+      obj.freeI = []; obj.freeJ = [];
       obj.setState(0.0, zeros(obj.nDoF,1));
     end
     function setState(obj, t, varargin) % [state]
@@ -118,31 +121,63 @@ classdef PDE < SOFE
         end
       end
     end
-    function R = applySystem(obj, x, varargin) % [freeI, freeJ]
-      if isempty(varargin)
-        freeI = ':'; freeJ = ':';
+    function R = applySystem(obj, x, varargin) % [isFree]
+      if ~isempty(varargin)
+        [freeI, freeJ] = obj.getFreeDoFs();
       else
-        freeI = varargin{1}; freeJ = varargin{2};
+        freeI = ':'; freeJ = ':';
       end
+      %
       R = zeros(obj.nDoF, 1);
       X = zeros(obj.nDoF, 1);
       X(freeJ) = x;
-      for i = 1:obj.nEq
-        for j = 1:obj.nEq
-          if ~isempty(obj.lhs.sys{i,j})
-            for k = 1:numel(obj.lhs.sys{i,j})
-              try adj = obj.lhs.adj{i,j}{k}; catch, adj = 0; end
-              if adj
-                dR = (X(obj.J(j,1):obj.J(j,2))'*obj.list{obj.lhs.sys{i,j}{k}}.matrix)';
-              else
-                dR = obj.list{obj.lhs.sys{i,j}{k}}.matrix*X(obj.J(j,1):obj.J(j,2));
-%                dR = obj.list{obj.lhs.sys{i,j}{k}}.apply(X(obj.J(j,1):obj.J(j,2)));
+      if ~isempty(obj.stiffMat)
+        R = obj.stiffMat*X;
+      else
+        for i = 1:obj.nEq
+          for j = 1:obj.nEq
+            if ~isempty(obj.lhs.sys{i,j})
+              for k = 1:numel(obj.lhs.sys{i,j})
+                try adj = obj.lhs.adj{i,j}{k}; catch, adj = 0; end
+                if adj
+                  dR = (X(obj.J(j,1):obj.J(j,2))'*obj.list{obj.lhs.sys{i,j}{k}}.matrix)';
+                else
+                  dR = obj.list{obj.lhs.sys{i,j}{k}}.matrix*X(obj.J(j,1):obj.J(j,2));
+                end
+                try dR = obj.lhs.coeff{i,j}{k}*dR; catch, end
+                R(obj.I(i,1):obj.I(i,2)) = R(obj.I(i,1):obj.I(i,2)) + dR;
               end
-              try dR = obj.lhs.coeff{i,j}{k}*dR; catch, end
-              R(obj.I(i,1):obj.I(i,2)) = R(obj.I(i,1):obj.I(i,2)) + dR;
             end
           end
         end
+      end
+      R = R(freeI);
+    end
+    function R = applyBlock(obj, kl, x, varargin) % [isFree, transposeFlag]
+      k = kl(1); l = kl(2);
+      if ~isempty(varargin) & ~isempty(varargin{1})
+        [freeI, ~] = obj.getFreeDoFs(k);
+        [~, freeJ] = obj.getFreeDoFs(l);
+        if numel(varargin)>1
+          tmp = freeI; freeI = freeJ; freeJ = tmp;
+        end
+      else
+        freeI = ':'; freeJ = ':';
+      end
+      %
+      R = zeros(size(freeI));
+      X = zeros(size(freeJ));
+      X(freeJ) = x;
+      for m = 1:numel(obj.lhs.sys{k,l})
+        try adj = obj.lhs.adj{k,l}{m}; catch, adj = 0; end
+        if numel(varargin)>1, adj = ~adj; end
+        if adj
+          dR = (X'*obj.list{obj.lhs.sys{k,l}{m}}.matrix)';
+        else
+          dR = obj.list{obj.lhs.sys{k,l}{m}}.matrix*X;
+        end
+        try dR = obj.lhs.coeff{k,l}{m}*dR; catch, end
+        R = R + dR;
       end
       R = R(freeI);
     end
@@ -177,14 +212,17 @@ classdef PDE < SOFE
       end
     end
     function [RI, RJ] = getFreeDoFs(obj, varargin) % [idx]
-      RI = cellfun(@(fes)fes.getFreeDoFs(),obj.fesTest,'UniformOutput',0);
-      RJ = cellfun(@(fes)fes.getFreeDoFs(),obj.fesTrial,'UniformOutput',0);
+      if isempty(obj.freeI)
+        obj.freeI = cell2mat(cellfun(@(fes)fes.getFreeDoFs(),obj.fesTest,'UniformOutput',0));
+        obj.freeJ = cell2mat(cellfun(@(fes)fes.getFreeDoFs(),obj.fesTrial,'UniformOutput',0));
+      end
       if ~isempty(varargin)
-        RI = RI{varargin{1}};
-        RJ = RJ{varargin{1}};
+        idx = varargin{1};
+        RI = obj.freeI(obj.I(idx,1):obj.I(idx,2));
+        RJ = obj.freeJ(obj.J(idx,1):obj.J(idx,2));
       else
-        RI = cell2mat(RI);
-        RJ = cell2mat(RJ);
+        RI = obj.freeI;
+        RJ = obj.freeJ;
       end
     end
     function [RI, RJ] = getNDoF(obj, varargin) % [idx]
