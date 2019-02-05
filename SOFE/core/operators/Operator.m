@@ -20,12 +20,7 @@ classdef Operator < SOFE
       if ~isempty(varargin) && ~isempty(varargin{1})
         obj.fesTest = varargin{1};
         obj.fesTest.register(obj);
-        % sync quadRules
-        if obj.fesTrial.element.quadRule{1}.order > obj.fesTest.element.quadRule{1}.order
-          obj.fesTest.element.quadRule = obj.fesTrial.element.quadRule;
-        else
-          obj.fesTrial.element.quadRule = obj.fesTest.element.quadRule;
-        end
+        obj.syncQuadRules();
         nBlock = max(obj.fesTrial.nBlock, obj.fesTest.nBlock);
         obj.fesTrial.setBlockingGlobal(nBlock);
         obj.fesTest.setBlockingGlobal(nBlock);
@@ -34,6 +29,13 @@ classdef Operator < SOFE
       end
       if nargin > 3
         obj.loc = varargin{2};
+      end
+    end
+    function syncQuadRules(obj)
+      if obj.fesTrial.element.quadRule{1}.order > obj.fesTest.element.quadRule{1}.order
+        obj.fesTest.element.quadRule = obj.fesTrial.element.quadRule;
+      else
+        obj.fesTrial.element.quadRule = obj.fesTest.element.quadRule;
       end
     end
     function notify(obj, varargin) % [time]
