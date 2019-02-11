@@ -89,7 +89,7 @@ classdef Functional < SOFE
           R = obj.fes.evalDoFVector(obj.data, [], obj.codim, 0, {k}); % nExnPxnC
         end
       else
-        S = obj.observers{1}.evalState(k);
+        try, S = obj.observers{1}.evalState(k); catch, S = []; end
         R = obj.fes.evalFunction(obj.data, [], obj.codim, S, {k}); % nExnPxnC
       end
       if ~isempty(basis)
