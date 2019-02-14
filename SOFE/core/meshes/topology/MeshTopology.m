@@ -18,7 +18,7 @@ classdef MeshTopology < SOFE
         case 2
           R = MeshTopologyInt(elem);
         case 3
-%           elem = MeshTopologyTri.renumber(nodes, elem);
+          %elem = MeshTopologyTri.renumber(nodes, elem);
           R = MeshTopologyTri(elem);
         case 4
           if dimP == 2
