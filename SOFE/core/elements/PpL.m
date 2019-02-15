@@ -40,34 +40,42 @@ classdef PpL < LagrangeElement
             end              
           end
         case 2
-          p1d = p1d(2:p);
-          % edge
-          R = [0 0; 1 0; 0 1];
-          R = [R; [p1d zeros(p-1,1)]; [1-p1d p1d]; [zeros(p-1,1) p1d]];
-          % inner
-          [py,px] = meshgrid(p1d,p1d);
-          [iy,ix] = meshgrid(1:p-1, 1:p-1);
-          I = ix+iy < p;
-          R = [R; [px(I) py(I)]];
+          if p == 0
+            R = [1 1]/3;
+          else
+            p1d = p1d(2:p);
+            % edge
+            R = [0 0; 1 0; 0 1];
+            R = [R; [p1d zeros(p-1,1)]; [1-p1d p1d]; [zeros(p-1,1) p1d]];
+            % inner
+            [py,px] = meshgrid(p1d,p1d);
+            [iy,ix] = meshgrid(1:p-1, 1:p-1);
+            I = ix+iy < p;
+            R = [R; [px(I) py(I)]];
+          end
         case 3
-          p1d = p1d(2:p);
-          zz = zeros(p-1,1);
-          R = [0 0 0; 1 0 0; 0 1 0; 0 0 1];
-          % edge
-          R = [R; [p1d zz zz]; [1-p1d p1d zz]; [zz p1d zz]; ...
-                  [zz zz p1d]; [1-p1d zz p1d]; [zz 1-p1d p1d]];
-          % face
-          [py,px] = meshgrid(p1d,p1d);
-          [iy,ix] = meshgrid(1:p-1, 1:p-1);
-          I = ix+iy < p;
-          zz = zeros(sum(I(:)),1);
-          R = [R; [px(I) py(I) zz]; [px(I) zz py(I)]; ...
-                  [1-px(I)-py(I) px(I) py(I)]; [zz px(I) py(I)]];
-          % inner
-          [pz,py,px] = meshgrid(p1d,p1d,p1d);
-          [iz,iy,ix] = meshgrid(1:p-1, 1:p-1,1:p-1);
-          I = ix+iy+iz < p;
-          R = [R; [px(I) py(I) pz(I)]];
+          if p == 0
+            R = [1 1 1]/3;
+          else
+            p1d = p1d(2:p);
+            zz = zeros(p-1,1);
+            R = [0 0 0; 1 0 0; 0 1 0; 0 0 1];
+            % edge
+            R = [R; [p1d zz zz]; [1-p1d p1d zz]; [zz p1d zz]; ...
+                    [zz zz p1d]; [1-p1d zz p1d]; [zz 1-p1d p1d]];
+            % face
+            [py,px] = meshgrid(p1d,p1d);
+            [iy,ix] = meshgrid(1:p-1, 1:p-1);
+            I = ix+iy < p;
+            zz = zeros(sum(I(:)),1);
+            R = [R; [px(I) py(I) zz]; [px(I) zz py(I)]; ...
+                    [1-px(I)-py(I) px(I) py(I)]; [zz px(I) py(I)]];
+            % inner
+            [pz,py,px] = meshgrid(p1d,p1d,p1d);
+            [iz,iy,ix] = meshgrid(1:p-1, 1:p-1,1:p-1);
+            I = ix+iy+iz < p;
+            R = [R; [px(I) py(I) pz(I)]];
+          end
       end
       D = ones(size(R,1),1);
     end
