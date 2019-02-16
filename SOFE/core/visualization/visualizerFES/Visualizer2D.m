@@ -83,7 +83,12 @@ classdef Visualizer2D < Visualizer
       P = [X(:) Y(:)];
       if curl 
         Z = obj.feSpace.evalDoFVector(U,{P}, [], 1); % nPxnCxnD
-        Z = Z(:,2,1) - Z(:,1,2);
+        if size(Z,2)>1
+          Z = Z(:,2,1) - Z(:,1,2);
+        else
+          tmp = Z(:,:,1); Z(:,:,1) = Z(:,:,2); Z(:,:,2) = -tmp;
+          Z = permute(Z, [1 3 2]); % nPxnC
+        end
       else
         Z = obj.feSpace.evalDoFVector(U,{P}, [], 0); % nPxnC
         try Z = Z(:,varargin{1}.component); catch, end
