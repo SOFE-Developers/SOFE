@@ -15,11 +15,11 @@ classdef VisualizerMesh3D < VisualizerMesh
       end
       if obj.mesh.topology.isSimplex, I = [1 2 3]; else, I = [1 2 4 3]; end
       h = trimesh(fc(Is,I), obj.mesh.nodes(:,1), obj.mesh.nodes(:,2), obj.mesh.nodes(:,3));
-      set(h,'facecolor',[0.5 0.7 0.2],'edgecolor','k');
+      set(h,'facecolor',[0.5 0.7 0.2],'edgecolor','k','LineWidth',1.5);
       hold on
       h = trimesh(fc(Ib,I), obj.mesh.nodes(:,1), obj.mesh.nodes(:,2), obj.mesh.nodes(:,3));
       hold off
-      set(h,'facecolor',[0.5 0.8 0.5],'edgecolor','k');
+      set(h,'facecolor',[0.5 0.8 0.5],'edgecolor','k','LineWidth',1.5);
       axis equal, axis tight, caxis(c);
     end
     function showInner(obj)
