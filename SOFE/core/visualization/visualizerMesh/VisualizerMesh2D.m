@@ -14,7 +14,7 @@ classdef VisualizerMesh2D < VisualizerMesh
       else
         h = trimesh(elem(:,I), obj.mesh.nodes(:,1), obj.mesh.nodes(:,2), obj.mesh.nodes(:,3));
       end
-      set(h,'facecolor',[0.5 0.8 0.5], 'edgecolor', 'k');
+      set(h,'facecolor',[0.5 0.8 0.5],'edgecolor','k','LineWidth',1.5);
       axis equal
     end
     function showEntity(obj, dim)
