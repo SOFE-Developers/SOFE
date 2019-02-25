@@ -25,7 +25,7 @@ classdef FESpace < SOFE
 %     evalFunction / evalReferenceMap / evalTrafoInfo
 %     evalGlobalBasis / evalDoFVector
 %     getDoFMap / getNDoF / extractDoFs / getBoundaryDoFs / getFreeDoFs
-%     getL2Projection / getL2Interpolant / getLInfInterpolant
+%     getL2Projection / getL2Interpolant / getLagrangeInterpolant
 %     evalJumpResidual / getRecoveredGradient
 %
 %     See also meshes/Mesh, elements/Element
