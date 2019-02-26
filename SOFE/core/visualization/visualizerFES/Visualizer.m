@@ -30,7 +30,7 @@ classdef Visualizer < SOFE
       else
         h = obj.patch(U);
       end
-      colormap default
+      colormap hot
     end
   end
   methods(Static = true)
