@@ -23,6 +23,7 @@ classdef IterativeSol < Solver
           M2 = speye(size(M1));
         case 'ilu'
           [M1,M2] = ilu(A); %#ok<ASGLU>
+%          [M1,M2] = ilu(A,struct('type','crout','droptol',1e-2)); %#ok<ASGLU>
         case 'ichol'
           M1 = ichol(A,struct('michol','on'));
           M2 = M1';
