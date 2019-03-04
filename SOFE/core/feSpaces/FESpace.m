@@ -529,17 +529,12 @@ classdef FESpace < SOFE
     end
     function R = extractDoFs(obj, codim, I)
       dMap = obj.getDoFMap(codim);
-      nDoF = obj.getNDoF();
-      %
       nC = size(I,2);
       doFs = cell(nC,1);
       for d = 1:nC
         doFs{d} = reshape(abs(dMap(d:nC:end, I(:,d))), [], 1);
       end
-      doFs = cell2mat(doFs);
-      %
-      tmp = setdiff(unique(doFs(:)), 0);
-      R = accumarray(tmp(:), 1, [nDoF 1])>0;
+      R = accumarray(setdiff(unique(reshape(cell2mat(doFs),[],1)), 0), 1, [obj.getNDoF() 1])>0;
     end
     function R = getBoundaryDoFs(obj, varargin) % [loc]
       R = obj.extractDoFs(1, obj.mesh.isBoundary(varargin{:}));
@@ -556,9 +551,37 @@ classdef FESpace < SOFE
         obj.freeDoFs = R;
       end
     end
-    function R = getProjector(obj)
+    function R = getProjector_(obj)
       R = obj.mesh.topology.getProjector();
       if ~isempty(R), assert(obj.element.order==1, 'TODO: higher order projector'); end
+    end
+  end
+  methods % refinement
+    function R = uniformRefine(obj)
+      dM0 = obj.getDoFMap(0);
+      obj.mesh.uniformRefine();
+      R = obj.getProlongator(dM0, obj.getDoFMap(0));
+    end
+    function R = getProlongator(obj, dM0, dM1, varargin) % [iE, iCh]
+      try iE = varargin{1}; catch, iE = true(size(dM0,2),1); end
+      try iCh = varargin{2}; catch, iCh = reshape(1:2^obj.element.dimension*numel(iE),numel(iE),[]); end
+      nCh = size(iCh,2); nB = size(dM0,1);
+      I = cell(nCh,1); J = cell(nCh,1); C = cell(nCh,1);
+      [P0,D0] = obj.element.getLagrangeFunctionals(0);
+      for k = 1:nCh
+        I{k} = kron(ones(1,nB),dM1(:, iCh(:,k))'); % child
+        J{k} = kron(dM0(:,iE)',ones(1,nB)); % parent
+        [P1,D1] = obj.element.getLagrangeFunctionals(k);
+        coeff = sum(bsxfun(@times,obj.element.evalBasis(P0,0),permute(D0,[3 1 2])),3)' \ ...
+                sum(bsxfun(@times,obj.element.evalBasis(P1,0),permute(D1,[3 1 2])),3)';
+        coeff(abs(coeff)<1e-12) = 0;
+        C{k} = repmat(reshape(coeff,1,[]), numel(iE), 1);
+      end
+      % assemble
+      I = cell2mat(I); J = cell2mat(J); C = cell2mat(C);
+      C = C.*sign(I).*sign(J); I = abs(I); J = abs(J);
+      [IJ, tmp] = unique([I(:) J(:)],'rows'); % TODO: speed up by codim-separate assembly
+      R = sparse(IJ(:,1), IJ(:,2), C(tmp));
     end
   end
   methods % interpolation

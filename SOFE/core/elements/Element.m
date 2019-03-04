@@ -174,6 +174,28 @@ classdef Element < SOFE
       axis([0 1 0 1 0 1]); axis equal
     end
   end
+  methods
+    function [R,D] = getLagrangeFunctionals(obj, childNr)
+      [R,D] = obj.getLagrangePoints(obj.dimension, obj.order);
+      switch childNr
+        case 0
+        case 1
+          R = 0.5*R;
+        case 2
+          R = 0.5*R;
+          R(:,1) = R(:,1) + 0.5;
+        case 3
+          R = 0.5*R;
+          R(:,2) = R(:,2) + 0.5;
+        case 4
+          R = -0.5*R;
+          R = R + 0.5;
+          if strcmp(obj.conformity,'HDiv') || strcmp(obj.conformity,'HRot')
+            D = -D;
+          end
+      end
+    end
+  end
   methods(Static = true)
     function R = getLegendreCoefficients(N, varargin) % [order]
       if ~isempty(varargin), order = varargin{1}; else, order = 0; end

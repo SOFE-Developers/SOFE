@@ -23,7 +23,6 @@ classdef VecElem < Element
   end
   methods % evaluation
     function B = evalD0Basis(obj, points)
-      nD = size(points, 2);
       nC = obj.components;
       Bscalar = obj.scalarElement.evalBasis(points, 0);
       sz = size(Bscalar);
@@ -42,7 +41,7 @@ classdef VecElem < Element
       end
     end
   end
-  methods
+  methods % Lagrange points
     function [R,D] = getLagrangePoints(obj, dim, r)
       [R,D] = obj.scalarElement.getLagrangePoints(dim, r); % nPxnD
       R = kron(R,ones(obj.components,1));
