@@ -1,4 +1,4 @@
-function R = leftShiftNonZero(A);
+function R = leftShiftNonZero(A)
   % shifts all non-zero entries to the left in each row
   A = A.';
   R = zeros(size(A));
