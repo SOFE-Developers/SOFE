@@ -63,6 +63,52 @@ classdef Integrator < Algorithm
       obj.fullHistory{1}(:,2) = obj.history{1}; % right linear part
     end
   end
+  methods % access
+    function sol = getSolution(obj,varargin)
+      if nargin>1
+        nr = varargin{1};
+      else
+        nr = 1;
+      end
+      sol = cell(1,numel(obj.fullHistory));
+      if isnumeric(nr)
+        id = 0;
+        for k=1:nr-1
+          id = id+obj.pde.fesTrial{k}.getNDoF;
+        end
+        id = id+(1:obj.pde.fesTrial{nr}.getNDoF);
+      else
+        id = ':';
+      end
+      for i=1:numel(obj.fullHistory)
+        sol{i} = obj.fullHistory{i}(id,:);
+      end
+    end
+    function sol = setSolution(obj,sol,nr)
+      try
+        if numel(obj.fullHistory)~=numel(sol)
+          obj.fullHistory = cell(1,numel(sol));
+          obj.history     = cell(1,numel(sol));
+        end
+      catch
+        obj.fullHistory = cell(1,numel(sol));
+        obj.history     = cell(1,numel(sol));
+      end
+      if isnumeric(nr)
+        id = 0;
+        for k=1:nr-1
+          id = id+obj.pde.fesTrial{k}.getNDoF;
+        end
+        id = id+(1:obj.pde.fesTrial{nr}.getNDoF);
+      else
+        id = ':';
+      end
+      for i=1:numel(sol)
+        obj.fullHistory{i}(id,:)=sol{i};
+        obj.history{i}(id,:)=sol{i}(:,end);
+      end
+    end
+  end
   methods(Static=true) % Test
     function R = testConvergence(intType, dim, pSpace, varargin)
       try doVis = varargin{1}.doVis; catch, doVis = false; end
