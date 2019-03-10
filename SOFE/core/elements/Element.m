@@ -215,6 +215,7 @@ classdef Element < SOFE
             end
           end
         case 3
+          error('TODO')
       end
     end
   end

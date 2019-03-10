@@ -580,8 +580,12 @@ classdef FESpace < SOFE
       % assemble
       I = cell2mat(I); J = cell2mat(J); C = cell2mat(C);
       C = C.*sign(I).*sign(J); I = abs(I); J = abs(J);
-      [IJ, tmp] = unique([I(:) J(:)],'rows'); % TODO: speed up by codim-separate assembly
-      R = sparse(IJ(:,1), IJ(:,2), C(tmp));
+      %
+      cnt = sparse(I,J,1);
+      R = sparse(I,J,C);
+      [ii,jj,cnt] = find(cnt);
+      idx = ii+size(R,1)*(jj-1);
+      R(idx) = R(idx)./cnt;
     end
   end
   methods % interpolation
