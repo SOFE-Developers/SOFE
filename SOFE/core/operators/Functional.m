@@ -5,6 +5,8 @@ classdef Functional < SOFE
     fes
     matrix
     loc
+    saveRCE = false
+    preMatrix % row - column - entry
   end
   methods % constructor
     function obj = Functional(data, fes, codim, varargin) % [loc]
@@ -67,6 +69,7 @@ classdef Functional < SOFE
           end
         end
         I = (r==0); if any(I(:)), r(I) = []; e(I) = []; end %#ok<AGROW>
+        if obj.saveRCE, obj.preMatrix = {r; e}; end
         re{k} = [r(:), e(:)];
         if k>1
           if k>2

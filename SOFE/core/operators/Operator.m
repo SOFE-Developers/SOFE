@@ -5,6 +5,8 @@ classdef Operator < SOFE
     fesTrial, fesTest
     matrix
     loc
+    saveRCE = false
+    preMatrix % row - column - entry
   end
   methods % constructor
     function obj = Operator(data, fesTrial, varargin) % [fesTest loc]
@@ -86,6 +88,7 @@ classdef Operator < SOFE
           end
         end
         I = (r.*c==0); if any(I(:)), r(I) = []; c(I) = []; e(I) = []; end %#ok<AGROW>
+        if obj.saveRCE, obj.preMatrix = {r; c; e}; end
         try
           fsparse(0);
           obj.matrix = obj.matrix + fsparse(r(:), c(:), e(:), [M, N]);
@@ -113,7 +116,7 @@ classdef Operator < SOFE
             coef = obj.fesTrial.evalDoFVector(obj.data, [], obj.codim, 0, {k}); % nExnPxnC
           end
         else
-          try, S = obj.observers{1}.evalState(k); catch, S = []; end
+          try S = obj.observers{1}.evalState(k); catch, S = []; end
           coef = obj.fesTrial.evalFunction(obj.data, [], obj.codim, S, {k}); % nExnPxnC
         end
       else
@@ -138,7 +141,6 @@ classdef Operator < SOFE
     function R = apply(obj, x, varargin) % [freeI, freeJ]
       freeI = ':'; freeJ = ':';
       if ~isempty(varargin), freeI = varargin{1}; freeJ = varargin{2}; end
-      R = zeros(obj.fesTrial.getNDoF(), 1);
       X = zeros(obj.fesTrial.getNDoF(), 1);
       X(freeJ) = x;
       R = obj.matrix*X;
