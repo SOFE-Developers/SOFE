@@ -45,7 +45,7 @@ classdef MeshTopologyHex < MeshTopology
       e2E = obj.getElem2Edge();
       orientF = obj.getOrientation(3,2);
       [~, ind] = unique(e2F);
-      orientF = orientF(ind);
+      orientF = reshape(orientF(ind), size(ind));
       [father, type] = ind2sub([obj.getNumber(3), 6], ind);
       nodeIxAtFace = [1 2 5 7; 3 4 6 8; 5 6 9 11; 7 8 10 12; 1 3 9 10; 2 4 11 12];
       flags = [1 1 1;1 1 -1; 1 -1 -1; -1 1 1; -1 1 -1; 1 -1 1; -1 -1 1; -1 -1 -1];

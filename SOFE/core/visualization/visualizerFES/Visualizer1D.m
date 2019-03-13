@@ -17,8 +17,7 @@ classdef Visualizer1D < Visualizer
       try
         box = varargin{1}.box;
       catch
-        gs = obj.feSpace.mesh.getGlobalSearcher();
-        box = gs.diam';
+        box = obj.feSpace.mesh.getDiam();
       end
       X = linspace(box(1), box(2), N)';
       Y = obj.feSpace.evalDoFVector(U, {X}, [], 0);

@@ -8,9 +8,6 @@ classdef DirectSol < Solver
       obj = obj@Solver();
       if ~isempty(varargin), obj.isLU = varargin{1}; else, obj.isLU = 0; end
     end
-    function notify(obj)
-      obj.cache = [];
-    end
   end
   methods % solve
     function R = solve(obj, A, b, I, J, shift)

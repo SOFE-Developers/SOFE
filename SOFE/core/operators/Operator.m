@@ -5,7 +5,7 @@ classdef Operator < SOFE
     fesTrial, fesTest
     matrix
     loc
-    saveRCE = false
+    savePre = false
     preMatrix % row - column - entry
   end
   methods % constructor
@@ -40,23 +40,26 @@ classdef Operator < SOFE
         obj.fesTrial.element.quadRule = obj.fesTest.element.quadRule;
       end
     end
-    function notify(obj, varargin) % [time]
-      if nargin < 2
-        obj.matrix = [];
-        obj.notifyObservers();
-      else
-        if ~isnumeric(obj.dataCache)
-          if nargin(obj.dataCache) == 2 % f(x,t)
-            obj.matrix = [];
-            obj.data = @(x)obj.dataCache(x, varargin{1});
-          elseif nargin(obj.dataCache) == 3 % f(x,t,U)
-            obj.matrix = [];
-            obj.data = @(x, U)obj.dataCache(x, varargin{1}, U);
-          elseif nargin(obj.dataCache) == 4 % f(x,t,U,d)
+    function notify(obj, message, varargin) % [time]
+      switch message
+        case 'fesChanged'
+          obj.matrix = [];
+          obj.notifyObservers('opChanged');
+        case 'stateChanged'
+          if ~isnumeric(obj.dataCache) % isFunctionHandle
+            if nargin(obj.dataCache) == 2 % f(x,t)
               obj.matrix = [];
-              obj.data = @(x, U, d)obj.dataCache(x, varargin{1}, U, d);
+              obj.data = @(x)obj.dataCache(x, varargin{1});
+            elseif nargin(obj.dataCache) == 3 % f(x,t,U)
+              obj.matrix = [];
+              obj.data = @(x, U)obj.dataCache(x, varargin{1}, U);
+            elseif nargin(obj.dataCache) == 4 % f(x,t,U,d)
+                obj.matrix = [];
+                obj.data = @(x, U, d)obj.dataCache(x, varargin{1}, U, d);
+            end
           end
-        end
+        otherwise
+          error('Unknown message');
       end
     end
   end
@@ -88,7 +91,8 @@ classdef Operator < SOFE
           end
         end
         I = (r.*c==0); if any(I(:)), r(I) = []; c(I) = []; e(I) = []; end %#ok<AGROW>
-        if obj.saveRCE, obj.preMatrix = {r; c; e}; end
+        if obj.savePre, obj.preMatrix = {r; c; e}; end
+        %
         try
           fsparse(0);
           obj.matrix = obj.matrix + fsparse(r(:), c(:), e(:), [M, N]);

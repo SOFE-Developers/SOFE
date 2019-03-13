@@ -58,7 +58,7 @@ classdef MeshTopologyQuad < MeshTopology
       P = [speye(nN); sparse(repmat((1:nF)',1,2), fc, 0.5); sparse(repmat((1:nE)',1,4), el, 0.25)];
       %
       newIndicesF = nN + fRange; newIndicesE = nN + nF + eRange;
-      el = [el newIndicesF(obj.connectivity{3,2}) newIndicesE];
+      el = [el reshape(newIndicesF(obj.connectivity{3,2}),size(obj.connectivity{3,2})) newIndicesE];
       el = [el(:,[1 5 7 9]);el(:,[5 2 9 8]);el(:,[7 9 3 6]);el(:,[9 8 6 4])];
       fc = [fc(:,1) newIndicesF; fc(:,2) newIndicesF; ...
             nN+e2F(:,1) newIndicesE; nN+e2F(:,2) newIndicesE; nN+e2F(:,3) newIndicesE; nN+e2F(:,4) newIndicesE];

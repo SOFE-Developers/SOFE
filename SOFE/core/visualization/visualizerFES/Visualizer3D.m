@@ -59,6 +59,7 @@ classdef Visualizer3D < Visualizer
       end
     end
     function h = surf(obj, U, varargin)
+      obj.test(U);
       try N = varargin{1}.N; catch, N = 200; end
       try deform = varargin{1}.deform; catch, deform = false; end
       try map = varargin{1}.map; catch, map = @(u,v)[u,v,0*u]; end
@@ -174,8 +175,7 @@ classdef Visualizer3D < Visualizer
       W = reshape(F(P), size(A)); % nPxnC
       P = reshape(P, [size(A) 3]);
       h = surf(P(:,:,1), P(:,:,2), P(:,:,3), W); shading interp;
-      gs = obj.feSpace.mesh.getGlobalSearcher();
-      diam = gs.diam';
+      diam = obj.feSpace.mesh.getDiam();
       axis(diam(:)); axis equal;
     end
   end

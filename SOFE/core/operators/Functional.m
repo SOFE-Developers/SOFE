@@ -5,7 +5,7 @@ classdef Functional < SOFE
     fes
     matrix
     loc
-    saveRCE = false
+    savePre = false
     preMatrix % row - column - entry
   end
   methods % constructor
@@ -25,23 +25,26 @@ classdef Functional < SOFE
         obj.loc = @(x)~obj.fes.fixB(x);
       end
     end
-    function notify(obj, varargin) % [time]
-      if nargin < 2
-        obj.matrix = [];
-        obj.notifyObservers();
-      else
-        if ~isnumeric(obj.dataCache)
-          if nargin(obj.dataCache) == 2 % f(x,t)
-            obj.matrix = [];
-            obj.data = @(x)obj.dataCache(x, varargin{1});  
-          elseif nargin(obj.dataCache) == 3 % f(x,t,U)
-            obj.matrix = [];
-            obj.data = @(x, U)obj.dataCache(x, varargin{1}, U);
-          elseif nargin(obj.dataCache) == 4 % f(x,t,U,d)
-            obj.matrix = [];
-            obj.data = @(x, U, d)obj.dataCache(x, varargin{1}, U, d);
+    function notify(obj, message, varargin) % [time]
+      switch message
+        case 'fesChanged'
+          obj.matrix = [];
+          obj.notifyObservers('fcChanged');
+        case 'stateChanged'
+          if ~isnumeric(obj.dataCache)
+            if nargin(obj.dataCache) == 2 % f(x,t)
+              obj.matrix = [];
+              obj.data = @(x)obj.dataCache(x, varargin{1});  
+            elseif nargin(obj.dataCache) == 3 % f(x,t,U)
+              obj.matrix = [];
+              obj.data = @(x, U)obj.dataCache(x, varargin{1}, U);
+            elseif nargin(obj.dataCache) == 4 % f(x,t,U,d)
+              obj.matrix = [];
+              obj.data = @(x, U, d)obj.dataCache(x, varargin{1}, U, d);
+            end
           end
-        end
+        otherwise
+          error('Unknown message');
       end
     end
   end
@@ -69,7 +72,7 @@ classdef Functional < SOFE
           end
         end
         I = (r==0); if any(I(:)), r(I) = []; e(I) = []; end %#ok<AGROW>
-        if obj.saveRCE, obj.preMatrix = {r; e}; end
+        if obj.savePre, obj.preMatrix = {r; e}; end
         re{k} = [r(:), e(:)];
         if k>1
           if k>2

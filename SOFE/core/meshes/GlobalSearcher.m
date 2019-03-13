@@ -1,7 +1,7 @@
 classdef GlobalSearcher < SOFE
   properties
     mesh
-    nodes % nExnN
+    meshPoints % nExnN
     dim
     bgMesh
     diam
@@ -11,8 +11,11 @@ classdef GlobalSearcher < SOFE
   methods % constructor
     function obj = GlobalSearcher(mesh)
       obj.mesh = mesh;
+      mesh.register(obj);
       obj.dim = mesh.topology.dimP;
-      obj.update();
+    end
+    function notify(obj, varargin) % message
+      obj.bgMesh = []; obj.diam = [];
     end
     function R = getBlock(obj, varargin) % [I]
       nE = obj.mesh.topology.getNumber('0');
@@ -23,19 +26,20 @@ classdef GlobalSearcher < SOFE
         R = R(:,varargin{1});
       end
     end
-    function update(obj, varargin) % [nodes]
+    function update(obj, varargin) % [meshPoints]
       if nargin < 2
         N = obj.mesh.nodes;
         elem = obj.mesh.topology.getEntity('0'); % nExnV
         I = (elem>0);
-        obj.nodes = nan([numel(elem) obj.dim]);
-        obj.nodes(I,:) = N(elem(I),:);
-        obj.nodes = reshape(obj.nodes,size(elem,1),[],obj.dim); % nExnPxnW
+        obj.meshPoints = nan([numel(elem) obj.dim]);
+        obj.meshPoints(I,:) = N(elem(I),:);
+        obj.meshPoints = reshape(obj.meshPoints,size(elem,1),[],obj.dim); % nExnPxnW
       else
-        obj.nodes = varargin{1}; % nExnPxnW
+        obj.meshPoints = varargin{1}; % nExnPxnW
       end
-      obj.diam(:,1) = min(reshape(obj.nodes,[],obj.dim)); % nWx2
-      obj.diam(:,2) = max(reshape(obj.nodes,[],obj.dim)); % nWx2
+      obj.diam(:,1) = min(reshape(obj.meshPoints,[],obj.dim)); % nWx2
+      obj.diam(:,2) = max(reshape(obj.meshPoints,[],obj.dim)); % nWx2
+      %
       range = diff(obj.diam');
       obj.NVec = 5*obj.mesh.topology.getNumber('0')/2^obj.dim; % number of bins
       if obj.dim == 2
@@ -68,7 +72,7 @@ classdef GlobalSearcher < SOFE
       fprintf('\n');
     end
     function R = buildBackgroundMesh(obj, I)
-      N = obj.nodes(I,:,:);
+      N = obj.meshPoints(I,:,:);
       bins = nan(size(N)); % nExnVxnW
       idx = ~isnan(N);
       bins(idx) = obj.getBin(reshape(N(idx),[],obj.dim));

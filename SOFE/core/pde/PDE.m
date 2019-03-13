@@ -42,9 +42,9 @@ classdef PDE < SOFE
       obj.nArgIn.coeff =  max(cellfun(@(op)nargin(op.dataCache),obj.list));
       obj.nArgIn.shift =  max(cellfun(@(fes)fes.narginShift,obj.fesTrial));
       obj.mesh = obj.fesTrial{1}.mesh;
-      obj.notify();
+      obj.notify('init');
     end
-    function notify(obj)
+    function notify(obj, varargin) % [message]
       [nTest, nTrial] = obj.getNDoF();
       nTest = cumsum(nTest);
       obj.I = [[1;nTest(1:end-1)+1], nTest];
@@ -72,7 +72,7 @@ classdef PDE < SOFE
         obj.stateChanged = false;
         obj.stiffMat = []; obj.loadVec = [];
         for k = 1:obj.nOp
-          obj.list{k}.notify(obj.time);
+          obj.list{k}.notify('stateChanged', obj.time);
           obj.list{k}.assemble();
         end
         obj.createSystem();
@@ -123,14 +123,14 @@ classdef PDE < SOFE
     end
     function R = applySystem(obj, x, varargin) % [isFree]
       if ~isempty(varargin)
-        [freeI, freeJ] = obj.getFreeDoFs();
+        [fI, fJ] = obj.getFreeDoFs();
       else
-        freeI = ':'; freeJ = ':';
+        fI = ':'; fJ = ':';
       end
       %
       R = zeros(obj.nDoF, 1);
       X = zeros(obj.nDoF, 1);
-      X(freeJ) = x;
+      X(fJ) = x;
       if ~isempty(obj.stiffMat)
         R = obj.stiffMat*X;
       else
@@ -151,23 +151,23 @@ classdef PDE < SOFE
           end
         end
       end
-      R = R(freeI);
+      R = R(fI);
     end
     function R = applyBlock(obj, kl, x, varargin) % [isFree, transposeFlag]
       k = kl(1); l = kl(2);
-      if ~isempty(varargin) & ~isempty(varargin{1})
-        [freeI, ~] = obj.getFreeDoFs(k);
-        [~, freeJ] = obj.getFreeDoFs(l);
+      if ~isempty(varargin) && ~isempty(varargin{1})
+        [fI, ~] = obj.getFreeDoFs(k);
+        [~, fJ] = obj.getFreeDoFs(l);
         if numel(varargin)>1
-          tmp = freeI; freeI = freeJ; freeJ = tmp;
+          tmp = fI; fI = fJ; fJ = tmp;
         end
       else
-        freeI = ':'; freeJ = ':';
+        fI = ':'; fJ = ':';
       end
       %
-      R = zeros(size(freeI));
-      X = zeros(size(freeJ));
-      X(freeJ) = x;
+      R = zeros(size(fI));
+      X = zeros(size(fJ));
+      X(fJ) = x;
       for m = 1:numel(obj.lhs.sys{k,l})
         try adj = obj.lhs.adj{k,l}{m}; catch, adj = 0; end
         if numel(varargin)>1, adj = ~adj; end
@@ -179,7 +179,7 @@ classdef PDE < SOFE
         try dR = obj.lhs.coeff{k,l}{m}*dR; catch, end
         R = R + dR;
       end
-      R = R(freeI);
+      R = R(fI);
     end
     function R = evalState(obj, k) % [k]
       R.U = cell(obj.nEq, 1); % {nEq}xnExnPxnC

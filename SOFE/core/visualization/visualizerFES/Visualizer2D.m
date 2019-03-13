@@ -75,8 +75,7 @@ classdef Visualizer2D < Visualizer
       try
         box = varargin{1}.box;
       catch
-        gs = obj.feSpace.mesh.getGlobalSearcher();
-        box = gs.diam';
+        box = obj.feSpace.mesh.getDiam();
       end
       [X,Y] = meshgrid(linspace(box(1), box(2), N(1)), ...
                        linspace(box(3), box(4), N(2)));

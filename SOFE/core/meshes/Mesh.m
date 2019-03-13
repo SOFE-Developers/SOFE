@@ -15,18 +15,12 @@ classdef Mesh < SOFE
         obj.element = Element.create(size(elem,2), dimP);
         obj.topology = MeshTopology.create(nodes, elem, dimP);
       end
-    end
-    function R = getGlobalSearcher(obj)
-      if isempty(obj.globalSearcher)
-        obj.globalSearcher = GlobalSearcher(obj);
-      end
-      R = obj.globalSearcher;
+      obj.globalSearcher = GlobalSearcher(obj);
     end
   end
   methods % obj is observed
-    function notify(obj)
-      obj.globalSearcher = [];
-      obj.notifyObservers();
+    function meshChanged(obj)
+      obj.notifyObservers('meshChanged');
     end
   end
   methods % reference map
@@ -144,8 +138,7 @@ classdef Mesh < SOFE
       TOLF = 1e-14;
       TOLREF = 1e-12;
       %
-      gs = obj.getGlobalSearcher();
-      C = reshape(gs.findCandidates(points),size(points,1),[]);
+      C = reshape(obj.globalSearcher.findCandidates(points),size(points,1),[]);
       [nP, nC] = size(C);
       H = zeros(nP,1); L = zeros(size(points)); Ic = (1:nP)';
       for i = 1:nC
@@ -249,7 +242,7 @@ classdef Mesh < SOFE
       end
       obj.nodes = R*obj.nodes;
       fprintf(' DONE\n');
-      obj.notify();
+      obj.meshChanged();
     end
     function uniformRefineFast(obj, varargin) % [N]
       if ~isempty(varargin), N = varargin{1}; else, N = 1; end
@@ -261,7 +254,7 @@ classdef Mesh < SOFE
       end
       obj.nodes = R*obj.nodes;
       fprintf(' DONE\n');
-      obj.notify();
+      obj.meshChanged();
     end
   end
   methods % mesh operations
@@ -276,11 +269,11 @@ classdef Mesh < SOFE
     end
     function translate(obj, vec)
       obj.nodes = bsxfun(@plus, obj.nodes, vec(:)');
-      obj.notify();
+      obj.meshChanged();
     end
     function applyLinearMap(obj, A)
       obj.nodes = (A*obj.nodes')';
-      obj.notify();
+      obj.meshChanged();
     end
   end
   methods % mesh information
@@ -547,7 +540,6 @@ classdef Mesh < SOFE
       fprintf('Methods: \n');
       fprintf('-------- \n');
       fprintf('obj = Mesh(nodes, elem, varargin) [dimP] \n');
-      fprintf('R = getGlobalSearcher(obj) \n');
       fprintf('\n');
       fprintf('R = evalReferenceMap(obj, points, order, varargin) [I] \n');
       fprintf('[R, invR, jacR] = evalTrafoInfo(obj, points, varargin) [I] \n');

@@ -70,12 +70,14 @@ classdef FESpace < SOFE
         end
       end
     end
+    function notify(obj, varargin) % [message]
+      obj.setBlocking(); % resets cache
+    end
     function setElement(obj, element)
       obj.element = element;
-      obj.resetCache();
-      obj.notifyObservers();
+      obj.notify('elementChanged');
     end
-    function resetCache(obj, varargin)
+    function resetCache(obj)
       nBlockMax = max(obj.nBlock);
       obj.cache.Phi = cell(nBlockMax, 1);
       obj.cache.DPhiInv = cell(nBlockMax, 1);
@@ -87,19 +89,19 @@ classdef FESpace < SOFE
         obj.cache.jac{k} = cell(obj.element.dimension+1,1);
         obj.cache.basis{k} = cell(obj.element.dimension+1,3);
       end
-      if isempty(varargin)
-        obj.cache.dM = [];
-        obj.cache.doFMap = cell(nBlockMax,1);
-        for k = 1:nBlockMax
-          obj.cache.doFMap{k} = cell(obj.element.dimension+1,1);
-        end
-        obj.freeDoFs = [];
+      obj.cache.dM = [];
+      obj.cache.doFMap = cell(nBlockMax,1);
+      for k = 1:nBlockMax
+        obj.cache.doFMap{k} = cell(obj.element.dimension+1,1);
       end
+      obj.freeDoFs = [];
+      %
+      obj.notifyObservers('fesChanged');
     end
     function setBlockingGlobal(obj, N)
       if isscalar(N), N = N*ones(obj.element.dimension+1,1); end
       obj.nBlockGlobal = N;
-      obj.notify();
+      obj.setBlocking();
     end
     function setBlocking(obj)
       if ~isempty(obj.nBlockGlobal)
@@ -143,11 +145,6 @@ classdef FESpace < SOFE
       else
         R = (1:R(end))';
       end
-    end
-    function notify(obj)
-      obj.setBlocking();
-      obj.resetCache();
-      obj.notifyObservers();
     end
   end
   methods % evaluation.
@@ -559,7 +556,11 @@ classdef FESpace < SOFE
   methods % refinement
     function R = uniformRefine(obj)
       dM0 = obj.getDoFMap(0);
-      obj.mesh.uniformRefine();
+      try
+        obj.mesh.uniformRefineFast();
+      catch
+        obj.mesh.uniformRefine();
+      end
       R = obj.getProlongator(dM0, obj.getDoFMap(0));
     end
     function R = getProlongator(obj, dM0, dM1, varargin) % [iE, iCh]
