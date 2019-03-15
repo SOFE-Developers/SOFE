@@ -489,7 +489,9 @@ classdef FESpace < SOFE
           R{k} = obj.getDoFMap(codim, {k}); % nExnPxnCxnD
         end
         R = cell2mat(R');
-        R = R(:,varargin{1});
+        if isnumeric(varargin{1})
+          R = R(:,varargin{1});
+        end
       end
     end
     function R = orient(obj, D, dim, d, varargin) % [I]

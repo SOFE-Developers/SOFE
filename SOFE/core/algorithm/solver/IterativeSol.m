@@ -39,6 +39,7 @@ classdef IterativeSol < Solver
           R(J) = eval([obj.type '(A, b,' num2str(nR) ', obj.tol, obj.maxit, M1, M2);']);
         otherwise
           R(J) = eval([obj.type '(A, b, obj.tol, obj.maxit, M1, M2);']);
+%           R(J) = eval([obj.type '(@(x)obj.pde.applySystem(x,true), b, obj.tol, obj.maxit);']);
       end
       R = shift + R;
     end

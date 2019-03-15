@@ -119,9 +119,9 @@ classdef SOFE < handle
     function register(obj, observer)
       obj.observers = [obj.observers, {observer}];
     end
-    function notifyObservers(obj)
+    function notifyObservers(obj, varargin) % [message]
       for i = 1:numel(obj.observers)
-        obj.observers{i}.notify();
+        obj.observers{i}.notify(varargin{:});
       end
     end
   end

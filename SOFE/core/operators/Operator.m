@@ -149,9 +149,6 @@ classdef Operator < SOFE
       X(freeJ) = x;
       R = obj.matrix*X;
       R = R(freeI);
-      % TODO: assemble on the fly (matrix0 one element stiffmat of mesh)
-%      dm = obj.fesTrial.getDoFMap(0); %#ok<UNRCH>
-%      R = accumarray(dm(:),reshape(obj.matrix0*x(dm),[],1));
     end
   end
 end
