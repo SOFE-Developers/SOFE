@@ -15,8 +15,11 @@ classdef IterativeSol < Solver
   methods % solve
     function R = solve(obj, A, b, I, J, shift)
       M1 = []; M2 = [];
-      b = b - A*shift;
-      A = A(I, J);
+      try
+        b = b - A*shift;
+        A = A(I, J);
+      catch
+      end
       switch obj.precon
         case 'diag'
           M1 = spdiags(diag(A), 0, size(A,1), size(A,1));
@@ -38,8 +41,11 @@ classdef IterativeSol < Solver
           nR = 40;
           R(J) = eval([obj.type '(A, b,' num2str(nR) ', obj.tol, obj.maxit, M1, M2);']);
         otherwise
-          R(J) = eval([obj.type '(A, b, obj.tol, obj.maxit, M1, M2);']);
-%           R(J) = eval([obj.type '(@(x)obj.pde.applySystem(x,true), b, obj.tol, obj.maxit);']);
+          try
+            R(J) = eval([obj.type '(A, b, obj.tol, obj.maxit, M1, M2);']);
+          catch
+            R(J) = eval([obj.type '(@(x)obj.pde.applySystem(x,true), b, obj.tol, obj.maxit);']);
+          end
       end
       R = shift + R;
     end

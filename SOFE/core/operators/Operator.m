@@ -6,7 +6,7 @@ classdef Operator < SOFE
     matrix
     loc
     savePre = false
-    preMatrix % row - column - entry
+    preMatrix, A0
   end
   methods % constructor
     function obj = Operator(data, fesTrial, varargin) % [fesTest loc]
@@ -91,7 +91,10 @@ classdef Operator < SOFE
           end
         end
         I = (r.*c==0); if any(I(:)), r(I) = []; c(I) = []; e(I) = []; end %#ok<AGROW>
-        if obj.savePre, obj.preMatrix = {r; c; e}; end
+        if obj.savePre
+          obj.preMatrix = {r; c; e};
+          obj.A0 = permute(e(1,:,:), [2 3 1]);
+        end
         %
         try
           fsparse(0);
