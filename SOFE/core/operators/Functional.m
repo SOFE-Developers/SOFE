@@ -5,6 +5,7 @@ classdef Functional < SOFE
     fes
     matrix
     loc
+    hasCoeff = true;
     savePre = false
     preMatrix % row - column - entry
   end
@@ -88,15 +89,19 @@ classdef Functional < SOFE
     end
     function R = integrate(obj, basis, k)
       [~, weights] = obj.fes.element.getQuadData(obj.codim); % nPx1
-      if isnumeric(obj.data)
-        if size(obj.data,1)==1
-          R = permute(obj.data, [3 1 2]); % 1x1xnC
+      if obj.hasCoeff
+        if isnumeric(obj.data)
+          if size(obj.data,1)==1
+            R = permute(obj.data, [3 1 2]); % 1x1xnC
+          else
+            R = obj.fes.evalDoFVector(obj.data, [], obj.codim, 0, {k}); % nExnPxnC
+          end
         else
-          R = obj.fes.evalDoFVector(obj.data, [], obj.codim, 0, {k}); % nExnPxnC
+          try S = obj.observers{1}.evalState(k); catch, S = []; end
+          R = obj.fes.evalFunction(obj.data, [], obj.codim, S, {k}); % nExnPxnC
         end
       else
-        try S = obj.observers{1}.evalState(k); catch, S = []; end
-        R = obj.fes.evalFunction(obj.data, [], obj.codim, S, {k}); % nExnPxnC
+        R = 1.0;
       end
       if ~isempty(basis)
         [~,~,jac] = obj.fes.evalTrafoInfo([], obj.codim, {k}); % nExnP

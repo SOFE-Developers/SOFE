@@ -131,15 +131,15 @@ classdef MeshTopology < SOFE
   end
   methods
     function R = uniformRefineFast(obj, I) %#ok<*INUSD>
-      warning('uniformRefineFast() not yet implemented!');
+      error('uniformRefineFast() not yet implemented!');
       R = 1;
     end
     function R = adaptiveRefine(obj, I)
-      warning('adaptiveRefine() not yet implemented!');
+      error('adaptiveRefine() not yet implemented!');
       R = 1;
     end
     function R = coarsen(obj, I)
-      warning('coarsen() not yet implemented!');
+      error('coarsen() not yet implemented!');
       R = 1;
     end
   end

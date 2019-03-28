@@ -558,12 +558,14 @@ classdef FESpace < SOFE
   methods % refinement
     function R = uniformRefine(obj)
       dM0 = obj.getDoFMap(0);
-      try
+      if obj.element.dimension == 2
         obj.mesh.uniformRefineFast();
-      catch
+      else
         obj.mesh.uniformRefine();
       end
-      R = obj.getProlongator(dM0, obj.getDoFMap(0));
+      if nargout>0
+        R = obj.getProlongator(dM0, obj.getDoFMap(0));
+      end
     end
     function R = getProlongator(obj, dM0, dM1, varargin) % [iE, iCh]
       try iE = varargin{1}; catch, iE = true(size(dM0,2),1); end
@@ -580,10 +582,9 @@ classdef FESpace < SOFE
         coeff(abs(coeff)<1e-12) = 0;
         C{k} = repmat(reshape(coeff,1,[]), numel(iE), 1);
       end
-      % assemble
       I = cell2mat(I); J = cell2mat(J); C = cell2mat(C);
       C = C.*sign(I).*sign(J); I = abs(I); J = abs(J);
-      %
+      % assemble
       cnt = sparse(I,J,1);
       R = sparse(I,J,C);
       [ii,jj,cnt] = find(cnt);

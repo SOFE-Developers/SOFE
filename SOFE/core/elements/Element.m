@@ -179,6 +179,7 @@ classdef Element < SOFE
       [R,D] = obj.getLagrangePoints(obj.dimension, obj.order);
       switch obj.dimension
         case 1
+          error('TODO');
         case 2
           if obj.isSimplex
             switch childNr
@@ -215,7 +216,36 @@ classdef Element < SOFE
             end
           end
         case 3
-          error('TODO')
+          if obj.isSimplex
+            error('TODO')
+          else
+            switch childNr
+              case 0
+              case 1
+                R = 0.5*R;
+              case 2
+                R = 0.5*R;
+                R(:,1) = R(:,1) + 0.5;
+              case 3
+                R = 0.5*R;
+                R(:,2) = R(:,2) + 0.5;
+              case 4
+                R = 0.5*R;
+                R(:,[1 2]) = R(:,[1 2]) + 0.5;
+              case 5
+                R = 0.5*R;
+                R(:,3) = R(:,3) + 0.5;
+              case 6
+                R = 0.5*R;
+                R(:,[1 3]) = R(:,[1 3]) + 0.5;
+              case 7
+                R = 0.5*R;
+                R(:,[2 3]) = R(:,[2 3]) + 0.5;
+              case 8
+                R = 0.5*R;
+                R = R + 0.5;
+            end
+          end
       end
     end
   end

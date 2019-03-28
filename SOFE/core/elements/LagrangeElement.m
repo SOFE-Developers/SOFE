@@ -67,7 +67,16 @@ classdef LagrangeElement < Element
       B = reshape(obj.coeffMatrix{size(points,2)}*reshape(basis, size(basis,1), []), sizeVec);
     end
   end
-  methods % show
+  methods
+    function R = getProlongationCoeff(obj, varargin)
+      [P0,D0] = obj.getLagrangeFunctionals(0);
+      F0 = sum(bsxfun(@times,obj.evalBasis(P0,0),permute(D0,[3 1 2])),3)';
+      R = cell(1,2^obj.dimension);
+      for k = 1:numel(R)
+        [P1,D1] = obj.getLagrangeFunctionals(k);
+        R{k} = F0 \ sum(bsxfun(@times,obj.evalBasis(P1,0),permute(D1,[3 1 2])),3)';
+      end
+    end
     function showLagrangePoints(obj)
       P = obj.getLagrangePoints(obj.dimension, obj.order);
       switch obj.dimension
