@@ -137,19 +137,40 @@ classdef MeshTopology < SOFE
     function R = getProjector(obj) %#ok<*MANU>
       R = [];
     end
+    function [R,cnt] = getColoredElements(obj)
+      % TODO: to mex
+      nN = obj.getNumber(0);
+      nE = obj.getNumber('0');
+      elem = obj.getEntity('0');
+      degN = accumarray(reshape(elem,[],1), 1, [nN 1]);
+      nColMax = size(elem,2)*max(degN);
+      nodeColor = false(nN, nColMax);
+      R = zeros(nE,1);
+      for k = 1:nE
+        idx = find(~any(nodeColor(elem(k,:),:),1),1);
+        R(k) = idx;
+        nodeColor(elem(k,:), idx) = true;
+      end
+      cnt = accumarray(R,1);
+      [~,R] = sort(R);
+      %
+%       cnt = accumarray(R,1);
+%       maxCnt = max(cnt);
+%       upperTri = triu(repmat((1:maxCnt)',1,maxCnt));
+%       cnt = reshape(upperTri(:,cnt),[],1); cnt(cnt==0) = [];
+%       [R,I] = sort(R);
+%       R = accumarray([R, cnt], I, [max(R) maxCnt]);
+    end
   end
   methods
-    function R = uniformRefineFast(obj, I) %#ok<*INUSD>
+    function uniformRefineFast(obj, I) %#ok<*INUSD>
       error('uniformRefineFast() not yet implemented!');
-      R = 1;
     end
-    function R = adaptiveRefine(obj, I)
+    function adaptiveRefine(obj, I)
       error('adaptiveRefine() not yet implemented!');
-      R = 1;
     end
-    function R = coarsen(obj, I)
+    function coarsen(obj, I)
       error('coarsen() not yet implemented!');
-      R = 1;
     end
   end
 end
