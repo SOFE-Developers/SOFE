@@ -571,16 +571,12 @@ classdef FESpace < SOFE
       try iE = varargin{1}; catch, iE = true(size(dM0,2),1); end
       try iCh = varargin{2}; catch, iCh = reshape(1:2^obj.element.dimension*numel(iE),numel(iE),[]); end
       nCh = size(iCh,2); nB = size(dM0,1);
+      pCoeff = obj.element.getProlongationCoeff();
       I = cell(nCh,1); J = cell(nCh,1); C = cell(nCh,1);
-      [P0,D0] = obj.element.getLagrangeFunctionals(0);
       for k = 1:nCh
         I{k} = kron(ones(1,nB),dM1(:, iCh(:,k))'); % child
         J{k} = kron(dM0(:,iE)',ones(1,nB)); % parent
-        [P1,D1] = obj.element.getLagrangeFunctionals(k);
-        coeff = sum(bsxfun(@times,obj.element.evalBasis(P0,0),permute(D0,[3 1 2])),3)' \ ...
-                sum(bsxfun(@times,obj.element.evalBasis(P1,0),permute(D1,[3 1 2])),3)';
-        coeff(abs(coeff)<1e-12) = 0;
-        C{k} = repmat(reshape(coeff,1,[]), numel(iE), 1);
+        C{k} = repmat(reshape(pCoeff{k},1,[]), numel(iE), 1);
       end
       I = cell2mat(I); J = cell2mat(J); C = cell2mat(C);
       C = C.*sign(I).*sign(J); I = abs(I); J = abs(J);
