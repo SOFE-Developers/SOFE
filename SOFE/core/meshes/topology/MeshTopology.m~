@@ -143,21 +143,23 @@ classdef MeshTopology < SOFE
       degN = accumarray(reshape(elem,[],1), 1, [nN 1]);
       nColMax = size(elem,2)*max(degN);
       % --> to MEX
-%       nodeColor = zeros(nN, nColMax);
-%       R = zeros(size(elem,1),1);
-%       for k = 1:size(elem,1)
-%         for idx = 1:nColMax
-%           isFree = 0;
-%           for l = 1:size(elem,2)
-%             isFree = isFree + nodeColor(elem(k,l), idx);
-%           end
-%           if isFree==0, break, end
-%         end
-%         R(k) = idx;
-%         nodeColor(elem(k,:), idx) = true;
-%       end
+      nodeColor = false(nN, nColMax);
+      R = zeros(size(elem,1),1);
+      for k = 1:size(elem,1)
+        idx = find(~any(nodeColor(elem(k,:),:),1),1);
+        
+        for l = 1:size(elem,2)
+          
+        end
+        idx = find(~any(nodeColor(elem(k,:),:),1),1);
+        
+        
+        R(k) = idx;
+        nodeColor(elem(k,:), idx) = true;
+      end
       %
-      R = colorElements(elem, nN, nColMax)+1;
+%       R = colorElements(elem, nN, nColMax);
+      %
       cnt = accumarray(R,1);
       [~,R] = sort(R);
     end

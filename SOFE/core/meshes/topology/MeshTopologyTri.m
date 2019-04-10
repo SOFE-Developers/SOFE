@@ -52,7 +52,7 @@ classdef MeshTopologyTri < MeshTopology
       nN = obj.getNumber(0); nF = obj.getNumber(1); nE = obj.getNumber(2);
       fRange = (1:nF)'; eRange = (1:nE)';
       %
-      R = [speye(nN); sparse(repmat((1:nF)',1,2), fc, 0.5)];
+      R = [speye(nN); fsparse(repmat((1:nF)',1,2), fc, 0.5)];
       %
       newIndices = nN + fRange;
       el = [el newIndices(e2F)];
