@@ -6,7 +6,7 @@ classdef Functional < SOFE
     matrix
     loc
     hasCoeff = true;
-    savePre = false
+    matrixFree = false
     preMatrix % row - column - entry
   end
   methods % constructor
@@ -29,7 +29,18 @@ classdef Functional < SOFE
     function notify(obj, message, varargin) % [time]
       switch message
         case 'fesChanged'
-          obj.matrix = [];
+          if ~obj.matrixFree
+            obj.matrix = [];
+          else
+            nE = obj.fes.mesh.topology.getNumber('0');
+            N = nE/size(obj.preMatrix{2},1);
+            scal = 1/N;
+            obj.preMatrix{2} = repmat(scal*obj.preMatrix{2}, N, 1); % nExnB
+            coeff = obj.dataCache(obj.fes.mesh.getCenter('0'));
+            e = obj.preMatrix{2}.*repmat(coeff,1,size(obj.preMatrix{2},2)/size(coeff,2)); % nExnB
+            r = obj.fes.getDoFMap(0)'; % nExnB
+            obj.matrix = accumarray(r(:), e(:));
+          end
           obj.notifyObservers('fcChanged');
         case 'stateChanged'
           if ~isnumeric(obj.dataCache)
@@ -73,7 +84,7 @@ classdef Functional < SOFE
           end
         end
         I = (r==0); if any(I(:)), r(I) = []; e(I) = []; end %#ok<AGROW>
-        if obj.savePre, obj.preMatrix = {r; e}; end
+        if obj.matrixFree, obj.preMatrix = {r; e}; end
         re{k} = [r(:), e(:)];
         if k>1
           if k>2

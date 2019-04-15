@@ -175,6 +175,18 @@ classdef Element < SOFE
     end
   end
   methods
+    function R = getProlongationCoeff(obj)
+      [P0,D0] = obj.getLagrangeFunctionals(0);
+      F0 = sum(bsxfun(@times,obj.evalBasis(P0,0),permute(D0,[3 1 2])),3)';
+      R = cell(2^obj.dimension,1);
+      for k = 1:numel(R)
+        [P1,D1] = obj.getLagrangeFunctionals(k);
+        R{k} = F0 \ sum(bsxfun(@times,obj.evalBasis(P1,0),permute(D1,[3 1 2])),3)';
+        R{k}(abs(R{k})<1e-12) = 0;
+      end
+    end
+  end
+  methods
     function [R,D] = getLagrangeFunctionals(obj, childNr)
       [R,D] = obj.getLagrangePoints(obj.dimension, obj.order);
       switch obj.dimension

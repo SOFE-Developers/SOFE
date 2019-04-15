@@ -6,6 +6,7 @@ classdef Operator < SOFE
     matrix
     loc
     savePre = false
+    matrixFree = false
     preMatrix, A0
   end
   methods % constructor
@@ -43,7 +44,9 @@ classdef Operator < SOFE
     function notify(obj, message, varargin) % [time]
       switch message
         case 'fesChanged'
-          obj.matrix = [];
+          if ~obj.matrixFree
+            obj.matrix = [];
+          end
           obj.notifyObservers('opChanged');
         case 'stateChanged'
           if ~isnumeric(obj.dataCache) % isFunctionHandle
@@ -91,7 +94,7 @@ classdef Operator < SOFE
           end
         end
         I = (r.*c==0); if any(I(:)), r(I) = []; c(I) = []; e(I) = []; end %#ok<AGROW>
-        if obj.savePre
+        if obj.matrixFree
           obj.preMatrix = {r; c; e};
           obj.A0 = permute(e(1,:,:), [2 3 1]);
         end
@@ -146,6 +149,21 @@ classdef Operator < SOFE
       end
     end
     function R = apply(obj, x, varargin) % [freeI, freeJ]
+      if ~isempty(varargin)
+        X = zeros(obj.fesTrial.getNDoF(), 1);
+        X(varargin{2}) = x;
+      else
+        X = x;
+      end
+      dM = obj.fesTrial.getDoFMap(0);
+      R = obj.A0*X(dM);
+      dM = obj.fesTest.getDoFMap(0);
+      R = accumarray(dM(:),R(:));
+      if ~isempty(varargin)
+        R = R(varargin{1});
+      end
+    end
+    function R = apply_(obj, x, varargin) % [freeI, freeJ] % deprecated
       freeI = ':'; freeJ = ':';
       if ~isempty(varargin), freeI = varargin{1}; freeJ = varargin{2}; end
       X = zeros(obj.fesTrial.getNDoF(), 1);
