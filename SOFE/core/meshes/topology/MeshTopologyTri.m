@@ -50,11 +50,12 @@ classdef MeshTopologyTri < MeshTopology
       fc = obj.getEntity(1); el = obj.getEntity(2);
       e2F = obj.connectivity{3,2}; oo = obj.getOrientation(2,1)==2;
       nN = obj.getNumber(0); nF = obj.getNumber(1); nE = obj.getNumber(2);
-      fRange = (1:nF)'; eRange = (1:nE)';
+      fRange = (1:nF)'; % nFx1
+      eRange = (1:nE)'; % nEx1
       %
       R = [speye(nN); fsparse(repmat((1:nF)',1,2), fc, 0.5)];
       %
-      newIndices = nN + fRange;
+      newIndices = nN + fRange; % nFx1
       el = [el newIndices(e2F)];
       el = [el(:,[1 4 6]);el(:,[4 2 5]);el(:,[6 5 3]);el(:,[5 6 4])];
       fc = [fc(:,1) newIndices; fc(:,2) newIndices; ...
@@ -64,8 +65,8 @@ classdef MeshTopologyTri < MeshTopology
              [(2*nF+nE)+eRange, nF*~oo(:,2)+e2F(:,2), nF*~oo(:,3)+e2F(:,3)]; ...
              [(2*nF+nE)+eRange, 2*(nF+nE)+eRange, 2*nF+eRange]];
       %
-      obj.connectivity{obj.dimP+1,1} = el;
       obj.connectivity{2,1} = fc;
+      obj.connectivity{3,1} = el;
       obj.connectivity{3,2} = e2F;
       obj.connectivity{1,1} = (1:size(R,1))';
       obj.connectivity{2,2} = (1:size(fc,1))';

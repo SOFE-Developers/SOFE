@@ -19,3 +19,4 @@ for k = 1:nNonLin
   title(sprintf('Iteration: %d / %d', k, nNonLin));
   drawnow
 end
+view(2);

@@ -63,6 +63,7 @@ classdef MeshTopologyTet < MeshTopology
               R(e(:,2)>e(:,4),5) = 2;
               R(e(:,3)>e(:,4),6) = 2;
             otherwise
+              % always positive
               return
           end
         case 2
@@ -107,7 +108,58 @@ classdef MeshTopologyTet < MeshTopology
             el(:,[7 6 3 10]); el(:,[8 9 10 4]); ...
             el(:,[6 7 5 9]); el(:,[5 7 8 9]); ...
             el(:,[8 10 9 7]); el(:,[7 9 6 10])];
+            keyboard
       obj.update(el);
+    end
+    function R = uniformRefineFast(obj)
+      ed = obj.getEntity(1);
+      fc = obj.getEntity(2);
+      el = obj.getEntity(3);
+      e2Ed = obj.connectivity{4,2};
+      f2Ed = obj.connectivity{3,2};
+%      oF = obj.getOrientation(3,2)==???;
+      nN = obj.getNumber(0); nEd = obj.getNumber(1);
+      nF = obj.getNumber(2); nE = obj.getNumber(3);
+      edRange = (1:nEd)';
+      fcRange = (1:nF)';
+      elRange = (1:nE)';
+      %
+      R = [speye(nN); fsparse(repmat((1:nEd)',1,2), ed, 0.5)];
+      %
+      keyboard
+      newIndices = nN + edRange;
+      el = [el newIndices(e2Ed)];
+      el = [el(:,[1 5 7 8]); el(:,[5 2 6 9]); ...
+            el(:,[7 6 3 10]); el(:,[8 9 10 4]); ...
+            el(:,[6 7 5 9]); el(:,[5 7 8 9]); ...
+            el(:,[8 10 9 7]); el(:,[7 9 6 10])];
+      fc = [fc newIndices(f2Ed)];
+      fc = [[fc(:,1) sort(fc(:,[4 6]),2)]; ...
+            [fc(:,2) sort(fc(:,[4 5]),2)]; ...
+            [fc(:,3) sort(fc(:,[5 6]),2)]; ...
+            sort(fc(:,[4 5 6]),2)];
+            % copy & adapt of tri, TODO: check + 4 inner faces
+      ed = [ed(:,1) newIndices; ed(:,2) newIndices; ...
+            sort([nN+f2Ed(:,[1 2]);nN+f2Ed(:,[2 3]);nN+f2Ed(:,[1 3]);nN+e2Ed(:,[3 5])],2)];
+      %
+      f2Ed = [[f2Ed(:,1), 2*(nEd+nF)+fcRange, f2Ed(:,3)]; ...
+              [nEd+f2Ed(:,1), f2Ed(:,2), 2*nEd+fcRange]; ...
+              [(2*nEd+nF)+fcRange, nEd+f2Ed(:,2), nEd+f2Ed(:,3)]; ...
+              [(2*nEd+nF)+fcRange, 2*(nEd+nF)+fcRange, 2*nEd+fcRange]];;
+              % copy & adapt of tri, TODO: check + 4 inner faces
+      e2F = []; % TODO
+      e2Ed = []; % TODO
+      %
+      obj.connectivity{2,1} = ed;
+      obj.connectivity{3,1} = fc;
+      obj.connectivity{4,1} = el;
+      obj.connectivity{3,2} = f2Ed;
+      obj.connectivity{4,3} = e2F;
+      obj.connectivity{4,2} = e2Ed;
+      obj.connectivity{1,1} = (1:size(R,1))';
+      obj.connectivity{2,2} = (1:size(ed,1))';
+      obj.connectivity{3,3} = (1:size(fc,1))';
+      obj.connectivity{4,4} = (1:size(el,1))';
     end
   end
   methods(Static = true)

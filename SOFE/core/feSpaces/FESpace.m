@@ -489,7 +489,7 @@ classdef FESpace < SOFE
           R{k} = obj.getDoFMap(codim, {k}); % nExnPxnCxnD
         end
         R = cell2mat(R');
-        if isnumeric(varargin{1})
+        if isreal(varargin{1})
           R = R(:,varargin{1});
         end
       end
