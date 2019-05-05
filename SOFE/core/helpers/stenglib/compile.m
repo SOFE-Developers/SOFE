@@ -7,8 +7,8 @@ if ~exist('OCTAVE_VERSION', 'builtin') % Matlab
 else % Octave
   mex -std=c99 tprod.c
   mex -std=c99 fsparse.c
-  delete('fsparse.o');
-  delete('tprod.o');
+%  delete('fsparse.o');
+%  delete('tprod.o');
 end
 %
 cd(tmp);
