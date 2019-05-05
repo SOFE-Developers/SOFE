@@ -476,9 +476,11 @@ classdef FESpace < SOFE
         R = cell(dim+1,1); % {nD+1}((nBLoc*nESub)xnE)
         for d = 0:dim
           C = obj.mesh.topology.connectivity{dim+1, d+1}; % nE(dim)xnE(d)
-          R{d+1} = csnDoF(d+1) + (C(varargin{1},:)'-1)*doFTuple(d+1);
-          R{d+1} = kron(R{d+1},ones(doFTuple(d+1),1)) + kron(ones(size(R{d+1})),(1:doFTuple(d+1))');
-          R{d+1} = obj.orient(R{d+1}, dim, d, varargin{:}); % {nD+1}((nBLoc*nESub)*nE)
+          if doFTuple(d+1) ~= 0
+            R{d+1} = csnDoF(d+1) + (C(varargin{1},:)'-1)*doFTuple(d+1);
+            R{d+1} = kron(R{d+1},ones(doFTuple(d+1),1)) + kron(ones(size(R{d+1})),(1:doFTuple(d+1))');
+            R{d+1} = obj.orient(R{d+1}, dim, d, varargin{:}); % {nD+1}((nBLoc*nESub)*nE)
+          end
         end
         R = cell2mat(R); % nBxnE
         obj.cache.doFMap{k{1}}{codim+1} = R;
