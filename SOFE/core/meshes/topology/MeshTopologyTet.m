@@ -24,7 +24,7 @@ classdef MeshTopologyTet < MeshTopology
       obj.connectivity{3,3} = (1:size(obj.connectivity{3,1},1))';
       obj.connectivity{4,4} = (1:size(obj.connectivity{4,1},1))';
       %
-%      obj.connectivity{3,2} = obj.getFace2Edge();
+      obj.connectivity{3,2} = obj.getFace2Edge();      
     end
   end
   methods % connectivity information
@@ -133,18 +133,18 @@ classdef MeshTopologyTet < MeshTopology
       oFc1(oFc==1 | oFc==2) = 0; oFc1(oFc==4 | oFc==5) = 1; oFc1(oFc==3 | oFc==6) = 2;
       oFc2(oFc==3 | oFc==4) = 0; oFc2(oFc==1 | oFc==6) = 1; oFc2(oFc==2 | oFc==5) = 2;
       oFc3(oFc==5 | oFc==6) = 0; oFc3(oFc==2 | oFc==3) = 1; oFc3(oFc==1 | oFc==4) = 2;
-      %oFc
+      % size and range
       nN = obj.getNumber(0); nEd = obj.getNumber(1);
       nF = obj.getNumber(2); nE = obj.getNumber(3);
       edRange = (1:nEd)'; fcRange = (1:nF)'; elRange = (1:nE)';
       %
       R = [speye(nN); fsparse(repmat((1:nEd)',1,2), ed, 0.5)];
-      %
+      % enhanced entities
       newIndices = nN + edRange;
       ed = [ed newIndices];
       fc = [fc newIndices(f2Ed)];
       el = [el reshape(newIndices(e2Ed), size(e2Ed))];
-      %
+      % sub entities
       ed = [ed(:,[1 3]); ed(:,[2 3]); ...
             sort([nN+f2Ed(:,[1 3]); nN+f2Ed(:,[1 2]); nN+f2Ed(:,[2 3]); ...
             nN+e2Ed(:,[3 5])],2)];
@@ -152,33 +152,21 @@ classdef MeshTopologyTet < MeshTopology
       [fcSub2, pVec2] = sort(fc(:,[4 5]),2);
       [fcSub3, pVec3] = sort(fc(:,[5 6]),2);
       [fcSub4, pVec4] = sort(fc(:,[4 5 6]),2);
+      [fcSub5, pVec5] = sort(el(:,[5 7 8]),2); % TODO: make compact using reshape to 3-tensor
+      [fcSub6, pVec6] = sort(el(:,[5 6 9]),2);
+      [fcSub7, pVec7] = sort(el(:,[6 7 10]),2);
+      [fcSub8, pVec8] = sort(el(:,[8 9 10]),2);
+      [fcSub9, pVec9] = sort(el(:,[5 7 9]),2);
+      [fcSub10, pVec10] = sort(el(:,[7 9 10]),2);
+      [fcSub11, pVec11] = sort(el(:,[7 8 9]),2);
+      [fcSub12, pVec12] = sort(el(:,[6 7 9]),2);
       fc = [[fc(:,1) fcSub1]; [fc(:,2) fcSub2]; [fc(:,3) fcSub3]; fcSub4; ...
-            sort([el(:,[5 7 8]); el(:,[5 6 9]); el(:,[6 7 10]); el(:,[8 9 10])],2); ...
-            sort([el(:,[5 7 9]); el(:,[7 9 10]); el(:,[7 8 9]); el(:,[6 7 9])],2)];
+            fcSub5; fcSub6; fcSub7; fcSub8; fcSub9; fcSub10; fcSub11; fcSub12];
       el = [el(:,[1 5 7 8]); el(:,[5 2 6 9]); ...
             el(:,[7 6 3 10]); el(:,[8 9 10 4]); ...
             el(:,[5 6 7 9]); el(:,[5 8 9 7]); ...
             el(:,[6 9 10 7]); el(:,[7 10 8 9])];
-      %
-      f2EdCell = cell(8,1);
-      f2EdCell{1} = [f2Ed(:,1), 2*nEd+fcRange, f2Ed(:,3)];
-      f2EdCell{2} = [nEd+f2Ed(:,1), 2*nEd+nF+fcRange, f2Ed(:,2)];
-      f2EdCell{3} = [nEd+f2Ed(:,2), 2*nEd+2*nF+fcRange, nEd+f2Ed(:,3)];
-      I = pVec1(:,1)==2; f2EdCell{1}(I,[1 3]) = f2EdCell{1}(I,[3 1]);
-      I = pVec2(:,1)==2; f2EdCell{2}(I,[1 3]) = f2EdCell{2}(I,[3 1]);
-      I = pVec3(:,1)==2; f2EdCell{3}(I,[1 3]) = f2EdCell{3}(I,[3 1]);
-      f2EdCell{4} = [2*nEd+nF+fcRange, 2*nEd+2*nF+fcRange, 2*nEd+fcRange];
-      I = [pVec4(:,1)==1&pVec4(:,2)==3, pVec4(:,1)==2&pVec4(:,2)==1, pVec4(:,1)==3&pVec4(:,2)==2];
-      pVec4(I(:,1),:) = repmat([3 2 1],sum(I(:,1)),1);
-      pVec4(I(:,2),:) = repmat([1 3 2],sum(I(:,2)),1);
-      pVec4(I(:,3),:) = repmat([2 1 3],sum(I(:,3)),1);
-      f2EdCell{4} = f2EdCell{4}([(1:nF)'+nF*(pVec4(:,1)-1) (1:nF)'+nF*(pVec4(:,2)-1) (1:nF)'+nF*(pVec4(:,3)-1)]);
-      f2EdCell{5} = [];
-      f2EdCell{6} = [];
-      f2EdCell{7} = [];
-      f2EdCell{8} = []; % TODO
-      f2Ed = cell2mat(f2EdCell);
-      %
+      % e2Ed
       e2Ed = [[oEd(:,1)*nEd+e2Ed(:,1), 2*nEd+oFc1(:,1)*nF+e2F(:,1), oEd(:,3)*nEd+e2Ed(:,3), ...
                oEd(:,4)*nEd+e2Ed(:,4), 2*nEd+oFc1(:,2)*nF+e2F(:,2), 2*nEd+oFc1(:,4)*nF+e2F(:,4)]; ...
               [~oEd(:,1)*nEd+e2Ed(:,1), oEd(:,2)*nEd+e2Ed(:,2), 2*nEd+oFc2(:,1)*nF+e2F(:,1), ...
@@ -195,7 +183,7 @@ classdef MeshTopologyTet < MeshTopology
                2*nEd+oFc3(:,1)*nF+e2F(:,1), 2*nEd+3*nF+elRange, 2*nEd+oFc2(:,4)*nF+e2F(:,4)]; ...
               [2*nEd+oFc2(:,4)*nF+e2F(:,4), 2*nEd+oFc3(:,4)*nF+e2F(:,4), 2*nEd+oFc1(:,4)*nF+e2F(:,4), ...
                2*nEd+3*nF+elRange, 2*nEd+oFc3(:,3)*nF+e2F(:,3), 2*nEd+oFc3(:,2)*nF+e2F(:,2)]];
-      %
+      % e2F
       e2F = [[oFc1(:,1)*nF+e2F(:,1), oFc1(:,2)*nF+e2F(:,2), 4*nF+0*nE+elRange, oFc1(:,4)*nF+e2F(:,4)]; ...
              [oFc2(:,1)*nF+e2F(:,1), oFc2(:,2)*nF+e2F(:,2), oFc1(:,3)*nF+e2F(:,3), 4*nF+1*nE+elRange]; ...
              [oFc3(:,1)*nF+e2F(:,1), 4*nF+2*nE+elRange, oFc2(:,3)*nF+e2F(:,3), oFc2(:,4)*nF+e2F(:,4)]; ...
@@ -204,6 +192,44 @@ classdef MeshTopologyTet < MeshTopology
              [3*nF+e2F(:,2), 4*nF+0*nE+elRange, 4*nF+6*nE+elRange, 4*nF+4*nE+elRange]; ...
              [3*nF+e2F(:,3), 4*nF+7*nE+elRange, 4*nF+5*nE+elRange, 4*nF+2*nE+elRange]; ...
              [3*nF+e2F(:,4), 4*nF+5*nE+elRange, 4*nF+3*nE+elRange, 4*nF+6*nE+elRange]];
+      % f2Ed
+      f2EdCell = cell(12,1);
+      f2EdCell{1} = [f2Ed(:,1), 2*nEd+fcRange, f2Ed(:,3)];
+      f2EdCell{2} = [nEd+f2Ed(:,1), 2*nEd+nF+fcRange, f2Ed(:,2)];
+      f2EdCell{3} = [nEd+f2Ed(:,2), 2*nEd+2*nF+fcRange, nEd+f2Ed(:,3)];
+      f2EdCell{4} = [2*nEd+nF+fcRange, 2*nEd+2*nF+fcRange, 2*nEd+fcRange];
+      f2EdCell{5} = [e2Ed(1:nE,2), e2Ed(1:nE,6), e2Ed(1:nE,5)];
+      f2EdCell{6} = [e2Ed(nE + (1:nE),3), e2Ed(nE+(1:nE),6), e2Ed(nE+(1:nE),4)];
+      f2EdCell{7} = [e2Ed(2*nE + (1:nE),1), e2Ed(2*nE+(1:nE),4), e2Ed(2*nE+(1:nE),5)];
+      f2EdCell{8} = [e2Ed(3*nE + (1:nE),1), e2Ed(3*nE+(1:nE),2), e2Ed(3*nE+(1:nE),3)];
+      f2EdCell{9} = [e2Ed(4*nE + (1:nE),3), e2Ed(4*nE+(1:nE),6), e2Ed(4*nE+(1:nE),4)];
+      f2EdCell{10} = [e2Ed(6*nE + (1:nE),5), e2Ed(6*nE+(1:nE),2), e2Ed(6*nE+(1:nE),6)];
+      f2EdCell{11} = [e2Ed(5*nE + (1:nE),5), e2Ed(5*nE+(1:nE),2), e2Ed(5*nE+(1:nE),6)];
+      f2EdCell{12} = [e2Ed(4*nE + (1:nE),2), e2Ed(4*nE+(1:nE),6), e2Ed(4*nE+(1:nE),5)];
+      I = pVec1(:,1)==2; f2EdCell{1}(I,[1 3]) = f2EdCell{1}(I,[3 1]);
+      I = pVec2(:,1)==2; f2EdCell{2}(I,[1 3]) = f2EdCell{2}(I,[3 1]);
+      I = pVec3(:,1)==2; f2EdCell{3}(I,[1 3]) = f2EdCell{3}(I,[3 1]);      
+      %
+      I = pVec4(:,2)-1 ~= mod(pVec4(:,1),3); pVec4(I,:) = circshift(pVec4(I,:),-1,2);
+      f2EdCell{4} = f2EdCell{4}([(1:nF)'+nF*(pVec4(:,1)-1) (1:nF)'+nF*(pVec4(:,2)-1) (1:nF)'+nF*(pVec4(:,3)-1)]);
+      I = pVec5(:,2)-1 ~= mod(pVec5(:,1),3); pVec5(I,:) = circshift(pVec5(I,:),-1,2);
+      f2EdCell{5} = f2EdCell{5}([(1:nE)'+nE*(pVec5(:,1)-1) (1:nE)'+nE*(pVec5(:,2)-1) (1:nE)'+nE*(pVec5(:,3)-1)]);
+      I = pVec6(:,2)-1 ~= mod(pVec6(:,1),3); pVec6(I,:) = circshift(pVec6(I,:),-1,2);
+      f2EdCell{6} = f2EdCell{6}([(1:nE)'+nE*(pVec6(:,1)-1) (1:nE)'+nE*(pVec6(:,2)-1) (1:nE)'+nE*(pVec6(:,3)-1)]);
+      I = pVec7(:,2)-1 ~= mod(pVec7(:,1),3); pVec7(I,:) = circshift(pVec7(I,:),-1,2);
+      f2EdCell{7} = f2EdCell{7}([(1:nE)'+nE*(pVec7(:,1)-1) (1:nE)'+nE*(pVec7(:,2)-1) (1:nE)'+nE*(pVec7(:,3)-1)]);
+      I = pVec8(:,2)-1 ~= mod(pVec8(:,1),3); pVec8(I,:) = circshift(pVec8(I,:),-1,2);
+      f2EdCell{8} = f2EdCell{8}([(1:nE)'+nE*(pVec8(:,1)-1) (1:nE)'+nE*(pVec8(:,2)-1) (1:nE)'+nE*(pVec8(:,3)-1)]);
+      I = pVec9(:,2)-1 ~= mod(pVec9(:,1),3); pVec9(I,:) = circshift(pVec9(I,:),-1,2);
+      f2EdCell{9} = f2EdCell{9}([(1:nE)'+nE*(pVec9(:,1)-1) (1:nE)'+nE*(pVec9(:,2)-1) (1:nE)'+nE*(pVec9(:,3)-1)]);
+      I = pVec10(:,2)-1 ~= mod(pVec10(:,1),3); pVec10(I,:) = circshift(pVec10(I,:),-1,2);
+      f2EdCell{10} = f2EdCell{10}([(1:nE)'+nE*(pVec10(:,1)-1) (1:nE)'+nE*(pVec10(:,2)-1) (1:nE)'+nE*(pVec10(:,3)-1)]);
+      I = pVec11(:,2)-1 ~= mod(pVec11(:,1),3); pVec11(I,:) = circshift(pVec11(I,:),-1,2);
+      f2EdCell{11} = f2EdCell{11}([(1:nE)'+nE*(pVec11(:,1)-1) (1:nE)'+nE*(pVec11(:,2)-1) (1:nE)'+nE*(pVec11(:,3)-1)]);
+      I = pVec12(:,2)-1 ~= mod(pVec12(:,1),3); pVec12(I,:) = circshift(pVec12(I,:),-1,2);
+      f2EdCell{12} = f2EdCell{12}([(1:nE)'+nE*(pVec12(:,1)-1) (1:nE)'+nE*(pVec12(:,2)-1) (1:nE)'+nE*(pVec12(:,3)-1)]);
+      %
+      f2Ed = cell2mat(f2EdCell);
       %
       obj.connectivity{2,1} = ed;
       obj.connectivity{3,1} = fc;
@@ -229,8 +255,8 @@ classdef MeshTopologyTet < MeshTopology
       v1 = node(elem(:,2),:) - node(elem(:,1),:);
       v2 = node(elem(:,3),:) - node(elem(:,1),:);
       v3 = node(elem(:,4),:) - node(elem(:,1),:);
-      I = ((v1(:,1).*v2(:,2).*v3(:,3) + v1(:,2).*v2(:,3).*v3(:,1)+v1(:,3).*v2(:,1).*v3(:,2)) ...
-      - (v1(:,3).*v2(:,2).*v3(:,1)+v1(:,2).*v2(:,1).*v3(:,3)+v1(:,1).*v2(:,3).*v3(:,2)))/6;
+      I = ((v1(:,1).*v2(:,2).*v3(:,3) + v1(:,2).*v2(:,3).*v3(:,1) + v1(:,3).*v2(:,1).*v3(:,2)) - ...
+           (v1(:,3).*v2(:,2).*v3(:,1) + v1(:,2).*v2(:,1).*v3(:,3) + v1(:,1).*v2(:,3).*v3(:,2)))/6;
       I = I<0;
       if any(I)
         fprintf('Elements renumbered!\n');

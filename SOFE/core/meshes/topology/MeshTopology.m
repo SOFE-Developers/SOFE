@@ -42,12 +42,12 @@ classdef MeshTopology < SOFE
       if isempty(varargin)
         R = zeros(obj.dimP+1,1);
         for d = 1:numel(R)
-          R(d) = numel(obj.connectivity{d, d});
+          R(d) = size(obj.connectivity{d, 1},1);
         end
       else
         dim = varargin{1};
         if ischar(dim), dim  = obj.dimP - str2double(dim); end % dim to codim
-        R = numel(obj.connectivity{dim+1, dim+1});
+        R = size(obj.connectivity{dim+1, 1}, 1);
       end
     end
     function R = isBoundary(obj)

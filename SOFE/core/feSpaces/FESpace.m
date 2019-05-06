@@ -491,7 +491,7 @@ classdef FESpace < SOFE
           R{k} = obj.getDoFMap(codim, {k}); % nExnPxnCxnD
         end
         R = cell2mat(R');
-        if isreal(varargin{1})
+        if ~isempty(R) && isreal(varargin{1})
           R = R(:,varargin{1});
         end
       end
@@ -559,12 +559,10 @@ classdef FESpace < SOFE
   end
   methods % refinement
     function R = uniformRefine(obj)
-      dM0 = obj.getDoFMap(0);
-      if obj.element.dimension == 2
-        obj.mesh.uniformRefineFast();
-      else
-        obj.mesh.uniformRefine();
+      if nargout>0
+        dM0 = obj.getDoFMap(0);
       end
+      obj.mesh.uniformRefineFast();
       if nargout>0
         R = obj.getProlongator(dM0, obj.getDoFMap(0));
       end

@@ -229,7 +229,7 @@ classdef Element < SOFE
           end
         case 3
           if obj.isSimplex
-            error('TODO')
+            error('TODO');
           else
             switch childNr
               case 0

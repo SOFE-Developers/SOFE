@@ -144,6 +144,9 @@ classdef MeshTopologyHex < MeshTopology
             el(:,[23 27 19 26 14 22 7 12]); el(:,[27 24 26 20 22 16 12 8])];
       obj.update(el);
     end
+    function R = uniformRefineFast(obj)
+      R = obj.uniformRefine(); % TODO
+    end
   end
   methods(Static = true)
     function R = isFeasible(points, varargin) % [tol
