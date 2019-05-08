@@ -93,45 +93,47 @@ classdef MeshTopology < SOFE
         fOrient = obj.connectivity{obj.dimP,obj.dimP+1}{3};
       end
     end
-    function [R, nType] = getNodePatch(obj, dim)
-      if dim>0
-        if isempty(obj.connectivity{1,dim+1}) || nargout>1
-          entity = obj.getEntity(dim);
-          idx = repmat((1:size(entity,1))', 1, size(entity,2));
-          entity = entity(:);
-          [~,I] = sort(entity);
-          count = accumarray(entity,1);
+    function [R, nType] = getConnect(obj, dimFrom, dimTo)
+      if dimFrom < dimTo
+        if isempty(obj.connectivity{dimFrom+1,dimTo+1}) || nargout>1
+          entity = obj.connectivity{dimTo+1, dimFrom+1};
+          sz = size(entity);
+          [entity,I] = sort(entity(:));
+          count = accumarray(entity(:),1);
           maxCount = max(count);
           upperTri = triu(repmat((1:maxCount)',1,maxCount));
-          count = upperTri(:,count); count = count(:);
+          count = upperTri(:,count);
           count(count==0) = [];
-          obj.connectivity{1,dim+1} = accumarray([entity(I), count], idx(I));
+          idx = repmat((1:sz(1))', 1, sz(2));
+          obj.connectivity{dimFrom+1,dimTo+1} = accumarray([entity, count(:)], idx(I));
           if nargout>1
-            idx = kron(ones(size(idx,1),1), (1:size(idx,2)));
-            nType = accumarray([entity(I), count], idx(I));
+            idx = kron(ones(sz(1),1), (1:sz(2)));
+            nType = accumarray([entity, count(:)], idx(I));
           end
         end
-        R = obj.connectivity{1,dim+1};
+      end
+      R = obj.connectivity{dimFrom+1,dimTo+1};
+    end
+    function R = getConnect2(obj, dimFrom, dimTo)
+      % slow version (3x) by sparse and transpose (just for validation)
+      if dimFrom >= dimTo
+        R = obj.connectivity{dimFrom+1, dimTo+1};
       else
-        segm = obj.getEntity(1);
-        if dim < 0 % on boundary
-          iB = obj.isBoundary();
-          segm = segm(iB,:);  
+        if isempty(obj.connectivity{dimFrom+1,dimTo+1})
+          entity = obj.connectivity{dimTo+1, dimFrom+1};
+          I = repmat((1:size(entity,1))',1,size(entity,2));
+          obj.connectivity{dimFrom+1,dimTo+1} = spLeftShiftNonZero(sparse(entity, I, I))';
         end
-        R = sparse(segm(:,[1 2]),segm(:,[2 1]),segm(:,[2 1]));
-        R = spLeftShiftNonZero(R)';
-%         if dim < 0 % on boundary
-%           R = full(II(:,1:2));
-%         else
-%           R = full(II(:,1:max(sum(II>0,2))));
-%         end
-%         R(R(:,1)==0,:) = []; % deprecated
+        R = obj.connectivity{dimFrom+1,dimTo+1};
       end
     end
-    function R = getNodePatch2(obj, dim)
-      E = obj.getEntity(dim);
-      I = repmat((1:size(E,1))',1,size(E,2));
-      R = sparse(E, I, I);
+    function R = getNodePatch(obj, varargin) % [boundaryFlag]
+      segm = obj.getEntity(1);
+      if ~isempty(varargin) % on boundary
+        iB = obj.isBoundary();
+        segm = segm(iB,:);  
+      end
+      R = sparse(segm(:,[1 2]),segm(:,[2 1]),segm(:,[2 1]));
       R = spLeftShiftNonZero(R)';
     end
     function R = getProjector(obj) %#ok<*MANU>
