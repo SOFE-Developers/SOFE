@@ -97,6 +97,7 @@ classdef Operator < SOFE
         if obj.matrixFree
           obj.preMatrix = {r; c; e};
           obj.A0 = permute(e(1,:,:), [2 3 1]);
+%           obj.A0 = permute(e, [2 3 1]);
         end
         %
         try
