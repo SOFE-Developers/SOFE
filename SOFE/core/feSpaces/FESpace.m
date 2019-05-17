@@ -565,6 +565,9 @@ classdef FESpace < SOFE
       obj.mesh.uniformRefineFast();
       if nargout>0
         R = obj.getProlongator(dM0, obj.getDoFMap(0));
+        if ~strcmp(obj.element.conformity, 'H1')
+          R = R/2;
+        end
       end
     end
     function R = getProlongator(obj, dM0, dM1, varargin) % [iE, iCh]
