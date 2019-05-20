@@ -38,7 +38,7 @@ classdef Functional < SOFE
             obj.preMatrix{2} = repmat(scal*obj.preMatrix{2}, N, 1); % nExnB
             coeff = obj.dataCache(obj.fes.mesh.getCenter('0'));
             e = obj.preMatrix{2}.*repmat(coeff,1,size(obj.preMatrix{2},2)/size(coeff,2)); % nExnB
-            r = obj.fes.getDoFMap(0)'; % nExnB
+            r = abs(obj.fes.getDoFMap(0))'; % nExnB
             obj.matrix = accumarray(r(:), e(:));
           end
           obj.notifyObservers('fcChanged');
