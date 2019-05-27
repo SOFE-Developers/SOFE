@@ -125,7 +125,7 @@ classdef Element < SOFE
           [Xf,Yf] = meshgrid(gridFine, gridFine);
 %           [Xc,Yc] = meshgrid(gridCoarse, gridCoarse);
           Z = obj.evalBasis([Xf(:) Yf(:)], 0); % nBxnPxnC
-          if obj.nV(2) == 3
+          if obj.isSimplex()
             Z(:,Xf+Yf>1) = NaN;
           end
           surf(Xf,Yf,reshape(Z(i,:),size(Xf))); 
@@ -133,7 +133,7 @@ classdef Element < SOFE
         case 3
           N = 30;
           [X,Y,Z] = meshgrid(linspace(0,1,N),linspace(0,1,N),linspace(0,1,N));
-          if obj.nV(3) == 4
+          if obj.isSimplex()
             I = X+Y+Z<=1;
             X = X(I); Y = Y(I); Z = Z(I);
           end
