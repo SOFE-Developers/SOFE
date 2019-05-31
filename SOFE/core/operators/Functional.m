@@ -32,14 +32,21 @@ classdef Functional < SOFE
           if ~obj.matrixFree
             obj.matrix = [];
           else
+            % uniform refine (so far)
             nE = obj.fes.mesh.topology.getNumber('0');
             N = nE/size(obj.preMatrix{2},1);
-            scal = 1/N;
+            switch obj.fes.element.conformity
+              case {'HDiv','HRot'}
+                scal = 1/sqrt(N);
+              otherwise
+                scal = 1/N;
+            end
             obj.preMatrix{2} = repmat(scal*obj.preMatrix{2}, N, 1); % nExnB
             coeff = obj.dataCache(obj.fes.mesh.getCenter('0'));
             e = obj.preMatrix{2}.*repmat(coeff,1,size(obj.preMatrix{2},2)/size(coeff,2)); % nExnB
-            r = abs(obj.fes.getDoFMap(0))'; % nExnB
-            obj.matrix = accumarray(r(:), e(:));
+            r = obj.fes.getDoFMap(0)'; % nExnB
+            e(r<0) = -e(r<0);
+            obj.matrix = accumarray(abs(r(:)), e(:));
           end
           obj.notifyObservers('fcChanged');
         case 'stateChanged'
@@ -84,7 +91,10 @@ classdef Functional < SOFE
           end
         end
         I = (r==0); if any(I(:)), r(I) = []; e(I) = []; end %#ok<AGROW>
-        if obj.matrixFree, obj.preMatrix = {r; e}; end
+        if obj.matrixFree
+          assert(k==1, 'No blocking for matrix free coarse grid');
+          obj.preMatrix = {r; e.*sign(obj.fes.getDoFMap(obj.codim, {k}))'};
+        end
         re{k} = [r(:), e(:)];
         if k>1
           if k>2

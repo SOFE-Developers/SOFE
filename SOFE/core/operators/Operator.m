@@ -95,8 +95,12 @@ classdef Operator < SOFE
         end
         I = (r.*c==0); if any(I(:)), r(I) = []; c(I) = []; e(I) = []; end %#ok<AGROW>
         if obj.matrixFree
-          obj.preMatrix = {r; c; e};
-          obj.A0 = permute(e, [2 3 1]);
+          assert(k==1, 'No blocking for matrix free coarse grid');
+          sTest = sign(obj.fesTest.getDoFMap(obj.codim, {k}))'; % nExnB
+          sTrial = permute(sign(obj.fesTrial.getDoFMap(obj.codim, {k}))', [1 3 2]); % nExnB
+          obj.preMatrix = {r; c; (e.*sTrial).*sTest};
+          obj.A0 = permute(obj.preMatrix{3}, [2 3 1]);
+          obj.preMatrix = [];
         end
         %
         try
