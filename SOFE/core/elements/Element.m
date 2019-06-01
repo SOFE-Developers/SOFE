@@ -259,6 +259,9 @@ classdef Element < SOFE
             end
           end
       end
+      if childNr>0 && ~strcmp(obj.conformity, 'H1') 
+        D = 0.5*D;
+      end
     end
   end
   methods(Static = true)
