@@ -32,7 +32,7 @@ classdef Functional < SOFE
           if ~obj.matrixFree
             obj.matrix = [];
           else
-            % uniform refine (so far)
+            % uniform refine (so far, TODO: adaptive)
             nE = obj.fes.mesh.topology.getNumber('0');
             N = nE/size(obj.preMatrix{2},1);
             switch obj.fes.element.conformity
