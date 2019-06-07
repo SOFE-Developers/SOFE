@@ -41,9 +41,10 @@ classdef Functional < SOFE
               otherwise
                 scal = 1/N;
             end
-            obj.preMatrix{2} = repmat(scal*obj.preMatrix{2}, N, 1); % nExnB
-            coeff = obj.dataCache(obj.fes.mesh.getCenter('0'));
-            e = obj.preMatrix{2}.*repmat(coeff,1,size(obj.preMatrix{2},2)/size(coeff,2)); % nExnB
+            obj.preMatrix{2} = repmat(scal*obj.preMatrix{2}, N, 1, 1); % nExnBxnC
+            coeff = obj.dataCache(obj.fes.mesh.getCenter('0')); % nExnC
+%             e = obj.preMatrix{2}.*repmat(coeff,1,size(obj.preMatrix{2},2)/dsize(coeff,2)); % nExnB (deptecated)
+            e = sum(obj.preMatrix{2}.*permute(coeff, [1 3 2]), 3); % nExnB
             r = obj.fes.getDoFMap(0)'; % nExnB
             e(r<0) = -e(r<0);
             obj.matrix = accumarray(abs(r(:)), e(:));
@@ -94,6 +95,7 @@ classdef Functional < SOFE
         if obj.matrixFree
           assert(k==1, 'No blocking for matrix free coarse grid');
           obj.preMatrix = {r; e.*sign(obj.fes.getDoFMap(obj.codim, {k}))'};
+          e = sum(e,3);
         end
         re{k} = [r(:), e(:)];
         if k>1
@@ -127,8 +129,12 @@ classdef Functional < SOFE
       if ~isempty(basis)
         [~,~,jac] = obj.fes.evalTrafoInfo([], obj.codim, {k}); % nExnP
         dX = bsxfun(@times, abs(jac), weights'); % nExnP
-        R = sum(bsxfun(@times, permute(R, [1 4 2 3]), basis), 4); % nExnBxnP
-        R = sum(bsxfun(@times, R, permute(dX, [1 3 2])), 3); % nExnB
+        if obj.matrixFree
+          R = bsxfun(@times, permute(R, [1 4 2 3]), basis); % nExnBxnPxnC
+        else
+          R = sum(bsxfun(@times, permute(R, [1 4 2 3]), basis), 4); % nExnBxnP
+        end
+        R = sum(permute(bsxfun(@times, R, permute(dX, [1 3 2])), [1 2 4 3]), 4); % nExnB[xnC]
       else
         R = repmat(R,numel(obj.fes.getBlock(k)),1,1);
       end  
