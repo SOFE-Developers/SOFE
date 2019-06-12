@@ -231,6 +231,7 @@ classdef MeshTopologyTet < MeshTopology
       %
       f2Ed = cell2mat(f2EdCell);
       %
+      obj.connectivity = cell(obj.dimP+1);
       obj.connectivity{2,1} = ed;
       obj.connectivity{3,1} = fc;
       obj.connectivity{4,1} = el;
