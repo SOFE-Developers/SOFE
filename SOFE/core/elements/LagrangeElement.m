@@ -30,7 +30,7 @@ classdef LagrangeElement < Element
                 pVec = reshapeTop(nCol, 1:nDoF(1));
                 switch ceil(0.5*varargin{1})
                   case 1
-                    % do noting
+                    % do nothing
                   case 2
                     pVec = rot90(pVec);
                     pVec = rot90(reshapeTop(nCol,pVec(pVec>0)));
