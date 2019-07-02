@@ -35,11 +35,15 @@ classdef Functional < SOFE
             % uniform refine (so far, TODO: adaptive)
             nE = obj.fes.mesh.topology.getNumber('0');
             N = nE/size(obj.preMatrix{2},1);
+            dim = obj.fes.element.dimension;
+            h = N^(-1/dim);
             switch obj.fes.element.conformity
-              case {'HDiv','HRot'}
-                scal = 1/sqrt(N);
+              case {'HRot'}
+                scal = h^(dim-1);
+              case {'HDiv'}
+                scal = h;
               otherwise
-                scal = 1/N;
+                scal = h^dim;
             end
             obj.preMatrix{2} = repmat(scal*obj.preMatrix{2}, N, 1, 1); % nExnBxnC
             coeff = obj.dataCache(obj.fes.mesh.getCenter('0')); % nExnC
