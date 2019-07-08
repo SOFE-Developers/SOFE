@@ -510,8 +510,10 @@ classdef Mesh < SOFE
           delete = bsxfun(@(x,y)x+y,m*(n-1)+1:m*n-1,((0:(p-3))*m*n)');
           elem([m:m:m*n*(p-1)-m-1 delete(:)'],:) = [];
           if nargin > 1 && varargin{1}
-            elem = [elem(:,[5 6 1 8]); elem(:,[5 1 7 8]); elem(:,[2 1 6 8]); ...
-                    elem(:,[3 7 1 8]); elem(:,[4 2 8 1]); elem(:,[3 1 4 8])];
+%             elem = [elem(:,[1 2 4 8]); elem(:,[1 2 6 8]); elem(:,[1 3 7 8]); ...
+%                     elem(:,[1 3 4 8]); elem(:,[1 5 6 8]); elem(:,[1 5 7 8])]; % Kuhn's triangulation
+            elem = [elem(:,[1 2 4 8]); elem(:,[6 2 1 8]); elem(:,[1 3 7 8]); ...
+                    elem(:,[4 3 1 8]); elem(:,[1 5 6 8]); elem(:,[7 5 1 8])]; % Kuhn's triangulation (correct order)
           end
       end
     end

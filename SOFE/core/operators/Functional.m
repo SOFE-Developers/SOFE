@@ -33,10 +33,8 @@ classdef Functional < SOFE
             obj.matrix = [];
           else
             % uniform refine (so far, TODO: adaptive)
-            nE = obj.fes.mesh.topology.getNumber('0');
-            N = nE/size(obj.preMatrix{2},1);
             dim = obj.fes.element.dimension;
-            h = N^(-1/dim);
+            h = dim^(-1);
             switch obj.fes.element.conformity
               case {'HRot'}
                 scal = h^(dim-1);
@@ -45,9 +43,14 @@ classdef Functional < SOFE
               otherwise
                 scal = h^dim;
             end
-            obj.preMatrix{2} = repmat(scal*obj.preMatrix{2}, N, 1, 1); % nExnBxnC
+            if obj.fes.element.isSimplex()
+              assert(dim==2, 'TODO');
+              obj.preMatrix{2} = [repmat(scal*obj.preMatrix{2}, 3, 1, 1); -scal*obj.preMatrix{2}]; % nExnBxnC
+            else
+              obj.preMatrix{2} = repmat(scal*obj.preMatrix{2}, 2^dim, 1, 1); % nExnBxnC
+            end
+            
             coeff = obj.dataCache(obj.fes.mesh.getCenter('0')); % nExnC
-%             e = obj.preMatrix{2}.*repmat(coeff,1,size(obj.preMatrix{2},2)/dsize(coeff,2)); % nExnB (deptecated)
             e = sum(obj.preMatrix{2}.*permute(coeff, [1 3 2]), 3); % nExnB
             r = obj.fes.getDoFMap(0)'; % nExnB
             e(r<0) = -e(r<0);

@@ -35,8 +35,8 @@ classdef VisualizerMesh3D < VisualizerMesh
       set(h,'facecolor','none','edgecolor','k');
     end
     function showCells(obj, I, flag)
-      e2F = obj.mesh.getElem2Face();
-      e2Ed = obj.mesh.getElem2Edge();
+      e2F = obj.mesh.topology.getConnect(3,2);
+      e2Ed = obj.mesh.topology.getConnect(3,1);
       elem = obj.mesh.topology.getEntity(3);
       II = cell(4,1);
       II{4} = I;
