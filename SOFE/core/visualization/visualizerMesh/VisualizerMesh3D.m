@@ -48,6 +48,7 @@ classdef VisualizerMesh3D < VisualizerMesh
       if obj.mesh.topology.isSimplex, I = [1 2 3]; else, I = [1 2 4 3]; end
       h = trimesh(face(II{3},I),nodes(:,1),nodes(:,2),nodes(:,3));
       set(h,'facecolor','none','edgecolor','k');
+      disp(elem(II{4},:));
       if flag
         for i = 1:numel(flag)
           dim = str2double(flag(i));

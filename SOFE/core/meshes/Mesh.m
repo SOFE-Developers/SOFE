@@ -514,6 +514,8 @@ classdef Mesh < SOFE
 %                     elem(:,[1 3 4 8]); elem(:,[1 5 6 8]); elem(:,[1 5 7 8])]; % Kuhn's triangulation
             elem = [elem(:,[1 2 4 8]); elem(:,[6 2 1 8]); elem(:,[1 3 7 8]); ...
                     elem(:,[4 3 1 8]); elem(:,[1 5 6 8]); elem(:,[7 5 1 8])]; % Kuhn's triangulation (correct order)
+%             elem = [elem(:,[1 2 4 8]); elem(:,[6 2 1 8]); elem(:,[1 3 7 8]); ...
+%                     elem(:,[4 3 1 8]); elem(:,[1 5 6 8]); elem(:,[7 5 1 8])]; % Kuhn's triangulation (correct order 2)
           end
       end
     end
