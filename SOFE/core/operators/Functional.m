@@ -7,7 +7,7 @@ classdef Functional < SOFE
     loc
     hasCoeff = true;
     matrixFree = false
-    preMatrix % row - column - entry
+    A0
   end
   methods % constructor
     function obj = Functional(data, fes, codim, varargin) % [loc]
@@ -34,24 +34,31 @@ classdef Functional < SOFE
           else
             % uniform refine (so far, TODO: adaptive)
             dim = obj.fes.element.dimension;
-            h = dim^(-1);
+            hFactor = 0.5;
             switch obj.fes.element.conformity
               case {'HRot'}
-                scal = h^(dim-1);
+                scal = hFactor^(dim-1);
+                if obj.fes.element.isSimplex()
+                  assert(dim==2, 'TODO');
+                  obj.A0 = [repmat(scal*obj.A0, 3, 1, 1); -scal*obj.A0]; % nExnBxnC
+                else
+                  obj.A0 = repmat(scal*obj.A0, 2^dim, 1, 1); % nExnBxnC
+                end
               case {'HDiv'}
-                scal = h;
+                scal = hFactor;
+                if obj.fes.element.isSimplex()
+                  assert(dim==2, 'TODO');
+                  obj.A0 = [repmat(scal*obj.A0, 3, 1, 1); -scal*obj.A0]; % nExnBxnC
+                else
+                  obj.A0 = repmat(scal*obj.A0, 2^dim, 1, 1); % nExnBxnC
+                end
               otherwise
-                scal = h^dim;
+                scal = hFactor^dim;
+                obj.A0 = repmat(scal*obj.A0, 2^dim, 1, 1); % nExnBxnC
             end
-            if obj.fes.element.isSimplex()
-              assert(dim==2, 'TODO');
-              obj.preMatrix{2} = [repmat(scal*obj.preMatrix{2}, 3, 1, 1); -scal*obj.preMatrix{2}]; % nExnBxnC
-            else
-              obj.preMatrix{2} = repmat(scal*obj.preMatrix{2}, 2^dim, 1, 1); % nExnBxnC
-            end
-            
+            %
             coeff = obj.dataCache(obj.fes.mesh.getCenter('0')); % nExnC
-            e = sum(obj.preMatrix{2}.*permute(coeff, [1 3 2]), 3); % nExnB
+            e = sum(obj.A0.*permute(coeff, [1 3 2]), 3); % nExnB
             r = obj.fes.getDoFMap(0)'; % nExnB
             e(r<0) = -e(r<0);
             obj.matrix = accumarray(abs(r(:)), e(:));
@@ -101,8 +108,8 @@ classdef Functional < SOFE
         I = (r==0); if any(I(:)), r(I) = []; e(I) = []; end %#ok<AGROW>
         if obj.matrixFree
           assert(k==1, 'No blocking for matrix free coarse grid');
-          obj.preMatrix = {r; e.*sign(obj.fes.getDoFMap(obj.codim, {k}))'};
-          e = sum(e,3);
+          obj.A0 = e.*sign(obj.fes.getDoFMap(obj.codim, {k}))';
+          return
         end
         re{k} = [r(:), e(:)];
         if k>1

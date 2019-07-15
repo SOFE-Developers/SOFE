@@ -1,4 +1,7 @@
 classdef MeshTopologyTri < MeshTopology
+  properties
+    elemType
+  end
   methods % constructor
     function obj = MeshTopologyTri(elem)
       obj = obj@MeshTopology(2);
@@ -6,6 +9,7 @@ classdef MeshTopologyTri < MeshTopology
       obj.isSimplex = 1;
       obj.nESub = [3 3 1];
       obj.nO = 2;
+      obj.elemType = ones(size(elem,1),1);
     end
     function update(obj, elem)
       obj.connectivity = cell(obj.dimP+1);
@@ -44,6 +48,7 @@ classdef MeshTopologyTri < MeshTopology
       newIndices = nN + (1:nF);
       el = [el newIndices(obj.connectivity{3,2})];
       el = [el(:,[1 4 6]);el(:,[4 2 5]);el(:,[6 5 3]);el(:,[5 6 4])];
+      obj.elemType = [repmat(obj.elemType,3,1); mod(obj.elemType,2)+1];
       obj.update(el);
     end
     function R = uniformRefineFast(obj)
@@ -58,6 +63,7 @@ classdef MeshTopologyTri < MeshTopology
       newIndices = nN + fRange; % nFx1
       el = [el newIndices(e2F)];
       el = [el(:,[1 4 6]);el(:,[4 2 5]);el(:,[6 5 3]);el(:,[5 6 4])];
+      obj.elemType = [repmat(obj.elemType,3,1); mod(obj.elemType,2)+1];
       fc = [fc(:,1) newIndices; fc(:,2) newIndices; ...
             sort([nN+e2F(:,[1 2]);nN+e2F(:,[2 3]);nN+e2F(:,[1 3])],2)];
       e2F = [[nF*oo(:,1)+e2F(:,1), 2*(nF+nE)+eRange, nF*oo(:,3)+e2F(:,3)]; ...

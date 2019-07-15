@@ -7,7 +7,7 @@ classdef Operator < SOFE
     loc
     savePre = false
     matrixFree = false
-    preMatrix, A0
+    A0
   end
   methods % constructor
     function obj = Operator(data, fesTrial, varargin) % [fesTest loc]
@@ -96,11 +96,9 @@ classdef Operator < SOFE
         I = (r.*c==0); if any(I(:)), r(I) = []; c(I) = []; e(I) = []; end %#ok<AGROW>
         if obj.matrixFree
           assert(k==1, 'No blocking for matrix free coarse grid');
-          sTest = sign(obj.fesTest.getDoFMap(obj.codim, {k}))'; % nExnB
-          sTrial = permute(sign(obj.fesTrial.getDoFMap(obj.codim, {k}))', [1 3 2]); % nExnB
-          obj.preMatrix = {r; c; (e.*sTrial).*sTest};
-          obj.A0 = permute(obj.preMatrix{3}, [2 3 1]);
-          obj.preMatrix = [];
+          sgnTest = sign(obj.fesTest.getDoFMap(obj.codim, {k}))'; % nExnB
+          sgnTrial = permute(sign(obj.fesTrial.getDoFMap(obj.codim, {k}))', [1 3 2]); % nExnB
+          obj.A0 = permute((e.*sgnTrial).*sgnTest, [2 3 1]); % nBxnBxnE
         end
         %
         try
