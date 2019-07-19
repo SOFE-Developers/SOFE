@@ -115,7 +115,7 @@ classdef Visualizer2D < Visualizer
             surf(X,Y,0*X,reshape(absZ,size(X))); shading interp
           end
           if vectors
-            if normalize, Z = bsxfun(@rdivide, Z, absZ); Z(Z==Inf) = 0; end
+            if normalize, Z = bsxfun(@rdivide, Z, absZ); Z(absZ<1e-12,:) = 0; end
             try color = varargin{1}.color; catch, color = 'b'; end
             Z = reshape(Z, size(X,1), size(X,2), []);
             filter = ceil(N./n);
