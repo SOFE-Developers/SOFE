@@ -14,5 +14,9 @@ classdef OpDivDiv < Operator % ( c*div(U), div(V) )
       end
       R = obj.integrate(true, divBasis, divBasis, k);
     end
+    function R = getScaling(obj, nRef)
+      assert(strcmp(obj.fesTrial.element.conformity, 'HDiv'));
+      R = 2^((nRef*obj.fesTrial.element.dimension));
+    end
   end
 end

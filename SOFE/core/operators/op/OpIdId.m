@@ -14,5 +14,15 @@ classdef OpIdId < Operator % ( c*U, V )
       basisI = obj.fesTest.evalGlobalBasis([], obj.codim, 0, {k});
       R = obj.integrate(true, basisI, basisJ, k);
     end
+    function R = getScaling(obj, nRef)
+      switch obj.fesTrial.element.conformity
+        case {'H1', 'L2'}
+          R = 2^((nRef*(0-obj.fesTrial.element.dimension)));
+        case 'HDiv'
+          R = 2^((nRef*(obj.fesTrial.element.dimension-2)));
+        case 'HRot'
+          R = 2^((nRef*(2-obj.fesTrial.element.dimension)));
+      end
+    end
   end
 end
