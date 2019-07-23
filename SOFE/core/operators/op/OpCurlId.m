@@ -21,7 +21,7 @@ classdef OpCurlId < Operator % ( c*Curl(U), V )
       end
       %
       basis = obj.fesTest.evalGlobalBasis([], 0, 0, {k}); % nExnBxnPxnC
-      R = obj.integrate(true, basis, curlBasis, k);
+      R = obj.integrate(basis, curlBasis, k);
     end
   end
 end

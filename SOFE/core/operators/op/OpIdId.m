@@ -12,7 +12,7 @@ classdef OpIdId < Operator % ( c*U, V )
     function R = assembleOp(obj, k)
       basisJ = obj.fesTrial.evalGlobalBasis([], obj.codim, 0, {k}); % nExnBxnPxnC
       basisI = obj.fesTest.evalGlobalBasis([], obj.codim, 0, {k});
-      R = obj.integrate(true, basisI, basisJ, k);
+      R = obj.integrate(basisI, basisJ, k);
     end
     function R = getScaling(obj, nRef)
       switch obj.fesTrial.element.conformity

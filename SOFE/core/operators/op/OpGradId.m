@@ -8,7 +8,6 @@ classdef OpGradId < Operator % (c*Grad(u), V )
     function R = assembleOp(obj, k)
       basisI = obj.fesTest.evalGlobalBasis([], 0, 0, {k}); % nExnBxnPxnCx1
       dBasisJ = obj.fesTrial.evalGlobalBasis([], 0, 1, {k}); % nExnBxnPx1xnD
-      hasCoeff = true;
       if obj.fesTest.element.getNC() == obj.fesTrial.element.getNC()
         if isnumeric(obj.data)
           if size(obj.data,1)==1
@@ -22,9 +21,9 @@ classdef OpGradId < Operator % (c*Grad(u), V )
         end
         C = permute(C, [1 4 2 5 3]); % nEx1xnPx1xnW
         dBasisJ = sum(bsxfun(@times, dBasisJ, C), 5); % nExnBxnPxnC
-        hasCoeff = false;
+        obj.hasCoeff = false;
       end
-      R = obj.integrate(hasCoeff, basisI, dBasisJ, k);
+      R = obj.integrate(basisI, dBasisJ, k);
     end
   end
 end

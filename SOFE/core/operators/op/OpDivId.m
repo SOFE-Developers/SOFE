@@ -13,7 +13,7 @@ classdef OpDivId < Operator % (c*div(U), v )
       for d = 2:nD
         divBasisJ = divBasisJ + dBasisJ(:,:,:,d,d); % nExnBxnP
       end
-      R = obj.integrate(true, basisI, divBasisJ, k);
+      R = obj.integrate(basisI, divBasisJ, k);
     end
   end
 end

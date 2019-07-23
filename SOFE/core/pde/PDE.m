@@ -67,12 +67,9 @@ classdef PDE < SOFE
     end
     function setMatrixFree(obj)
       obj.createSys = 0;
-      N = numel(obj.list);
-      for k = 1:N
+      for k = 1:numel(obj.list)
+        obj.list{k}.hasCoeff = 0;
         obj.list{k}.matrixFree = 1;
-        if ~isa(obj.list{k}, 'Operator')
-          obj.list{k}.hasCoeff = 0;
-        end
       end
       obj.assemble();
     end

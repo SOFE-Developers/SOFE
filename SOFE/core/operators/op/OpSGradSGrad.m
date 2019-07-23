@@ -8,7 +8,7 @@ classdef OpSGradSGrad < Operator % ( c*SGRAD(U), SGRAD(V) )
     function R = assembleOp(obj, k)
       sGradBasis = obj.fesTrial.evalGlobalBasis([], 0, 1, {k}); % nExnBxnPxnCxnD
       sGradBasis = 0.5*(sGradBasis + permute(sGradBasis, [1 2 3 5 4]));
-      R = obj.integrate(true, sGradBasis, sGradBasis, k);
+      R = obj.integrate(sGradBasis, sGradBasis, k);
     end
   end
 end

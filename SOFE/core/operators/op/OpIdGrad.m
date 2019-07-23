@@ -8,7 +8,7 @@ classdef OpIdGrad < Operator % (c*V, Grad(u))
     function R = assembleOp(obj, k)
       basisJ = obj.fesTrial.evalGlobalBasis([], 0, 0, {k}); % nExnBxnPxnCx1
       gradBasisI = obj.fesTest.evalGlobalBasis([], 0, 1, {k}); % nExnBxnPx1xnD
-      R = obj.integrate(true, gradBasisI, basisJ, k);
+      R = obj.integrate(gradBasisI, basisJ, k);
     end
   end
 end

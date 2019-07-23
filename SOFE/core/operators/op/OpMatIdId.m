@@ -6,6 +6,7 @@ classdef OpMatIdId < Operator % ( c*U, V )
       if codim == 1 && isempty(obj.loc)
         obj.loc = @(x)~obj.fesTest.fixB(x);
       end
+      obj.hasCoeff = false;
     end
   end
   methods
@@ -28,7 +29,7 @@ classdef OpMatIdId < Operator % ( c*U, V )
       C = reshape(C, sz); % nEx1xnPxnWxnW
       basisJ = sum(bsxfun(@times, permute(basisJ,[1 2 3 5 4]), C), 5); % nExnBxnPxnW
       %     
-      R = obj.integrate(false, basisI, basisJ, k);
+      R = obj.integrate(basisI, basisJ, k);
     end
   end
 end

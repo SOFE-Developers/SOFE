@@ -5,7 +5,7 @@ classdef Operator < SOFE
     fesTrial, fesTest
     matrix
     loc
-    savePre = false
+    hasCoeff = true
     matrixFree = false
     A0
   end
@@ -117,10 +117,10 @@ classdef Operator < SOFE
       end
       if k>1, fprintf('\n'); end
     end
-    function R = integrate(obj, hasCoeff, basisI, basisJ, k)
+    function R = integrate(obj, basisI, basisJ, k)
       [~, weights] = obj.fesTrial.element.getQuadData(obj.codim);
       [~,~,jac] = obj.fesTrial.evalTrafoInfo([], obj.codim, {k}); % nExnP
-      if hasCoeff
+      if obj.hasCoeff
         if isnumeric(obj.data)
           if size(obj.data,1)==1
             coef = permute(obj.data, [3 1 2]); % 1x1xnC
