@@ -639,7 +639,7 @@ classdef FESpace < SOFE
         inZ = (dMap~=0); dMap = abs(dMap(inZ)); % 'nB*nE
         %
         F = obj.evalFunction(f,[],codim,[],varargin{:}); % nExnPxnC
-        F = F - obj.evalDoFVector(R,[],codim,0,varargin{:});
+        F = bsxfun(@minus,F,obj.evalDoFVector(R,[],codim,0,varargin{:}));
         [~,~,jac] = obj.evalTrafoInfo([], codim, varargin{:}); % nExnP
         [~, weights] = obj.element.getQuadData(codim); % nPx1
         dX = bsxfun(@times, abs(jac), weights'); % nExnP

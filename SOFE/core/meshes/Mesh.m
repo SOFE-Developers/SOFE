@@ -58,7 +58,7 @@ classdef Mesh < SOFE
         h = sum(R.^2,3).^0.5; % nExnP
       end
       if nFlag
-        R = R./sum(R.^2,3).^(0.5*nFlag);
+        R = bsxfun(@rdivide,R,sum(R.^2,3).^(0.5*nFlag));
       end
     end
     function [R, invR, jacR] = evalTrafoInfo(obj, points, varargin) % [I]

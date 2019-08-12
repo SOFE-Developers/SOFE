@@ -221,6 +221,28 @@ classdef Visualizer2D < Visualizer
       h = surf(X,Y,reshape(Z,size(X))); shading interp
       axis(box(:)); view(2), axis equal; axis tight
     end
+    function addGridToSurface(obj, U, varargin) % shows rectangular grid on surface		
+	      obj.test(U);		
+	      try N = varargin{1}.N; catch, N = 10; end   % number of gridlines		
+	      try n = varargin{1}.n; catch, n = 200; end  % number of points per gridline		
+	      try		
+	        box = varargin{1}.box;		
+	      catch		
+	        box = obj.feSpace.mesh.getDiam();		
+	      end		
+	      [X,Y] = meshgrid(linspace(box(1), box(2), N), ...		
+	                       linspace(box(3), box(4), n));		
+	      Z = obj.feSpace.evalDoFVector(U,{[X(:) Y(:)]},[],0);		
+	      Z = reshape(Z,size(X));		
+	      hold on		
+	      plot3(X,Y,Z,'k');    		
+	      [X,Y] = meshgrid(linspace(box(1), box(2), n), ...		
+	                       linspace(box(3), box(4), N));		
+	      Z = obj.feSpace.evalDoFVector(U,{[X(:) Y(:)]},[],0);		
+	      Z = reshape(Z,size(X));		
+	      plot3(X',Y',Z','k');    		
+	      hold off		
+	    end
   end
   methods(Static=true)
     function surfFunction(f, varargin) % [xgrid, ygrid]
