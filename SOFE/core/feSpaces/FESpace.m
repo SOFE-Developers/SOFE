@@ -576,7 +576,7 @@ classdef FESpace < SOFE
       for k = 1:nCh
         I{k} = kron(ones(1,nB),dM1(:, iCh(:,k))'); % child
         J{k} = kron(dM0(:,iE)',ones(1,nB)); % parent
-        C{k} = repmat(reshape(pCoeff{k},1,[]), numel(iE), 1);
+        C{k} = repmat(reshape(pCoeff(:,:,k),1,[]), numel(iE), 1);
       end
       I = cell2mat(I); J = cell2mat(J); C = cell2mat(C);
       C = C.*sign(I).*sign(J); I = abs(I); J = abs(J);
