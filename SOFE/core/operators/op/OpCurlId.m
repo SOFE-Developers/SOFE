@@ -23,5 +23,9 @@ classdef OpCurlId < Operator % ( c*Curl(U), V )
       basis = obj.fesTest.evalGlobalBasis([], 0, 0, {k}); % nExnBxnPxnC
       R = obj.integrate(basis, curlBasis, k);
     end
+    function R = getScaling(obj, nRef)
+      assert(0, 'TODO');
+      R = 2^((nRef*0*obj.fesTrial.element.dimension));
+    end
   end
 end

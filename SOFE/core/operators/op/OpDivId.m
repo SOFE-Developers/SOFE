@@ -15,5 +15,8 @@ classdef OpDivId < Operator % (c*div(U), v )
       end
       R = obj.integrate(basisI, divBasisJ, k);
     end
+    function R = getScaling(obj, nRef)
+      R = 2^((nRef*0*obj.fesTrial.element.dimension));
+    end
   end
 end

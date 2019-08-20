@@ -25,5 +25,12 @@ classdef OpGradId < Operator % (c*Grad(u), V )
       end
       R = obj.integrate(basisI, dBasisJ, k);
     end
+    function R = getScaling(obj, nRef)
+      if obj.fesTest.element.getNC() ~= obj.fesTrial.element.getNC()
+        R = 2^((nRef*0*obj.fesTrial.element.dimension));
+      else
+        R = 2^((nRef*(1-obj.fesTrial.element.dimension)));
+      end
+    end
   end
 end
