@@ -303,10 +303,10 @@ classdef Element < SOFE
     function R = getInnerDoFKeyFace(obj)
       switch obj.dimension
         case 2
-          assert(isa(obj.fes.element, 'RTQp') && obj.order==0, 'TODO');
+          assert((isa(obj, 'RTQp') || isa(obj, 'NdQp')) && obj.order==0, 'TODO');
           R = eye(4);
         case 3
-          assert(isa(obj.fes.element, 'RTQp') && obj.order==0, 'TODO');
+          assert(isa(obj, 'RTQp') && obj.order==0, 'TODO');
           R = eye(6);
       end
       R = R'; % nBxnType
@@ -314,9 +314,10 @@ classdef Element < SOFE
     function R = getInnerDoFKeyEdge(obj)
       switch obj.dimension
         case 2
-          assert(false, 'TODO');
+          assert((isa(obj, 'RTQp') || isa(obj, 'NdQp')) && obj.order==0, 'TODO');
+          R = eye(4);
         case 3
-          assert(isa(obj.fes.element, 'RTQp') && obj.order==0, 'TODO');
+          assert(isa(obj, 'RTQp') && obj.order==0, 'TODO');
           R = zeros(12,6);
           R(1,[1 5]) = 1; R(2,[1 6]) = 1; R(3,[2 5]) = 1; R(4,[2 6]) = 1;
           R(5,[1 3]) = 1; R(6,[2 3]) = 1; R(7,[1 4]) = 1; R(8,[2 4]) = 1;

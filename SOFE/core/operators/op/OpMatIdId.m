@@ -20,12 +20,14 @@ classdef OpMatIdId < Operator % ( c*U, V )
         else
           C = obj.fesTrial.evalDoFVector(obj.data, [], 0, 0, {k}); % nExnPxnC
         end
+        nW = size(obj.data);
       else
         S = obj.observers{1}.evalState(k);
         C = obj.fesTrial.evalFunction(obj.data, [], 0, S, {k}); % nExnPxnC
+        nW = size(obj.data(zeros(1,obj.fesTrial.mesh.dimW)));
       end
       C = permute(C, [1 4 2 3]); % nEx1xnPxnC
-      sz = size(C); nW = sqrt(sz(end)); sz = [sz(1:3) nW nW];
+      sz = size(C); sz = [sz(1:3) nW(:)'];
       C = reshape(C, sz); % nEx1xnPxnWxnW
       basisJ = sum(bsxfun(@times, permute(basisJ,[1 2 3 5 4]), C), 5); % nExnBxnPxnW
       %     
