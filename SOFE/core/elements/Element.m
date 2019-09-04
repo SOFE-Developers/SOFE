@@ -174,7 +174,7 @@ classdef Element < SOFE
       axis([0 1 0 1 0 1]); axis equal
     end
   end
-  methods
+  methods % prolongation
     function R = getProlongationCoeff(obj)
       [P0,D0] = obj.getLagrangeFunctionals(0);
       F0 = sum(bsxfun(@times,obj.evalBasis(P0,0),permute(D0,[3 1 2])),3)';
@@ -187,7 +187,7 @@ classdef Element < SOFE
       R = cell2mat(R);
     end
   end
-  methods
+  methods % Lagrange functionals
     function [R,D] = getLagrangeFunctionals(obj, childNr)
       [R,D] = obj.getLagrangePoints(obj.dimension, obj.order);
       switch obj.dimension
@@ -266,7 +266,7 @@ classdef Element < SOFE
     end
   end
   methods % for matrix free plugin
-    function R = getInnerDoFKey(obj)
+    function R = getInnerDoFKeyNode(obj)
       dTp = obj.doFTuple;
       if size(dTp,1)>1
         dTp = prod(obj.doFTuple);
@@ -291,11 +291,36 @@ classdef Element < SOFE
             S = zeros(8, 12);
             S(1,[1 5 9]) = 1; S(2,[1 7 10]) = 1; S(3,[2 5 11]) = 1; S(4,[2 7 12]) = 1;
             S(5,[3 6 9]) = 1; S(6,[3 8 10]) = 1; S(7,[4 6 11]) = 1; S(8,[4 8 12]) = 1;
-            T = [1 0 1 0 1 0; 1 0 0 1 1 0; 1 0 1 0 0 1; 1 0 0 1 0 1; ...
-                 0 1 1 0 1 0; 0 1 0 1 1 0; 0 1 1 0 0 1; 0 1 0 1 0 1];
+            T = zeros(8, 6);
+            T(1,[1 3 5]) = 1; T(2,[1 4 5]) = 1; T(3,[1 3 6]) = 1; T(4,[1 4 6]) = 1;
+            T(5,[2 3 5]) = 1; T(6,[2 4 5]) = 1; T(7,[2 3 6]) = 1; T(8,[2 4 6]) = 1;
           end
           R = [R, kron(S, ones(1,dTp(2)))];
           R = [R, kron(T, ones(1,dTp(3)))];
+          R = [R, ones(size(R,1), dTp(4))];
+      end
+      R = R'; % nBxnType
+    end
+    function R = getInnerDoFKeyEdge(obj)
+      dTp = obj.doFTuple;
+      if size(dTp,1)>1
+        dTp = prod(obj.doFTuple);
+      end
+      switch obj.dimension
+        case 2
+          R = kron(eye(obj.nV(2)), ones(1,dTp(2)));
+          R = [R, ones(size(R,1), dTp(3))];
+        case 3
+          if obj.isSimplex()
+            assert(false, 'TODO');
+          else
+            R = kron(eye(12), ones(1,dTp(2)));
+            S = zeros(12,6);
+            S(1,[1 5]) = 1; S(2,[1 6]) = 1; S(3,[2 5]) = 1; S(4,[2 6]) = 1;
+            S(5,[1 3]) = 1; S(6,[2 3]) = 1; S(7,[1 4]) = 1; S(8,[2 4]) = 1;
+            S(9,[3 5]) = 1; S(10,[4 5]) = 1; S(11,[3 6]) = 1; S(12,[4 6]) = 1;
+          end
+          R = [R, kron(S, ones(1,dTp(3)))];
           R = [R, ones(size(R,1), dTp(4))];
       end
       R = R'; % nBxnType
@@ -311,20 +336,7 @@ classdef Element < SOFE
       end
       R = R'; % nBxnType
     end
-    function R = getInnerDoFKeyEdge(obj)
-      switch obj.dimension
-        case 2
-          assert((isa(obj, 'RTQp') || isa(obj, 'NdQp')) && obj.order==0, 'TODO');
-          R = eye(4);
-        case 3
-          assert(isa(obj, 'RTQp') && obj.order==0, 'TODO');
-          R = zeros(12,6);
-          R(1,[1 5]) = 1; R(2,[1 6]) = 1; R(3,[2 5]) = 1; R(4,[2 6]) = 1;
-          R(5,[1 3]) = 1; R(6,[2 3]) = 1; R(7,[1 4]) = 1; R(8,[2 4]) = 1;
-          R(9,[3 5]) = 1; R(10,[4 5]) = 1; R(11,[3 6]) = 1; R(12,[4 6]) = 1;
-      end
-      R = R'; % nBxnType
-    end
+    
   end
   methods(Static = true)
     function R = getLegendreCoefficients(N, varargin) % [order]

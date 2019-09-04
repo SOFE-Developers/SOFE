@@ -29,7 +29,6 @@ classdef OpCurlCurl < Operator % ( c*Curl(U), Curl(V) )
       R = obj.integrate(curlBasisI, curlBasisJ, k);
     end
     function R = getScaling(obj, nRef)
-      assert(strcmp(obj.fesTrial.element.conformity, 'HRot'));
       R = 2^((nRef*(4-obj.fesTrial.element.dimension)));
     end
   end
