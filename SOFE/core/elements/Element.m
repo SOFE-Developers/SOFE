@@ -328,11 +328,14 @@ classdef Element < SOFE
     function R = getInnerDoFKeyFace(obj)
       switch obj.dimension
         case 2
-          assert((isa(obj, 'RTQp') || isa(obj, 'NdQp')) && obj.order==0, 'TODO');
-          R = eye(4);
+          R = [];
         case 3
-          assert(isa(obj, 'RTQp') && obj.order==0, 'TODO');
-          R = eye(6);
+          if strcmp(obj.conformity, 'HRot')
+            R = [];
+          else
+            assert(~obj.isSimplex() && obj.order==0, 'TODO');
+            R = eye(6);
+          end
       end
       R = R'; % nBxnType
     end
