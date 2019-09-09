@@ -261,7 +261,11 @@ classdef Element < SOFE
           end
       end
       if childNr>0 && ~strcmp(obj.conformity, 'H1') 
-        D = 0.5*D;
+        if obj.dimension==3 && strcmp(obj.conformity, 'HDiv') 
+          D = 0.25*D;
+        else
+          D = 0.5*D;
+        end
       end
     end
   end
@@ -326,16 +330,17 @@ classdef Element < SOFE
       R = R'; % nBxnType
     end
     function R = getInnerDoFKeyFace(obj)
-      switch obj.dimension
-        case 2
-          R = [];
-        case 3
-          if strcmp(obj.conformity, 'HRot')
-            R = [];
-          else
-            assert(~obj.isSimplex() && obj.order==0, 'TODO');
-            R = eye(6);
-          end
+      assert(obj.dimension==3);
+      dTp = obj.doFTuple;
+      if size(dTp,1)>1
+        dTp = prod(obj.doFTuple);
+      end
+      if obj.isSimplex()
+        R = kron(eye(4), ones(1,dTp(3)));
+        R = [R, ones(size(R,1), dTp(4))];
+      else
+        R = kron(eye(6), ones(1,dTp(3)));
+        R = [R, ones(size(R,1), dTp(4))];
       end
       R = R'; % nBxnType
     end
