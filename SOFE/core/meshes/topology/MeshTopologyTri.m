@@ -40,7 +40,7 @@ classdef MeshTopologyTri < MeshTopology
     end
   end
   methods % refinement & manipulation
-    function R = uniformRefine(obj)
+    function R = uniformRefine_(obj)
       el = obj.getEntity(2);
       nF = obj.getNumber(1); nN = obj.getNumber(0);
       faces = obj.getEntity(1);
@@ -51,7 +51,7 @@ classdef MeshTopologyTri < MeshTopology
       obj.elemType = [repmat(obj.elemType,3,1); mod(obj.elemType,2)+1];
       obj.update(el);
     end
-    function R = uniformRefineFast(obj)
+    function R = uniformRefine(obj)
       fc = obj.getEntity(1); el = obj.getEntity(2);
       e2F = obj.connectivity{3,2}; oo = obj.getOrientation(2,1)==2;
       nN = obj.getNumber(0); nF = obj.getNumber(1); nE = obj.getNumber(2);

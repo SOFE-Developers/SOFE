@@ -10,14 +10,19 @@ classdef StaticAlg < Algorithm
   methods
     function compute(obj)
       assert(~isempty(obj.solver), 'Solver not set!');
+      obj.assemble();
+      obj.solve()
+    end
+    function assemble(obj)
       t = tic; obj.output('Begin assemble ...', 1);
       obj.pde.assemble();
-      [freeI, freeJ] = obj.pde.getFreeDoFs();
-      shift = obj.pde.getShift();
       fprintf('%d DoFs\n', size(obj.pde.loadVec,1));
       obj.output(['... assembled (',num2str(toc(t)),' sec)'], 1);
-      %
+    end
+    function solve(obj)
       t = tic; obj.output('Begin solve ...', 1);
+      [freeI, freeJ] = obj.pde.getFreeDoFs();
+      shift = obj.pde.getShift();
       obj.solution = obj.solver.solve(obj.pde.stiffMat, obj.pde.loadVec, freeI, freeJ, shift);
       obj.output(['... solved (',num2str(toc(t)),' sec)'], 1);
     end

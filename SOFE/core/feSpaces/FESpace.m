@@ -562,7 +562,7 @@ classdef FESpace < SOFE
       if nargout>0
         dM0 = obj.getDoFMap(0);
       end
-      obj.mesh.uniformRefineFast();
+      obj.mesh.uniformRefine();
       if nargout>0
         R = obj.getProlongator(dM0, obj.getDoFMap(0));
       end
@@ -580,6 +580,7 @@ classdef FESpace < SOFE
       end
       I = cell2mat(I); J = cell2mat(J); C = cell2mat(C);
       C = C.*sign(I).*sign(J); I = abs(I); J = abs(J);
+%       I = I(I~=0); J = J(I~=0); C = C(I~=0);
       % assemble
       cnt = sparse(I,J,1);
       R = sparse(I,J,C);

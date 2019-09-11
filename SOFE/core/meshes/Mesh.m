@@ -244,18 +244,6 @@ classdef Mesh < SOFE
       fprintf(' DONE\n');
       obj.meshChanged();
     end
-    function uniformRefineFast(obj, varargin) % [N]
-      if ~isempty(varargin), N = varargin{1}; else, N = 1; end
-      fprintf('Fast uniform refinement /');
-      R = 1;
-      for i = 1:N
-        R = obj.topology.uniformRefineFast()*R;
-        fprintf([num2str(i) '/']);
-      end
-      obj.nodes = R*obj.nodes;
-      fprintf(' DONE\n');
-      obj.meshChanged();
-    end
   end
   methods % mesh operations
     function rotate(obj, alpha)

@@ -188,7 +188,47 @@ classdef Element < SOFE
     end
   end
   methods % Lagrange functionals
-    function [R,D] = getLagrangeFunctionals(obj, childNr)
+    function [R,D] = getLagrangeFunctionals(obj, childNr, varargin)
+      [R,D] = obj.getLagrangePoints(obj.dimension, obj.order, varargin{:});
+      if childNr>0
+        if obj.isSimplex()
+          switch obj.dimension
+            case 1
+              assert(0, 'No simplex!');
+            case 2
+              m = Mesh([0 0; 1 0; 0 1], [1 2 3]);
+            case 3
+              m = Mesh([0 0 0; 1 0 0; 0 1 0; 0 0 1], [1 2 3 4]);
+          end
+        else
+          switch obj.dimension
+            case 1
+              m = Mesh([0;1], [1 2]);
+            case 2
+              m = Mesh([0 0; 1 0; 0 1; 1 1], [1 2 3 4]);
+            case 3
+              m = Mesh([0 0 0; 1 0 0; 0 1 0; 1 1 0; ...
+                        0 0 1; 1 0 1; 0 1 1; 1 1 1], [1 2 3 4 5 6 7 8]);
+          end
+        end
+        m.nodes = m.topology.uniformRefine()*m.nodes;
+        R = permute(m.evalReferenceMap(R, 0, childNr),[2 3 1]); % nPxnD
+        switch obj.conformity
+          case 'H1'
+            % do nothing
+          case 'HRot'
+            DPhi = permute(m.evalReferenceMap(R,1,childNr), [2 3 4 1]); % nPxnwxnD
+            D = sum(bsxfun(@times, DPhi, permute(D,[1 3 2])), 3); % nPxnw
+          case 'HDiv'
+            [~, DPhiInv, J] = m.evalTrafoInfo(R,childNr); % nExnPxnDxnW, nExnP
+            DPhiInv = permute(DPhiInv, [2 4 3 1]); % nPxnWxnD ! transposed
+            J = permute(J, [2 1]); % nP
+            D = sum(bsxfun(@times, DPhiInv, permute(D,[1 3 2])), 3); % nPxnw
+            D = bsxfun(@times, D, J); % nPxnw
+        end
+      end
+    end
+    function [R,D] = getLagrangeFunctionals_(obj, childNr)
       [R,D] = obj.getLagrangePoints(obj.dimension, obj.order);
       switch obj.dimension
         case 1
@@ -208,7 +248,7 @@ classdef Element < SOFE
               case 4
                 R = -0.5*R;
                 R = R + 0.5;
-                if strcmp(obj.conformity,'HDiv') || strcmp(obj.conformity,'HRot')
+                if ~strcmp(obj.conformity, 'H1')
                   D = -D;
                 end
             end
@@ -260,7 +300,7 @@ classdef Element < SOFE
             end
           end
       end
-      if childNr>0 && ~strcmp(obj.conformity, 'H1') 
+      if childNr>0 && ~strcmp(obj.conformity, 'H1')
         if obj.dimension==3 && strcmp(obj.conformity, 'HDiv') 
           D = 0.25*D;
         else
@@ -270,6 +310,16 @@ classdef Element < SOFE
     end
   end
   methods % for matrix free plugin
+    function R = getInnerDoFKey(obj, dim)
+      switch dim
+        case 0
+          R = obj.getInnerDoFKeyNode();
+        case 1
+          R = obj.getInnerDoFKeyEdge();
+        case 2
+          R = obj.getInnerDoFKeyFace();
+      end
+    end
     function R = getInnerDoFKeyNode(obj)
       dTp = obj.doFTuple;
       if size(dTp,1)>1
@@ -344,7 +394,6 @@ classdef Element < SOFE
       end
       R = R'; % nBxnType
     end
-    
   end
   methods(Static = true)
     function R = getLegendreCoefficients(N, varargin) % [order]

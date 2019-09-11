@@ -120,7 +120,7 @@ classdef MeshTopologyTet < MeshTopology
             el(:,[7 8 9 10]); el(:,[7 6 9 10])];
       obj.update(el);
     end
-    function R = uniformRefineFast(obj)
+    function R = uniformRefineFast_(obj) % TODO: adjust to elem numbering above
       ed = obj.getEntity(1);
       fc = obj.getEntity(2);
       el = obj.getEntity(3);

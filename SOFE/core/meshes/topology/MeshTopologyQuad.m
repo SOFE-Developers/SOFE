@@ -37,7 +37,7 @@ classdef MeshTopologyQuad < MeshTopology
     end
   end
   methods % refinement
-    function R = uniformRefine(obj)
+    function R = uniformRefine_(obj)
       fc = obj.getEntity(1);
       el = obj.getEntity(2);
       nN = obj.getNumber(0); nF = obj.getNumber(1); nE = obj.getNumber(2);
@@ -49,7 +49,7 @@ classdef MeshTopologyQuad < MeshTopology
       el = [el(:,[1 5 7 9]);el(:,[5 2 9 8]);el(:,[7 9 3 6]);el(:,[9 8 6 4])];
       obj.update(el);
     end
-    function P = uniformRefineFast(obj)
+    function P = uniformRefine(obj)
       fc = obj.getEntity(1); el = obj.getEntity(2);
       e2F = obj.connectivity{3,2}; oo = obj.getOrientation(2,1)==2;
       nN = obj.getNumber(0); nF = obj.getNumber(1); nE = obj.getNumber(2);
