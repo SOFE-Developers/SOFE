@@ -93,13 +93,14 @@ classdef Operator < SOFE
             c = c(idx(I),:,:);
           end
         end
-        I = (r.*c==0); if any(I(:)), r(I) = []; c(I) = []; e(I) = []; end %#ok<AGROW>
         if obj.matrixFree
           assert(k==1, 'No blocking for matrix free coarse grid');
           sgnTest = sign(obj.fesTest.getDoFMap(obj.codim, {k}))'; % nExnB
           sgnTrial = permute(sign(obj.fesTrial.getDoFMap(obj.codim, {k}))', [1 3 2]); % nExnB
           obj.A0 = permute((e.*sgnTrial).*sgnTest, [2 3 1]); % nBxnBxnE
+          return
         end
+        I = (r.*c==0); if any(I(:)), r(I) = []; c(I) = []; e(I) = []; end %#ok<AGROW>
         %
         try
           fsparse(0);

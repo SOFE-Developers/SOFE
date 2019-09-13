@@ -61,7 +61,7 @@ classdef MeshTopologyTri < MeshTopology
       R = [speye(nN); fsparse(repmat((1:nF)',1,2), fc, 0.5)];
       %
       newIndices = nN + fRange; % nFx1
-      el = [el newIndices(e2F)];
+      el = [el reshape(newIndices(e2F), size(e2F))];
       el = [el(:,[1 4 6]);el(:,[4 2 5]);el(:,[6 5 3]);el(:,[5 6 4])];
       obj.elemType = [repmat(obj.elemType,3,1); mod(obj.elemType,2)+1];
       fc = [fc(:,1) newIndices; fc(:,2) newIndices; ...

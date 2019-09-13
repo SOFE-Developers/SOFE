@@ -370,7 +370,8 @@ classdef FESpace < SOFE
         R = permute(R,[3 2 4 5 1]); % nExnBx[...]
       end
       dMap = obj.getDoFMap(codim, varargin{:}).'; % nExnB
-      R = bsxfun(@times, sign(dMap), R); % nExnBxnPxnC[xnD]
+      S = 1-2*(dMap<0); % S = sign(dMap);
+      R = bsxfun(@times, S, R); % nExnBxnPxnC[xnD]
     end
     function R = evalGlobalBasis(obj, points, codim, order, varargin) % [{k} or I]
       doCache = 0;

@@ -340,7 +340,10 @@ classdef Element < SOFE
         case 3
           R = kron(eye(obj.nV(3)), ones(1,dTp(1)));
           if obj.isSimplex()
-            assert(false, 'TODO');
+            S = zeros(4, 6);
+            S(1,[1 3 4]) = 1; S(2,[1 2 5]) = 1; S(3,[2 3 6]) = 1; S(4,[4 5 6]) = 1;
+            T = zeros(4, 4);
+            T(1,[1 2 4]) = 1; T(2,[1 2 3]) = 1; T(3,[1 3 4]) = 1; T(4,[2 3 4]) = 1;
           else
             S = zeros(8, 12);
             S(1,[1 5 9]) = 1; S(2,[1 7 10]) = 1; S(3,[2 5 11]) = 1; S(4,[2 7 12]) = 1;
@@ -366,7 +369,9 @@ classdef Element < SOFE
           R = [R, ones(size(R,1), dTp(3))];
         case 3
           if obj.isSimplex()
-            assert(false, 'TODO');
+            S = zeros(6,4);
+            S(1,[1 2]) = 1; S(2,[1 3]) = 1; S(3,[1 4]) = 1;
+            S(4,[2 4]) = 1; S(5,[2 3]) = 1; S(6,[3 4]) = 1;
           else
             R = kron(eye(12), ones(1,dTp(2)));
             S = zeros(12,6);

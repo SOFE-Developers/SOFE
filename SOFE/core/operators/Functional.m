@@ -33,6 +33,7 @@ classdef Functional < SOFE
             obj.matrix = [];
           else
             % uniform refine (so far, TODO: adaptive)
+            if isempty(obj.A0), return; end
             dim = obj.fes.element.dimension;
             hFactor = 0.5;
             switch obj.fes.element.conformity
@@ -105,12 +106,12 @@ classdef Functional < SOFE
             r = r(idx(I),:);
           end
         end
-        I = (r==0); if any(I(:)), r(I) = []; e(I) = []; end %#ok<AGROW>
         if obj.matrixFree
           assert(k==1, 'No blocking for matrix free coarse grid');
           obj.A0 = e.*sign(obj.fes.getDoFMap(obj.codim, {k}))';
           return
         end
+        I = (r==0); if any(I(:)), r(I) = []; e(I) = []; end %#ok<AGROW>
         re{k} = [r(:), e(:)];
         if k>1
           if k>2
