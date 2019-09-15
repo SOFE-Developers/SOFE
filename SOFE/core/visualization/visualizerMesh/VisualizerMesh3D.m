@@ -46,7 +46,7 @@ classdef VisualizerMesh3D < VisualizerMesh
       face = obj.mesh.topology.getEntity(2);
       nodes = obj.mesh.nodes;
       if obj.mesh.topology.isSimplex, I = [1 2 3]; else, I = [1 2 4 3]; end
-      h = trimesh(face(II{3},I),nodes(:,1),nodes(:,2),nodes(:,3));
+      h = trimesh(face(II{3},I),nodes(:,1),nodes(:,2),nodes(:,3),'LineWidth',2);
       set(h,'facecolor','none','edgecolor','k');
       disp(elem(II{4},:));
       if flag

@@ -369,6 +369,7 @@ classdef Element < SOFE
           R = [R, ones(size(R,1), dTp(3))];
         case 3
           if obj.isSimplex()
+            R = kron(eye(6), ones(1,dTp(2)));
             S = zeros(6,4);
             S(1,[1 2]) = 1; S(2,[1 3]) = 1; S(3,[1 4]) = 1;
             S(4,[2 4]) = 1; S(5,[2 3]) = 1; S(6,[3 4]) = 1;

@@ -5,7 +5,7 @@ classdef Mesh < SOFE
     nodes
     dimW
     globalSearcher
-    subType = 0
+    preMap = []
   end
   methods % constructor & globalsearcher
     function obj = Mesh(nodes, elem, varargin) % [dimP]
@@ -26,8 +26,8 @@ classdef Mesh < SOFE
   end
   methods % reference map
     function R = evalReferenceMap(obj, points, order, varargin) % [I]
-      if obj.subType>0
-        R = obj.evalReferenceMapSub(points, order, varargin{:}); % [I]
+      if ~isempty(obj.preMap)
+        R = obj.evalReferenceMapMod(points, order, varargin{:}); % [I]
         return
       end
       I = ':'; if nargin > 3, I = varargin{1}; end
@@ -48,23 +48,15 @@ classdef Mesh < SOFE
       N = reshape(obj.nodes(entity(:),:),[],size(B,1),size(obj.nodes,2)); % nExnBxnW
       R = sum(bsxfun(@times, permute(N,pVecN), permute(B,pVecB)),5); % nExnPxnW[xnD] or nExnW[xnD]
     end
-    function R = evalReferenceMapSub(obj, points, order, varargin) % [I]
+    function R = evalReferenceMapMod(obj, points, order, varargin) % [I]
       I = ':'; if nargin > 3, I = varargin{1}; end
-      assert(obj.element.dimension==2 && obj.element.isSimplex(), 'TODO');
-      switch obj.subType
-        case 1
-          M = eye(2);
-        case 2
-          M = -eye(2);
-      end
-      points = (M*points')';
+      points = (obj.preMap*points')';
       B = obj.element.evalBasis(points, order); % nBxnPx1[xnD]
       entity = obj.topology.getEntity(size(points,2), I); % nExnB
       N = reshape(obj.nodes(entity(:),:),[],size(B,1),size(obj.nodes,2)); % nExnBxnW
       R = sum(bsxfun(@times, permute(N,[1 4 3 5 2]), permute(B,[5 2 3 4 1])),5); % nExnPxnW[xnD]
       if order>0
-        % multiply
-        R = sum(bsxfun(@times, permute(R, [1 2 3 5 4]), permute(M, [4 5 3 2 1])), 5);
+        R = sum(bsxfun(@times, permute(R, [1 2 3 5 4]), permute(obj.preMap, [4 5 3 2 1])), 5);
       end
     end
     function [R, h] = evalNormalVector(obj, points, nFlag, varargin) % [I]
