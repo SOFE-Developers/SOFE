@@ -15,8 +15,14 @@ classdef OpDivDiv < Operator % ( c*div(U), div(V) )
       R = obj.integrate(divBasis, divBasis, k);
     end
     function R = getScaling(obj, nRef)
-      assert(strcmp(obj.fesTrial.element.conformity, 'HDiv'));
-      R = 2^((nRef*obj.fesTrial.element.dimension));
+      switch obj.fesTrial.element.conformity
+        case {'H1', 'L2'}
+          R = 2^((nRef*(2-obj.fesTrial.element.dimension)));
+        case 'HDiv'
+          R = 2^((nRef*obj.fesTrial.element.dimension));
+        case 'HRot'
+          assert(false, 'not allowed');
+      end
     end
   end
 end

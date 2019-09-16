@@ -95,6 +95,7 @@ classdef Functional < SOFE
       if ~any(idx), return, end
       nBlock = obj.fes.nBlock(obj.codim+1);
       re = cell(nBlock,1);
+      obj.A0 = cell(nBlock,1);
       for k = 1:nBlock
         I = obj.fes.getBlock(obj.codim, k);
         e = []; r = [];
@@ -107,9 +108,7 @@ classdef Functional < SOFE
           end
         end
         if obj.matrixFree
-          assert(k==1, 'No blocking for matrix free coarse grid');
-          obj.A0 = e.*sign(obj.fes.getDoFMap(obj.codim, {k}))';
-          return
+          obj.A0{k} = e.*sign(obj.fes.getDoFMap(obj.codim, {k}))'; % nExnB
         end
         I = (r==0); if any(I(:)), r(I) = []; e(I) = []; end %#ok<AGROW>
         re{k} = [r(:), e(:)];
@@ -122,6 +121,7 @@ classdef Functional < SOFE
         end
       end
       if k>1, fprintf('\n'); end
+      obj.A0 = cell2mat(obj.A0);
       re = cell2mat(re);
       obj.matrix = accumarray(re(:,1), re(:,2), size(obj.matrix));
     end

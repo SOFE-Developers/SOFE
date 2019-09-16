@@ -40,13 +40,19 @@ classdef Mesh < SOFE
         I = points{2}; points = points{1};
         if isempty(points), R = []; return; end
         pVecN = [1 3 4 5 2]; pVecB = [2 3 4 5 1];
+        pVecN2 = [1 -1 2]; pVecB2 = [-1 1 4 3];
       else
         pVecN = [1 4 3 5 2]; pVecB = [5 2 3 4 1];
+        pVecN2 = [1 -1 3]; pVecB2 = [-1 2 5 4];
       end
       B = obj.element.evalBasis(points, order); % nBxnPx1[xnD]
       entity = obj.topology.getEntity(size(points,2), I); % nExnB
       N = reshape(obj.nodes(entity(:),:),[],size(B,1),size(obj.nodes,2)); % nExnBxnW
-      R = sum(bsxfun(@times, permute(N,pVecN), permute(B,pVecB)),5); % nExnPxnW[xnD] or nExnW[xnD]
+      try
+        R = tprod(N, B, pVecN2, pVecB2);
+      catch
+        R = sum(bsxfun(@times, permute(N,pVecN), permute(B,pVecB)),5); % nExnPxnW[xnD] or nExnW[xnD]
+      end
     end
     function R = evalReferenceMapMod(obj, points, order, varargin) % [I]
       I = ':'; if nargin > 3, I = varargin{1}; end
@@ -54,9 +60,16 @@ classdef Mesh < SOFE
       B = obj.element.evalBasis(points, order); % nBxnPx1[xnD]
       entity = obj.topology.getEntity(size(points,2), I); % nExnB
       N = reshape(obj.nodes(entity(:),:),[],size(B,1),size(obj.nodes,2)); % nExnBxnW
-      R = sum(bsxfun(@times, permute(N,[1 4 3 5 2]), permute(B,[5 2 3 4 1])),5); % nExnPxnW[xnD]
-      if order>0
-        R = sum(bsxfun(@times, permute(R, [1 2 3 5 4]), permute(obj.preMap, [4 5 3 2 1])), 5);
+      try
+        R = tprod(N, B, [1 -1 3], [-1 2 5 4]); % nExnPxnW[xnD]
+        if order>0
+          R = tprod(R, obj.preMap, [1 2 3 -1],[-1 4]); % nExnPxnWxnD
+        end
+      catch
+        R = sum(bsxfun(@times, permute(N,[1 4 3 5 2]), permute(B,[5 2 3 4 1])),5); % nExnPxnW[xnD]
+        if order>0
+          R = sum(bsxfun(@times, permute(R, [1 2 3 5 4]), permute(obj.preMap, [4 5 3 2 1])), 5);
+        end
       end
     end
     function [R, h] = evalNormalVector(obj, points, nFlag, varargin) % [I]
