@@ -51,6 +51,7 @@ classdef Mesh < SOFE
       try
         R = tprod(N, B, pVecN2, pVecB2);
       catch
+        keyboard
         R = sum(bsxfun(@times, permute(N,pVecN), permute(B,pVecB)),5); % nExnPxnW[xnD] or nExnW[xnD]
       end
     end
@@ -264,12 +265,19 @@ classdef Mesh < SOFE
     function R = uniformRefine(obj, varargin) % [N]
       if ~isempty(varargin), N = varargin{1}; else, N = 1; end
       fprintf('Uniform refinement /');
-      R = 1;
-      for i = 1:N
-        R = obj.topology.uniformRefine()*R;
-        fprintf([num2str(i) '/']);
+      if nargout > 0
+        R = 1;
+        for i = 1:N
+          R = obj.topology.uniformRefine()*R;
+          fprintf([num2str(i) '/']);
+        end
+        obj.nodes = R*obj.nodes;
+      else
+        for i = 1:N
+          obj.nodes = obj.topology.uniformRefine()*obj.nodes;
+          fprintf([num2str(i) '/']);
+        end
       end
-      obj.nodes = R*obj.nodes;
       fprintf(' DONE\n');
       obj.meshChanged();
     end
