@@ -144,7 +144,7 @@ classdef MeshTopology < SOFE
       elem = obj.getEntity('0');
       degN = accumarray(reshape(elem,[],1), 1, [nN 1]);
       nColMax = size(elem,2)*max(degN);
-%       % --> to MEX
+      % --> to MEX
 %       nodeColor = zeros(nN, nColMax);
 %       R = zeros(size(elem,1),1);
 %       for k = 1:size(elem,1)
@@ -160,6 +160,7 @@ classdef MeshTopology < SOFE
 %       end
       %
       R = colorElements(elem, nN, nColMax)+1;
+      %
       cnt = accumarray(R,1);
       [~,R] = sort(R);
     end
@@ -168,25 +169,25 @@ classdef MeshTopology < SOFE
       n2E = obj.getConnect(0, obj.dimP);
       nColMax = size(n2E,2)*obj.nESub(1);
       % --> to MEX
-      nodeColor = zeros(nE, nColMax);
-      R = zeros(size(n2E,1),1);
-      for k = 1:size(n2E,1)
-        for idx = 1:nColMax
-          isFree = 0;
-          for l = 1:size(n2E,2)
-            if n2E(k,l)==0, continue; end
-            isFree = isFree + nodeColor(n2E(k,l), idx);
-          end
-          if isFree==0, break, end
-        end
-        R(k) = idx;
-        for l = 1:size(n2E,2)
-          if n2E(k,l)==0, continue; end
-          nodeColor(n2E(k,l), idx) = true;
-        end
-      end
+%       nodeColor = zeros(nE, nColMax);
+%       R = zeros(size(n2E,1),1);
+%       for k = 1:size(n2E,1)
+%         for idx = 1:nColMax
+%           isFree = 0;
+%           for l = 1:size(n2E,2)
+%             if n2E(k,l)==0, continue; end
+%             isFree = isFree + nodeColor(n2E(k,l), idx);
+%           end
+%           if isFree==0, break, end
+%         end
+%         R(k) = idx;
+%         for l = 1:size(n2E,2)
+%           if n2E(k,l)==0, continue; end
+%           nodeColor(n2E(k,l), idx) = true;
+%         end
+%       end
       %
-%       R = colorNodes(n2E, nE, nColMax)+1;
+      R = colorNodes(n2E, nE, nColMax)+1;
       %
       cnt = accumarray(R,1);
       [~,R] = sort(R);

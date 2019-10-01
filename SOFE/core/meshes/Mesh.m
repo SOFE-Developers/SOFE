@@ -67,6 +67,7 @@ classdef Mesh < SOFE
           R = tprod(R, obj.preMap, [1 2 3 -1],[-1 4]); % nExnPxnWxnD
         end
       catch
+        keyboard
         R = sum(bsxfun(@times, permute(N,[1 4 3 5 2]), permute(B,[5 2 3 4 1])),5); % nExnPxnW[xnD]
         if order>0
           R = sum(bsxfun(@times, permute(R, [1 2 3 5 4]), permute(obj.preMap, [4 5 3 2 1])), 5);
