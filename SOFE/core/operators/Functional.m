@@ -109,9 +109,10 @@ classdef Functional < SOFE
         end
         if obj.matrixFree
           obj.A0{k} = e.*sign(obj.fes.getDoFMap(obj.codim, {k}))'; % nExnB
+        else
+          I = (r==0); if any(I(:)), r(I) = []; e(I) = []; end %#ok<AGROW>
+          re{k} = [r(:), e(:)];
         end
-        I = (r==0); if any(I(:)), r(I) = []; e(I) = []; end %#ok<AGROW>
-        re{k} = [r(:), e(:)];
         if k>1
           if k>2
             fprintf(repmat('\b',1,length(s)));
@@ -121,9 +122,12 @@ classdef Functional < SOFE
         end
       end
       if k>1, fprintf('\n'); end
-      obj.A0 = cell2mat(obj.A0);
-      re = cell2mat(re);
-      obj.matrix = accumarray(re(:,1), re(:,2), size(obj.matrix));
+      if obj.matrixFree
+        obj.A0 = cell2mat(obj.A0);
+      else
+        re = cell2mat(re);
+        obj.matrix = accumarray(re(:,1), re(:,2), size(obj.matrix));
+      end
     end
     function R = integrate(obj, basis, k)
       [~, weights] = obj.fes.element.getQuadData(obj.codim); % nPx1

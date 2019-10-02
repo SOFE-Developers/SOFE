@@ -319,6 +319,9 @@ classdef Element < SOFE
         case 2
           R = obj.getInnerDoFKeyFace();
       end
+      if isempty(R)
+        error("Inner DoFKey must not be empty!");
+      end
     end
     function R = getInnerDoFKeyNode(obj)
       dTp = obj.doFTuple;
