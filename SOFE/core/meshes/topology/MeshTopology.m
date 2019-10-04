@@ -139,112 +139,37 @@ classdef MeshTopology < SOFE
     function R = getProjector(obj) %#ok<*MANU>
       R = [];
     end
-    function [R,cnt] = colorElements(obj)
-      nN = obj.getNumber(0);
-      elem = obj.getEntity('0');
-      degN = accumarray(reshape(elem,[],1), 1, [nN 1]);
-      nColMax = size(elem,2)*max(degN);
+    function [R,cnt] = color(obj, dim)
+      if dim==obj.dimP
+        N = obj.getNumber(0);
+        adjacency = obj.getEntity(obj.dimP);
+        nColMax = size(adjacency,2)*max(accumarray(reshape(adjacency,[],1), 1, [N 1]));
+      else
+        N = obj.getNumber(obj.dimP);
+        adjacency = obj.getConnect(dim, obj.dimP);
+        nColMax = size(adjacency,2)*obj.nESub(dim+1);
+      end
       % --> to MEX
-%       nodeColor = zeros(nN, nColMax);
-%       R = zeros(size(elem,1),1);
-%       for k = 1:size(elem,1)
+%       color = zeros(N, nColMax);
+%       [nA,nV] = size(adjacency);
+%       R = zeros(nA,1);
+%       for k = 1:nA
 %         for idx = 1:nColMax
 %           isFree = 0;
-%           for l = 1:size(elem,2)
-%             isFree = isFree + nodeColor(elem(k,l), idx);
+%           for l = 1:nV
+%             if adjacency(k,l)==0, continue; end
+%             isFree = isFree + color(adjacency(k,l), idx);
 %           end
 %           if isFree==0, break, end
 %         end
 %         R(k) = idx;
-%         nodeColor(elem(k,:), idx) = true;
-%       end
-      %
-      R = colorElements(elem, nN, nColMax)+1;
-      %
-      cnt = accumarray(R,1);
-      [~,R] = sort(R);
-    end
-    function [R,cnt] = getColoredNodes_(obj)
-      nE = obj.getNumber(obj.dimP);
-      n2E = obj.getConnect(0, obj.dimP);
-      nColMax = size(n2E,2)*obj.nESub(1);
-      % --> to MEX
-%       nodeColor = zeros(nE, nColMax);
-%       R = zeros(size(n2E,1),1);
-%       for k = 1:size(n2E,1)
-%         for idx = 1:nColMax
-%           isFree = 0;
-%           for l = 1:size(n2E,2)
-%             if n2E(k,l)==0, continue; end
-%             isFree = isFree + nodeColor(n2E(k,l), idx);
-%           end
-%           if isFree==0, break, end
-%         end
-%         R(k) = idx;
-%         for l = 1:size(n2E,2)
-%           if n2E(k,l)==0, continue; end
-%           nodeColor(n2E(k,l), idx) = true;
+%         for l = 1:nV
+%           if adjacency(k,l)==0, continue; end
+%           color(adjacency(k,l), idx) = true;
 %         end
 %       end
       %
-      R = colorNodes(n2E, nE, nColMax)+1;
-      %
-      cnt = accumarray(R,1);
-      [~,R] = sort(R);
-    end
-    function [R,cnt] = getColoredFaces_(obj)
-      nE = obj.getNumber(obj.dimP);
-      f2E = obj.getConnect(1, obj.dimP);
-      nColMax = size(f2E,2)*obj.nESub(2);
-      % --> to MEX
-      nodeColor = zeros(nE, nColMax);
-      R = zeros(size(f2E,1),1);
-      for k = 1:size(f2E,1)
-        for idx = 1:nColMax
-          isFree = 0;
-          for l = 1:size(f2E,2)
-            if f2E(k,l)==0, continue; end
-            isFree = isFree + nodeColor(f2E(k,l), idx);
-          end
-          if isFree==0, break, end
-        end
-        R(k) = idx;
-        for l = 1:size(f2E,2)
-          if f2E(k,l)==0, continue; end
-          nodeColor(f2E(k,l), idx) = true;
-        end
-      end
-      %
-%       R = colorFaces(n2E, nE, nColMax)+1; % TODO
-      %
-      cnt = accumarray(R,1);
-      [~,R] = sort(R);
-    end
-    function [R,cnt] = colorSubEntities(obj, dim)
-      nE = obj.getNumber(obj.dimP);
-      ent2El = obj.getConnect(dim, obj.dimP);
-      nColMax = size(ent2El,2)*obj.nESub(dim+1);
-      % --> to MEX
-      nodeColor = zeros(nE, nColMax);
-      R = zeros(size(ent2El,1),1);
-      for k = 1:size(ent2El,1)
-        for idx = 1:nColMax
-          isFree = 0;
-          for l = 1:size(ent2El,2)
-            if ent2El(k,l)==0, continue; end
-            isFree = isFree + nodeColor(ent2El(k,l), idx);
-          end
-          if isFree==0, break, end
-        end
-        R(k) = idx;
-        for l = 1:size(ent2El,2)
-          if ent2El(k,l)==0, continue; end
-          nodeColor(ent2El(k,l), idx) = true;
-        end
-      end
-      %
-%       R = colorEntites(ent2El, nEnt, nColMax)+1; % TODO
-      %
+      R = color(adjacency, N, nColMax)+1;
       cnt = accumarray(R,1);
       [~,R] = sort(R);
     end
