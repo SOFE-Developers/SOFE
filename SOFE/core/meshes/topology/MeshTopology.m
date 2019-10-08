@@ -111,8 +111,11 @@ classdef MeshTopology < SOFE
             nType = accumarray([entity, count(:)], idx(I));
           end
         end
+        R = obj.connectivity{dimFrom+1,dimTo+1};
+      else
+        R = (1:obj.getNumber(dimFrom))';
+        nType = ones(obj.getNumber(dimFrom),1);
       end
-      R = obj.connectivity{dimFrom+1,dimTo+1};
     end
     function R = getConnect2(obj, dimFrom, dimTo)
       % slow version (3x) by sparse and transpose (just for validation)

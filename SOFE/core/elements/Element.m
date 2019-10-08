@@ -54,26 +54,6 @@ classdef Element < SOFE
       Rp = obj.quadRule{codim+1}.points;
       Rw = obj.quadRule{codim+1}.weights;
     end
-    function R = getNEntSub(obj, dim)
-      switch dim
-        case 0
-          R = 1;
-        case 1
-          R = [2 1];
-        case 2
-          if obj.isSimplex
-            R = [3 3 1];
-          else
-            R = [4 4 1];
-          end
-        case 3
-          if obj.isSimplex
-            R = [4 6 4 1];
-          else
-            R = [8 12 6 1];
-          end
-      end
-    end
   end
   methods(Static = true)
     function R = create(nV, dimP)
@@ -107,6 +87,26 @@ classdef Element < SOFE
     end
     function R = getNC(obj)
       R = size(obj.evalBasis(zeros(1,obj.dimension),0),3);
+    end
+    function R = getNEntSub(obj, dim)
+      switch dim
+        case 0
+          R = 1;
+        case 1
+          R = [2 1];
+        case 2
+          if obj.isSimplex
+            R = [3 3 1];
+          else
+            R = [4 4 1];
+          end
+        case 3
+          if obj.isSimplex
+            R = [4 6 4 1];
+          else
+            R = [8 12 6 1];
+          end
+      end
     end
   end
   methods % display
@@ -323,6 +323,21 @@ classdef Element < SOFE
         error("Inner DoFKey must not be empty!");
       end
     end
+    function R = getInnerDoFKeyH(obj, dim)
+      switch dim
+        case 0
+          R = obj.getInnerDoFKeyNodeH();
+        case 1
+          R = obj.getInnerDoFKeyEdgeH();
+        case 2
+          R = obj.getInnerDoFKeyFaceH();
+        case 3
+          R = obj.getInnerDoFKeyCellH();
+      end
+      if isempty(R)
+        error("Inner DoFKey must not be empty!");
+      end
+    end
     function R = getInnerDoFKeyNode(obj)
       dTp = obj.doFTuple;
       if size(dTp,1)>1
@@ -400,6 +415,74 @@ classdef Element < SOFE
       else
         R = kron(eye(6), ones(1,dTp(3)));
         R = [R, ones(size(R,1), dTp(4))];
+      end
+      R = R'; % nBxnType
+    end
+    function R = getInnerDoFKeyNodeH(obj)
+      dTp = obj.doFTuple;
+      if size(dTp,1)>1
+        dTp = prod(obj.doFTuple);
+      end
+      nESub = obj.getNEntSub(obj.dimension);
+      switch obj.dimension
+        case 1
+          assert(false, 'TODO');
+        case 2
+          R = kron(eye(nESub(1)), ones(1,dTp(1)));
+          R = [R, zeros(size(R,1), nESub(2)*dTp(2)+dTp(3))];
+        case 3
+          R = kron(eye(nESub(1)), ones(1,dTp(1)));
+          R = [R, zeros(size(R,1), nESub(2)*dTp(2)+nESub(3)*dTp(3)+nESub(4)*dTp(4))];
+      end
+      R = R'; % nBxnType
+    end
+    function R = getInnerDoFKeyEdgeH(obj)
+      dTp = obj.doFTuple;
+      if size(dTp,1)>1
+        dTp = prod(obj.doFTuple);
+      end
+      nESub = obj.getNEntSub(obj.dimension);
+      switch obj.dimension
+        case 2
+          R = zeros(nESub(2), nESub(1)*dTp(1));
+          R = [R, kron(eye(nESub(2)), ones(1,dTp(2)))];
+          R = [R, zeros(size(R,1), nESub(3)*dTp(3))];
+        case 3
+          R = zeros(nESub(2), nESub(1)*dTp(1));
+          R = [R, kron(eye(nESub(2)), ones(1,dTp(2)))];
+          R = [R, zeros(size(R,1), nESub(3)*dTp(3)+nESub(4)*dTp(4))];
+      end
+      R = R'; % nBxnType
+    end
+    function R = getInnerDoFKeyFaceH(obj)
+      dTp = obj.doFTuple;
+      if size(dTp,1)>1
+        dTp = prod(obj.doFTuple);
+      end
+      nESub = obj.getNEntSub(obj.dimension);
+      switch obj.dimension
+        case 2
+          R = zeros(nESub(3), nESub(1)*dTp(1)+nESub(2)*dTp(2));
+          R = [R, ones(size(R,1), nESub(3)*dTp(3))];
+        case 3
+          R = zeros(nESub(3), nESub(1)*dTp(1)+nESub(2)*dTp(2));
+          R = [R, kron(eye(nESub(3)), ones(1,dTp(3)))];
+          R = [R, zeros(size(R,1), nESub(4)*dTp(4))];
+      end
+      R = R'; % nBxnType
+    end
+    function R = getInnerDoFKeyCellH(obj)
+      dTp = obj.doFTuple;
+      if size(dTp,1)>1
+        dTp = prod(obj.doFTuple);
+      end
+      nESub = obj.getNEntSub(obj.dimension);
+      switch obj.dimension
+        case 2
+          assert(0, 'Not allowed!');
+        case 3
+          R = zeros(nESub(4), nESub(1)*dTp(1)+nESub(2)*dTp(2)+nESub(3)*dTp(3));
+          R = [R, ones(size(R,1), nESub(4)*dTp(4))];
       end
       R = R'; % nBxnType
     end
