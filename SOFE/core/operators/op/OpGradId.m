@@ -26,12 +26,22 @@ classdef OpGradId < Operator % (c*Grad(u), V )
       R = obj.integrate(basisI, dBasisJ, k);
     end
     function R = getScaling(obj, nRef)
-%       warning('TODO: scaling!');
-%       if obj.fesTest.element.getNC() ~= obj.fesTrial.element.getNC()
-%         R = 2^((nRef*0*obj.fesTrial.element.dimension));
-%       else
-        R = 2^((nRef*(1-obj.fesTrial.element.dimension)));
-%       end
+      dim = obj.fesTrial.element.dimension;
+      switch obj.fesTrial.element.conformity
+        case {'H1', 'L2'}
+          I = 1;
+        otherwise
+          assert(0, 'not allowed');
+      end
+      switch obj.fesTest.element.conformity
+        case {'H1', 'L2'}
+          J = 0;
+        case 'HDiv'
+          J = dim - 1;
+        case 'HRot'
+          J = 1;
+      end
+      R = 2^(nRef*(I+J-dim));
     end
   end
 end

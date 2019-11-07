@@ -15,5 +15,23 @@ classdef OpIdDiv < Operator % (c*u, div(V) )
       end
       R = obj.integrate(divBasisI, basisJ, k);
     end
+    function R = getScaling(obj, nRef)
+      dim = obj.fesTrial.element.dimension;
+      switch obj.fesTrial.element.conformity
+        case {'H1', 'L2'}
+          I = 0;
+        otherwise
+          assert(0, 'not allowed');
+      end
+      switch obj.fesTest.element.conformity
+        case {'H1', 'L2'}
+          J = 1;
+        case 'HDiv'
+          J = dim;
+        otherwise
+          assert(0, 'not allowed');
+      end
+      R = 2^(nRef*(I+J-dim));
+    end
   end
 end

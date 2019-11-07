@@ -317,7 +317,11 @@ classdef Element < SOFE
         case 1
           R = obj.getInnerDoFKeyEdge();
         case 2
-          R = obj.getInnerDoFKeyFace();
+          if obj.dimension==2
+            R = obj.getInnerDoFKeyCell();
+          else
+            R = obj.getInnerDoFKeyFace();
+          end
       end
       if isempty(R)
         error("Inner DoFKey must not be empty!");
@@ -330,7 +334,11 @@ classdef Element < SOFE
         case 1
           R = obj.getInnerDoFKeyEdgeH();
         case 2
-          R = obj.getInnerDoFKeyFaceH();
+          if obj.dimension==2
+            R = obj.getInnerDoFKeyCellH();
+          else
+            R = obj.getInnerDoFKeyFaceH();
+          end
         case 3
           R = obj.getInnerDoFKeyCellH();
       end
@@ -417,6 +425,9 @@ classdef Element < SOFE
         R = [R, ones(size(R,1), dTp(4))];
       end
       R = R'; % nBxnType
+    end
+    function R = getInnerDoFKeyCell(obj)
+      R = ones(obj.nB(obj.dimension),1);
     end
     function R = getInnerDoFKeyNodeH(obj)
       dTp = obj.doFTuple;

@@ -15,14 +15,24 @@ classdef OpIdId < Operator % ( c*U, V )
       R = obj.integrate(basisI, basisJ, k); % nExnBxnB
     end
     function R = getScaling(obj, nRef)
+      dim = obj.fesTrial.element.dimension;
       switch obj.fesTrial.element.conformity
         case {'H1', 'L2'}
-          R = 2^((nRef*(0-obj.fesTrial.element.dimension)));
+          I = 0;
         case 'HDiv'
-          R = 2^((nRef*(obj.fesTrial.element.dimension-2)));
+          I = dim - 1;
         case 'HRot'
-          R = 2^((nRef*(2-obj.fesTrial.element.dimension)));
+          I = 1;
       end
+      switch obj.fesTest.element.conformity
+        case {'H1', 'L2'}
+          J = 0;
+        case 'HDiv'
+          J = dim - 1;
+        case 'HRot'
+          J = 1;
+      end
+      R = 2^(nRef*(I+J-dim));
     end
   end
 end
