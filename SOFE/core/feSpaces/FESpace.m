@@ -583,11 +583,12 @@ classdef FESpace < SOFE
       C = C.*sign(I).*sign(J); I = abs(I); J = abs(J);
 %       I = I(I~=0); J = J(I~=0); C = C(I~=0);
       % assemble
-      cnt = sparse(I,J,1);
       R = sparse(I,J,C);
-      [ii,jj,cnt] = find(cnt);
-      idx = ii+size(R,1)*(jj-1);
-      R(idx) = R(idx)./cnt;
+%       cnt = sparse(I,J,1);
+%       [ii,jj,cnt] = find(cnt);
+%       idx = ii+size(R,1)*(jj-1);
+%       R(idx) = R(idx)./cnt;
+      R = bsxfun(@rdivide, R, accumarray(I(:),1)/nB);
     end
   end
   methods % interpolation
