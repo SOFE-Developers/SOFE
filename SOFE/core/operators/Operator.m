@@ -24,9 +24,10 @@ classdef Operator < SOFE
         obj.fesTest = varargin{1};
         obj.fesTest.register(obj);
         obj.syncQuadRules();
-        nBlock = max(obj.fesTrial.nBlock, obj.fesTest.nBlock);
-        obj.fesTrial.setBlockingGlobal(nBlock);
-        obj.fesTest.setBlockingGlobal(nBlock);
+%         nBlock = max(obj.fesTrial.nBlock, obj.fesTest.nBlock);
+%         obj.fesTrial.setBlockingGlobal(nBlock);
+%         obj.fesTest.setBlockingGlobal(nBlock);
+        assert(norm(obj.fesTrial.nBlock-obj.fesTest.nBlock)==0, 'FESpaces must have the same blocking')
       else
         obj.fesTest = fesTrial;
       end
