@@ -1,5 +1,6 @@
 classdef Operator < SOFE
   properties
+    doSparse = 1;
     codim
     data, dataCache
     fesTrial, fesTest
@@ -24,9 +25,6 @@ classdef Operator < SOFE
         obj.fesTest = varargin{1};
         obj.fesTest.register(obj);
         obj.syncQuadRules();
-%         nBlock = max(obj.fesTrial.nBlock, obj.fesTest.nBlock);
-%         obj.fesTrial.setBlockingGlobal(nBlock);
-%         obj.fesTest.setBlockingGlobal(nBlock);
         assert(norm(obj.fesTrial.nBlock-obj.fesTest.nBlock)==0, 'FESpaces must have the same blocking')
       else
         obj.fesTest = fesTrial;
@@ -79,20 +77,23 @@ classdef Operator < SOFE
       end
       if ~any(idx), return, end
       nBlock = obj.fesTrial.nBlock(obj.codim+1);
+      if ~obj.doSparse, obj.matrix = cell(1,1,nBlock); end
       obj.A0 = cell(nBlock,1);
       for k = 1:nBlock
         e = []; r = []; c = [];
         I = obj.fesTrial.getBlock(obj.codim, k);
         if ~isempty(I)
           e = obj.assembleOp(k); % nExnBxnB
-          r = obj.fesTest.getDoFMap(obj.codim, {k}); % nBxnE
-          c = obj.fesTrial.getDoFMap(obj.codim, {k}); % nBxnE
-          r = repmat(abs(r)',[1 1 size(c,1)]); % nExnBxnB
-          c = permute(repmat(abs(c)',[1 1 size(r,2)]), [1 3 2]); % nExnBxnB
-          if ~strcmp(idx,':')
-            e = e(idx(I),:,:);
-            r = r(idx(I),:,:);
-            c = c(idx(I),:,:);
+          if obj.doSparse
+            r = obj.fesTest.getDoFMap(obj.codim, {k}); % nBxnE
+            c = obj.fesTrial.getDoFMap(obj.codim, {k}); % nBxnE
+            r = repmat(abs(r)',[1 1 size(c,1)]); % nExnBxnB
+            c = permute(repmat(abs(c)',[1 1 size(r,2)]), [1 3 2]); % nExnBxnB
+            if ~strcmp(idx,':')
+              e = e(idx(I),:,:);
+              r = r(idx(I),:,:);
+              c = c(idx(I),:,:);
+            end
           end
         end
         if obj.matrixFree
@@ -100,13 +101,16 @@ classdef Operator < SOFE
           sgnTrial = permute(sign(obj.fesTrial.getDoFMap(obj.codim, {k}))', [1 3 2]); % nExnB
           obj.A0{k} = (e.*sgnTrial).*sgnTest; % nBxnBxnE
         end
-        I = (r.*c==0); if any(I(:)), r(I) = []; c(I) = []; e(I) = []; end %#ok<AGROW>
-        %
-        try
-          fsparse(0);
-          obj.matrix = obj.matrix + fsparse(r(:), c(:), e(:), [M, N]);
-        catch
-          obj.matrix = obj.matrix + sparse(r(:), c(:), e(:), M, N);
+        if obj.doSparse
+          I = (r.*c==0); if any(I(:)), r(I) = []; c(I) = []; e(I) = []; end %#ok<AGROW>
+          try
+            fsparse(0);
+            obj.matrix = obj.matrix + fsparse(r(:), c(:), e(:), [M, N]);
+          catch
+            obj.matrix = obj.matrix + sparse(r(:), c(:), e(:), M, N);
+          end
+        else
+          obj.matrix{k} = permute(e, [2 3 1]); % nBxnBxnE
         end
         if k>1
           if k>2
@@ -117,6 +121,7 @@ classdef Operator < SOFE
         end
       end
       if k>1, fprintf('\n'); end
+      if ~obj.doSparse, obj.matrix = cell2mat(obj.matrix); end
       obj.A0 = permute(cell2mat(obj.A0), [2 3 1]); % nBxnBxnE
     end
     function R = integrate(obj, basisI, basisJ, k)

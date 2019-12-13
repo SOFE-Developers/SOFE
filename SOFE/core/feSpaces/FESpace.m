@@ -94,6 +94,7 @@ classdef FESpace < SOFE
       for k = 1:nBlockMax
         obj.cache.doFMap{k} = cell(obj.element.dimension+1,1);
       end
+      obj.cache.nDoF = [];
       obj.freeDoFs = [];
       %
       obj.notifyObservers('fesChanged');
@@ -461,7 +462,10 @@ classdef FESpace < SOFE
   end
   methods % dof mapping
     function R = getNDoF(obj)
-      R = sum(prod(obj.element.doFTuple,1)'.*obj.mesh.topology.getNumber());
+      if isempty(obj.cache.nDoF)
+        obj.cache.nDoF = sum(prod(obj.element.doFTuple,1)'.*obj.mesh.topology.getNumber());
+      end
+      R = obj.cache.nDoF;
     end
     function R = getDoFMap(obj, codim, varargin) % [{k} or I]
       if isempty(varargin), varargin{1} = ':'; end
@@ -567,28 +571,6 @@ classdef FESpace < SOFE
       if nargout>0
         R = obj.getProlongator(dM0, obj.getDoFMap(0));
       end
-    end
-    function R = getProlongator(obj, dM0, dM1, varargin) % [iE, iCh]
-      try iE = varargin{1}; catch, iE = true(size(dM0,2),1); end
-      try iCh = varargin{2}; catch, iCh = reshape(1:2^obj.element.dimension*numel(iE),numel(iE),[]); end
-      nCh = size(iCh,2); nB = size(dM0,1);
-      pCoeff = obj.element.getProlongationCoeff();
-      I = cell(nCh,1); J = cell(nCh,1); C = cell(nCh,1);
-      for k = 1:nCh
-        I{k} = kron(ones(1,nB),dM1(:, iCh(:,k))'); % child
-        J{k} = kron(dM0(:,iE)',ones(1,nB)); % parent
-        C{k} = repmat(reshape(pCoeff(:,:,k),1,[]), numel(iE), 1);
-      end
-      I = cell2mat(I); J = cell2mat(J); C = cell2mat(C);
-      C = C.*sign(I).*sign(J); I = abs(I); J = abs(J);
-%       I = I(I~=0); J = J(I~=0); C = C(I~=0);
-      % assemble
-      R = sparse(I,J,C);
-%       cnt = sparse(I,J,1);
-%       [ii,jj,cnt] = find(cnt);
-%       idx = ii+size(R,1)*(jj-1);
-%       R(idx) = R(idx)./cnt;
-      R = bsxfun(@rdivide, R, accumarray(I(:),1)/nB);
     end
   end
   methods % interpolation
@@ -744,6 +726,41 @@ classdef FESpace < SOFE
         rhs = sign(dMap).*(lhs\reshape(permute(dU(:,:,:,d), [2 3 1]), nB, [])); % nBxnE
         R(:,d) = accumarray(dMap(:),rhs(:))./accumarray(dMap(:),1); 
       end
+    end
+  end
+  methods % prolong & restrict
+    function R = getProlongator(obj, dM0, dM1, varargin) % [iE, iCh]
+      try iE = varargin{1}; catch, iE = true(size(dM0,2),1); end
+      try iCh = varargin{2}; catch, iCh = reshape(1:2^obj.element.dimension*numel(iE),numel(iE),[]); end
+      nCh = size(iCh,2); nB = size(dM0,1);
+      pCoeff = obj.element.getProlongationCoeff();
+      I = cell(nCh,1); J = cell(nCh,1); C = cell(nCh,1);
+      for k = 1:nCh
+        I{k} = kron(ones(1,nB),dM1(:, iCh(:,k))'); % child
+        J{k} = kron(dM0(:,iE)',ones(1,nB)); % parent
+        C{k} = repmat(reshape(pCoeff(:,:,k),1,[]), numel(iE), 1);
+      end
+      I = cell2mat(I); J = cell2mat(J); C = cell2mat(C);
+      C = C.*sign(I).*sign(J); I = abs(I); J = abs(J);
+%       I = I(I~=0); J = J(I~=0); C = C(I~=0);
+      cnt = sparse(I,J,1);
+      R = sparse(I,J,C);
+      [ii,jj,cnt] = find(cnt);
+      idx = ii+size(R,1)*(jj-1);
+      R(idx) = R(idx)./cnt;
+%       R = bsxfun(@rdivide, sparse(I,J,C), accumarray(I(:),1)/nB); % for non-conforming elements
+    end
+    function R = prolongDoFVector(obj, U,dM0, dM1)
+      nDoF1 = max(abs(dM1(:)));
+      pCoeff = obj.element.getProlongationCoeff();
+      R = prolongIdx(pCoeff, U, dM0, dM1, nDoF1); % --> TODO: prolongDoFVector.mex
+    end
+    function R = restrictDoFVector(obj, U, dM0, dM1)
+      nDoF0 = max(abs(dM0(:)));
+      nDoF1 = max(abs(dM1(:)));
+      degDoF1 = accumarray(abs(dM1(:)), 1, [nDoF1, 1]);
+      pCoeff = obj.element.getProlongationCoeff();
+      R = restrictIdx(pCoeff, U, dM0, dM1, degDoF1, nDoF0); % --> restrictDoFVector.mex (degDoF incr in loop)
     end
   end
 end
