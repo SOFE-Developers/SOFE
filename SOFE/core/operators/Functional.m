@@ -11,12 +11,7 @@ classdef Functional < SOFE
   end
   methods % constructor
     function obj = Functional(data, fes, codim, varargin) % [loc]
-      if isnumeric(data) && size(data,1)==1
-        obj.dataCache = @(x)data+zeros(size(x,1),numel(data)); 
-      else
-        obj.dataCache = data;
-      end
-      obj.data = data;
+      obj.setData(data);
       obj.fes = fes;
       obj.fes.register(obj);
       obj.codim = codim;
@@ -81,6 +76,15 @@ classdef Functional < SOFE
         otherwise
           error('Unknown message');
       end
+    end
+    function setData(obj, data)
+      if isnumeric(data) && size(data,1)==1
+        obj.dataCache = @(x)data+zeros(size(x,1),numel(data)); 
+      else
+        obj.dataCache = data;
+      end
+      obj.data = data;
+      obj.matrix = [];
     end
   end
   methods % assemble & integrate

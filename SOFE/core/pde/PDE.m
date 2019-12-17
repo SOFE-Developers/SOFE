@@ -18,7 +18,7 @@ classdef PDE < SOFE
   methods % constructor & more
     function obj = PDE(list, lhs, rhs)
       obj.list = list; obj.nOp = numel(list);
-      obj.lhs = lhs; obj.rhs = rhs; obj.nEq = numel(rhs.sys);
+      obj.lhs = lhs; obj.rhs = rhs; obj.nEq = size(lhs.sys,1);
       obj.fesTest = cell(obj.nEq, 1); obj.fesTrial = cell(obj.nEq, 1);
       for k = 1:numel(list)
         obj.list{k}.register(obj);
@@ -88,12 +88,14 @@ classdef PDE < SOFE
       obj.loadVec = zeros(obj.nDoF, 1);
       for i = 1:obj.nEq
         % rhs
-        if ~isempty(obj.rhs.sys{i}) 
-          for k = 1:numel(obj.rhs.sys{i})
-            b = obj.list{obj.rhs.sys{i}{k}}.matrix;
-            try b = obj.rhs.coeff{i}{k}*b; catch, end
-            idx = obj.I(i,1):obj.I(i,2);
-            obj.loadVec(idx,:) = obj.loadVec(idx,:) + b;
+        if ~isempty(obj.rhs.sys) 
+          if ~isempty(obj.rhs.sys{i}) 
+            for k = 1:numel(obj.rhs.sys{i})
+              b = obj.list{obj.rhs.sys{i}{k}}.matrix;
+              try b = obj.rhs.coeff{i}{k}*b; catch, end
+              idx = obj.I(i,1):obj.I(i,2);
+              obj.loadVec(idx,:) = obj.loadVec(idx,:) + b;
+            end
           end
         end
         % lhs
