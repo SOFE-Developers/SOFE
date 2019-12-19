@@ -166,7 +166,7 @@ classdef Visualizer3D < Visualizer
       end
       axis equal; axis tight;
     end
-    function h = surfFH(obj, F, varargin)      
+    function h = surfFH(obj, F, varargin)
       try N = varargin{1}.N; catch, N = 200; end
       try map = varargin{1}.map; catch, map = @(u,v)[u,v,0*u]; end
       if numel(N) == 1, N = N*ones(2,1); end
