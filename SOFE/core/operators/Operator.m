@@ -23,7 +23,7 @@ classdef Operator < SOFE
       obj.fesTrial.register(obj);
       if ~isempty(varargin) && ~isempty(varargin{1})
         obj.fesTest = varargin{1};
-        obj.fesTest.register(obj);
+%         obj.fesTest.register(obj);
         obj.syncQuadRules();
         assert(norm(obj.fesTrial.nBlock-obj.fesTest.nBlock)==0, 'FESpaces must have the same blocking')
       else
