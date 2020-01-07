@@ -94,13 +94,14 @@ classdef FESpace < SOFE
       for k = 1:nBlockMax
         obj.cache.doFMap{k} = cell(obj.element.dimension+1,1);
       end
-      obj.cache.nDoF = [];
       obj.freeDoFs = [];
       %
       obj.notifyObservers('fesChanged');
     end
     function setBlockingGlobal(obj, N)
       if isscalar(N), N = N*ones(obj.element.dimension+1,1); end
+      nE = obj.mesh.topology.getNumber();
+      N = min(N, nE(end:-1:2));
       obj.nBlockGlobal = N;
       obj.setBlocking();
     end
@@ -462,15 +463,12 @@ classdef FESpace < SOFE
   end
   methods % dof mapping
     function R = getNDoF(obj)
-      if isempty(obj.cache.nDoF)
-        obj.cache.nDoF = sum(prod(obj.element.doFTuple,1)'.*obj.mesh.topology.getNumber());
-      end
-      R = obj.cache.nDoF;
+      R = sum(prod(obj.element.doFTuple,1)'.*obj.mesh.topology.getNumber());
     end
     function R = getDoFMap(obj, codim, varargin) % [{k} or I]
       if isempty(varargin), varargin{1} = ':'; end
       if iscell(varargin{1})
-        if ~isempty(obj.cache.doFMap{varargin{1}{1}}{codim+1})
+        if ~isempty(obj.cache.doFMap{varargin{1}{1}}{codim+1}) % read cache
           R = obj.cache.doFMap{varargin{1}{1}}{codim+1};
           return
         end
@@ -488,7 +486,9 @@ classdef FESpace < SOFE
           end
         end
         R = cell2mat(R); % nBxnE
-        obj.cache.doFMap{k{1}}{codim+1} = R;
+        if codim==0,
+          obj.cache.doFMap{k{1}}{codim+1} = R; % write cache
+        end
       else
         nBl = obj.nBlock(codim+1);
         R = cell(nBl,1);
