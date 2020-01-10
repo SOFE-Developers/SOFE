@@ -77,11 +77,16 @@ classdef Operator < SOFE
       end
       if ~any(idx), return, end
       nBlock = obj.fesTrial.nBlock(obj.codim+1);
-      if ~obj.doSparse, obj.matrix = cell(1,1,nBlock); end
+      if ~obj.doSparse
+        nB = obj.fesTest.element.nB(end);
+        nE = obj.fesTest.mesh.topology.getNumber('0');
+%         obj.matrix = cell(1,1,nBlock);
+        obj.matrix = zeros(nB,nB,nE);
+      end
       obj.A0 = cell(nBlock,1);
       for k = 1:nBlock
         e = []; r = []; c = [];
-        I = obj.fesTrial.getBlock(obj.codim, k);
+        I = obj.fesTrial.getBlock2(obj.codim, k);
         if ~isempty(I)
           e = obj.assembleOp(k); % nExnBxnB
           if obj.doSparse
@@ -90,9 +95,9 @@ classdef Operator < SOFE
             r = repmat(abs(r)',[1 1 size(c,1)]); % nExnBxnB
             c = permute(repmat(abs(c)',[1 1 size(r,2)]), [1 3 2]); % nExnBxnB
             if ~strcmp(idx,':')
-              e = e(idx(I),:,:);
-              r = r(idx(I),:,:);
-              c = c(idx(I),:,:);
+              e = e(idx(I(1):I(2)),:,:);
+              r = r(idx(I(1):I(2)),:,:);
+              c = c(idx(I(1):I(2)),:,:);
             end
           end
         end
@@ -110,7 +115,9 @@ classdef Operator < SOFE
             obj.matrix = obj.matrix + sparse(r(:), c(:), e(:), M, N);
           end
         else
-          obj.matrix{k} = permute(e, [2 3 1]); % nBxnBxnE
+%           obj.matrix{k} = permute(e, [2 3 1]); % nBxnBxnE
+          idxE = obj.fesTest.getBlock2(obj.codim,k);
+          obj.matrix(:,:,idxE(1):idxE(2)) = permute(e, [2 3 1]); % nBxnBxnE
         end
         if k>1
           if k>2
@@ -121,8 +128,10 @@ classdef Operator < SOFE
         end
       end
       if k>1, fprintf('\n'); end
-      if ~obj.doSparse, obj.matrix = cell2mat(obj.matrix); end
-      obj.A0 = permute(cell2mat(obj.A0), [2 3 1]); % nBxnBxnE
+%       if ~obj.doSparse, obj.matrix = cell2mat(obj.matrix); end
+      if obj.matrixFree
+        obj.A0 = permute(cell2mat(obj.A0), [2 3 1]); % nBxnBxnE
+      end
     end
     function R = integrate(obj, basisI, basisJ, k)
       [~, weights] = obj.fesTrial.element.getQuadData(obj.codim);

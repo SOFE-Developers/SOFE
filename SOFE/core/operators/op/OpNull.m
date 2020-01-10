@@ -6,7 +6,7 @@ classdef OpNull < Operator % ( 0*U, V )
   end
   methods
     function R = assembleOp(obj, k)
-      nE = obj.fesTest.mesh.getBlock(0, k);
+      nE = obj.fesTest.mesh.getBlock2(0, k);
       nD = obj.fesTest.element.dimension;
       nBI = obj.fesTest.element.nB(nD);
       nBJ = obj.fesTrial.element.nB(nD);

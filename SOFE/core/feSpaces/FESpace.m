@@ -101,8 +101,8 @@ classdef FESpace < SOFE
     function setBlockingGlobal(obj, N)
       if isscalar(N), N = N*ones(obj.element.dimension+1,1); end
       nE = obj.mesh.topology.getNumber();
-      N = min(N, nE(end:-1:2));
-      obj.nBlockGlobal = N;
+      N = min(N, nE(end:-1:1));
+      obj.nBlockGlobal = N(1:end-1);
       obj.setBlocking();
     end
     function setBlocking(obj)
@@ -146,6 +146,21 @@ classdef FESpace < SOFE
         end
       else
         R = (1:R(end))';
+      end
+    end
+    function R = getBlock2(obj, codim, varargin) % [k]
+      nE = obj.mesh.topology.getNumber(num2str(codim));
+      if obj.nBlock(codim+1)>nE, error('!Number of blocks exceeds number of elements!'); end
+      R = unique(floor(linspace(0,nE,obj.nBlock(codim+1)+1)));
+      R = [R(1:end-1)+1; R(2:end)];
+      if nargin > 2
+        if varargin{1}>obj.nBlock(codim+1)
+          R = [];
+        else
+          R = [R(1,varargin{:}) R(2,varargin{:})];
+        end
+      else
+        R = [1 R(end)];
       end
     end
   end
@@ -486,9 +501,9 @@ classdef FESpace < SOFE
           end
         end
         R = cell2mat(R); % nBxnE
-        if codim==0,
+        if codim==0 %%%%%%%%%%%%%
           obj.cache.doFMap{k{1}}{codim+1} = R; % write cache
-        end
+        end %%%%%%%%%%%%%%%%%%%%%
       else
         nBl = obj.nBlock(codim+1);
         R = cell(nBl,1);

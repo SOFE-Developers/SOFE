@@ -101,14 +101,14 @@ classdef Functional < SOFE
       re = cell(nBlock,1);
       obj.A0 = cell(nBlock,1);
       for k = 1:nBlock
-        I = obj.fes.getBlock(obj.codim, k);
+        I = obj.fes.getBlock2(obj.codim, k);
         e = []; r = [];
         if ~isempty(I)
           e = obj.assembleOp(k);
           r = abs(obj.fes.getDoFMap(obj.codim, {k}))';
           if ~strcmp(idx,':')
-            e = e(idx(I),:);
-            r = r(idx(I),:);
+            e = e(idx(I(1):I(2)),:);
+            r = r(idx(I(1):I(2)),:);
           end
         end
         if obj.matrixFree
@@ -159,7 +159,8 @@ classdef Functional < SOFE
         end
         R = sum(permute(bsxfun(@times, R, permute(dX, [1 3 2])), [1 2 4 3]), 4); % nExnB[xnC]
       else
-        R = repmat(R,numel(obj.fes.getBlock(k)),1,1);
+        nE = obj.fes.getBlock2(k);
+        R = repmat(R,nE(2)-nE(1)+1,1,1);
       end  
     end
   end
