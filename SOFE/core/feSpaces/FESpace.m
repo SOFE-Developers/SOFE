@@ -305,6 +305,7 @@ classdef FESpace < SOFE
       end
     end
     function R = computeGlobalBasis(obj, points, codim, order, varargin) % [{k} or I]
+      if ischar(order), idxOrder = 1; else, idxOrder = order; end
       if iscell(points)
         varargin{1} = points{2}; codim = obj.element.dimension - size(points{1},2);
         basis = obj.element.evalBasis(points{1}, order); % nBxnPxnC[xnD]
@@ -319,7 +320,7 @@ classdef FESpace < SOFE
         basis = obj.element.evalBasis(forcedPoints, order); % nBxnPxnC[xnD]
         pVec{2} = [1 3 2]; pVec{1} = [1 5 2 3 4];
       end
-      if ~(order==0 && (strcmp(obj.element.conformity, 'H1') || strcmp(obj.element.conformity, 'L2')))
+      if ~(idxOrder==0 && (strcmp(obj.element.conformity, 'H1') || strcmp(obj.element.conformity, 'L2')))
         [trafo{1},trafo{2},trafo{3}] = obj.evalTrafoInfo(points, codim, varargin{:}); % nExnP[xnWxnD]
         trafo{1} = permute(trafo{1}, pVec{1}); % nEx1xnPxnWxnD
         trafo{2} = permute(trafo{2}, pVec{1}); % nEx1xnPxnDxnW
@@ -330,8 +331,10 @@ classdef FESpace < SOFE
         case {'L2', 'H1'}
           switch order
             case 0
+              % phi = \hat{phi}
               R = basis; % 1xnBxnPxnC
             case 1
+              % \grad phi = DPhi^{-T} \grad \hat{phi}
               try
                 R = tprod(permute(basis,[2 3 4 5 1]), permute(trafo{2},[1 3 4 5 2]), [2 3 4 -1], [1 3 -1 5]); % nExnBxnPxnCxnD
               catch
@@ -351,14 +354,19 @@ classdef FESpace < SOFE
           if codim == 0
             switch order
               case 0
+                % phi = 1/J*DPhi\hat{phi}
                 R = sum(bsxfun(@times, trafo{1}, permute(basis, [1 2 3 5 4])),5); % nExnBxnPxnW
                 R = bsxfun(@ldivide, trafo{3}, R); % nExnBxnPxnW
               case 1
+                % \grad phi = 1/J*DPhi \grad \hat{phi}DPhi^{-1}
                 R = sum(bsxfun(@times, permute(basis, [1 2 3 4 6 5]), ...
                                        permute(trafo{2}, [1 2 3 6 5 4])), 6); % nExnBxnPxnCxnW
                 R = sum(bsxfun(@times, permute(trafo{1}, [1 2 3 4 6 5]), ...
                                        permute(R, [1 2 3 6 5 4])), 6); % nExnBxnPxnWxnW
                 R = bsxfun(@ldivide, trafo{3}, R); % nExnBxnPxnWxnW
+              case 'div'
+                % \div phi = 1/J \div \hat{phi}
+                R = bsxfun(@ldivide, trafo{3}, basis); % nExnBxnPxnW
             end
           else % codim == 1
             N = obj.evalNormalVector(2, varargin{:}); % nExnPxnD
@@ -374,13 +382,19 @@ classdef FESpace < SOFE
         case 'HRot'
           switch order
             case 0
+              % phi = DPhi^{-T}\hat{phi}
               R = sum(bsxfun(@times, permute(trafo{2}, [1 2 3 5 4]), ...
                                      permute(basis, [1 2 3 5 4])), 5); % nExnBxnPxnW
             case 1
+              % \grad phi = DPhi^{-T} \grad \hat{phi} DPhi^{-1}
               R = sum(bsxfun(@times, permute(basis, [1 2 3 4 6 5]), ...
                                      permute(trafo{2}, [1 2 3 6 5 4])), 6); % nExnBxnPxnCxnW
               R = sum(bsxfun(@times, permute(trafo{2}, [1 2 3 5 6 4]), ...
                                      permute(R, [1 2 3 6 5 4])), 6); % nExnBxnPxnWxnW
+            case 'curl'
+              % \curl phi = 1/J DPhi \curl\hat{phi}
+              R = sum(bsxfun(@times, trafo{1}, permute(basis, [1 2 3 5 4])),5); % nExnBxnPxnW
+              R = bsxfun(@ldivide, trafo{3}, R); % nExnBxnPxnW
           end
       end
       if iscell(points)
@@ -391,13 +405,14 @@ classdef FESpace < SOFE
       R = bsxfun(@times, S, R); % nExnBxnPxnC[xnD]
     end
     function R = evalGlobalBasis(obj, points, codim, order, varargin) % [{k} or I]
+      if ischar(order), idxOrder = 1; else, idxOrder = order; end
       doCache = 0;
       if ~isempty(varargin) && iscell(varargin{1})
         doCache =  obj.isCaching && isempty(points);
         k = varargin{1};
       end      
-      if doCache && ~isempty(obj.cache.basis{k{1}}{codim+1, order+1})
-        R = obj.cache.basis{k{1}}{codim+1, order+1};
+      if doCache && ~isempty(obj.cache.basis{k{1}}{codim+1, idxOrder+1})
+        R = obj.cache.basis{k{1}}{codim+1, idxOrder+1};
         return
       end
       if ~isempty(points)
@@ -419,7 +434,7 @@ classdef FESpace < SOFE
         R = obj.computeGlobalBasis(points, codim, order, varargin{:});
       end
       if doCache
-        obj.cache.basis{k{1}}{codim+1, order+1} = R;
+        obj.cache.basis{k{1}}{codim+1, idxOrder+1} = R;
       end
     end
     function R = evalDoFVector(obj, U, points, codim, order, varargin) % [{k} or I]

@@ -11,8 +11,12 @@ classdef OpIdId < Operator % ( c*U, V )
   methods
     function R = assembleOp(obj, k)
       basisJ = obj.fesTrial.evalGlobalBasis([], obj.codim, 0, {k}); % nExnBxnPxnC
-      basisI = obj.fesTest.evalGlobalBasis([], obj.codim, 0, {k});
-      R = obj.integrate(basisI, basisJ, k); % nExnBxnB
+      if obj.fesTrial ~= obj.fesTest
+        basisI = obj.fesTest.evalGlobalBasis([], obj.codim, 0, {k});
+        R = obj.integrate(basisI, basisJ, k);
+      else
+        R = obj.integrate(basisJ, basisJ, k);
+      end
     end
     function R = getScaling(obj, nRef)
       dim = obj.fesTrial.element.dimension;

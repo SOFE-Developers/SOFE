@@ -25,7 +25,13 @@ classdef Operator < SOFE
         obj.fesTest = varargin{1};
 %         obj.fesTest.register(obj);
         obj.syncQuadRules();
-        assert(norm(obj.fesTrial.nBlock-obj.fesTest.nBlock)==0, 'FESpaces must have the same blocking')
+%         assert(norm(obj.fesTrial.nBlock-obj.fesTest.nBlock)==0, 'FESpaces must have the same blocking')
+        if norm(obj.fesTrial.nBlock-obj.fesTest.nBlock)~=0
+          obj.fesTrial.nBlock = max(obj.fesTrial.nBlock, obj.fesTest.nBlock);
+          obj.fesTrial.resetCache();
+          obj.fesTest.nBlock = max(obj.fesTrial.nBlock, obj.fesTest.nBlock);
+          obj.fesTest.resetCache();
+        end
       else
         obj.fesTest = fesTrial;
       end
@@ -69,7 +75,7 @@ classdef Operator < SOFE
     function assemble(obj)
       if ~isempty(obj.matrix), return, end
       M = obj.fesTest.getNDoF(); N = obj.fesTrial.getNDoF();
-      obj.matrix = sparse(M, N);
+      if obj.doSparse, obj.matrix = sparse(M, N); end
       if ~isempty(obj.loc)
         idx = obj.fesTrial.mesh.isBoundary(@(x)obj.loc(x));
       else
@@ -78,10 +84,10 @@ classdef Operator < SOFE
       if ~any(idx), return, end
       nBlock = obj.fesTrial.nBlock(obj.codim+1);
       if ~obj.doSparse
-        nB = obj.fesTest.element.nB(end);
+        nBI = obj.fesTest.element.nB(end);
+        nBJ = obj.fesTrial.element.nB(end);
         nE = obj.fesTest.mesh.topology.getNumber('0');
-%         obj.matrix = cell(1,1,nBlock);
-        obj.matrix = zeros(nB,nB,nE);
+        obj.matrix = zeros(nBI,nBJ,nE);
       end
       obj.A0 = cell(nBlock,1);
       for k = 1:nBlock
@@ -115,7 +121,6 @@ classdef Operator < SOFE
             obj.matrix = obj.matrix + sparse(r(:), c(:), e(:), M, N);
           end
         else
-%           obj.matrix{k} = permute(e, [2 3 1]); % nBxnBxnE
           idxE = obj.fesTest.getBlock2(obj.codim,k);
           obj.matrix(:,:,idxE(1):idxE(2)) = permute(e, [2 3 1]); % nBxnBxnE
         end
@@ -128,7 +133,6 @@ classdef Operator < SOFE
         end
       end
       if k>1, fprintf('\n'); end
-%       if ~obj.doSparse, obj.matrix = cell2mat(obj.matrix); end
       if obj.matrixFree
         obj.A0 = permute(cell2mat(obj.A0), [2 3 1]); % nBxnBxnE
       end

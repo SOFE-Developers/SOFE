@@ -76,8 +76,27 @@ classdef Element < SOFE
     end
   end
   methods % evaluation
-    function R = evalBasis(obj, points, order) %#ok<STOUT,INUSL>
-      eval(['R = obj.evalD' num2str(order) 'Basis(points);']);
+    function R = evalBasis(obj, points, order) %#ok<INUSL>
+      if ischar(order)
+        numorder = 1; % 'curl' or 'div'
+      else
+        numorder = order;
+      end
+      B = [];
+      eval(['B = obj.evalD' num2str(numorder) 'Basis(points);']); % nBxnPxnCxnD
+      switch order
+        case 'curl'
+          assert(obj.dimension==3, 'space dimension must be 3')
+          R(:,:,3) = B(:,:,2,1) - B(:,:,1,2); % nBxnPxnC
+          R(:,:,2) = B(:,:,1,3) - B(:,:,3,1); % nBxnPxnC
+          R(:,:,1) = B(:,:,3,2) - B(:,:,2,3); % nBxnPxnC
+        case 'div'
+          sz = size(B);
+          R = reshape(B, sz(1), sz(2), []); % nBxnPx(nC*nD)
+          R = sum(R(:,:,1:sz(4)+1:end), 3); % nBxnP
+        otherwise
+          R = B;
+      end
     end
   end
   methods % get

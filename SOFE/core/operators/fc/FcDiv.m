@@ -6,12 +6,17 @@ classdef FcDiv < Functional % ( F, div(V) )
   end
   methods
     function R = assembleOp(obj, k)
-      basis = [];
+      divBasis = [];
       if obj.codim  <  obj.fes.element.dimension
-        basis = obj.fes.evalGlobalBasis([], obj.codim, 1, {k}); % nExnBxnPxnCxnD
-        basis = basis(:,:,:,1,1) + basis(:,:,:,2,2);
+%       dBasis = obj.fesTrial.evalGlobalBasis([], 0, 1, {k}); % nExnBxnPxnCxnD
+%       nC = size(dBasis,4);
+%       divBasis = dBasis(:,:,:,1,1); % nExnBxnP
+%       for d = 2:nC
+%         divBasis = divBasis + dBasis(:,:,:,d,d); % nExnBxnP
+%       end
+        divBasis = obj.fes.evalGlobalBasis([], obj.codim, 'div', {k}); % nExnBxnPxnCxnD
       end
-      R = integrate(obj, basis, k);
+      R = integrate(obj, divBasis, k);
     end
   end
 end
