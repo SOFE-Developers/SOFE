@@ -65,6 +65,7 @@ classdef Visualizer3D < Visualizer
       try map = varargin{1}.map; catch, map = @(u,v)[u,v,0*u]; end
       try curl = varargin{1}.curl; catch, curl = 0; end
       try grad = varargin{1}.grad; catch, grad = 0; end
+      try scal = varargin{1}.scal; catch, scal = []; end
       try factor = varargin{1}.factor; catch, factor = []; end
       if numel(N) == 1, N = N*ones(2,1); end
       [A,B] = meshgrid(linspace(0,1,N(1)), linspace(0,1,N(2)));
@@ -80,6 +81,9 @@ classdef Visualizer3D < Visualizer
         W = permute(obj.feSpace.evalDoFVector(U,{P}, [], 1), [1 3 2]); % nPxnCxnD
       else
         W = obj.feSpace.evalDoFVector(U,{P}, [], 0); % nPxnC
+      end
+      if ~isempty(scal)
+        W = W.*scal(P);
       end
       if ~isempty(factor), W = bsxfun(@times, W, factor(P)); end
       P = reshape(P, [size(A) 3]);

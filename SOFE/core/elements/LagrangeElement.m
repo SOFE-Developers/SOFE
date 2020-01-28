@@ -59,9 +59,16 @@ classdef LagrangeElement < Element
     end
   end
   methods % evaluate
-    function B = evalBasis(obj, points, order)
+    function B = evalD0Basis(obj, points)
       if isempty(points), B = 1; return; end
-      basis = obj.source.evalBasis(points, order); % nBsxnPxnCx[...]
+      basis = obj.source.evalBasis(points, 0); % nBsxnPxnCx[...]
+      sizeVec = size(basis); % nBsxnPxnCx[...]
+      sizeVec(1) = size(obj.coeffMatrix{size(points,2)},1); % nBxnPxnCx[...]
+      B = reshape(obj.coeffMatrix{size(points,2)}*reshape(basis, size(basis,1), []), sizeVec);
+    end
+    function B = evalD1Basis(obj, points)
+      if isempty(points), B = 1; return; end
+      basis = obj.source.evalBasis(points, 1); % nBsxnPxnCx[...]
       sizeVec = size(basis); % nBsxnPxnCx[...]
       sizeVec(1) = size(obj.coeffMatrix{size(points,2)},1); % nBxnPxnCx[...]
       B = reshape(obj.coeffMatrix{size(points,2)}*reshape(basis, size(basis,1), []), sizeVec);

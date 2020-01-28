@@ -374,8 +374,9 @@ classdef Mesh < SOFE
     function R = findEntity(obj, dim, varargin) % [loc]
       if nargin > 2
         loc = varargin{1};
-        entity = obj.topology.getEntity(dim);
-        R = any(reshape(loc(obj.nodes(entity,:)), size(entity,1), []), 2);
+%         entity = obj.topology.getEntity(dim);
+%         R = any(reshape(loc(obj.nodes(entity,:)), size(entity,1), []), 2);
+        R = any(loc(obj.getCenter('0')), 2);
       else
         R = true(obj.topology.getNumber(dim), 1);
       end

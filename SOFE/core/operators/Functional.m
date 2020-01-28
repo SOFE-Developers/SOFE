@@ -91,7 +91,7 @@ classdef Functional < SOFE
     function assemble(obj)
       if ~isempty(obj.matrix), return, end
       obj.matrix = zeros(obj.fes.getNDoF(), 1);
-      if ~isempty(obj.loc)
+      if ~isempty(obj.loc) && obj.codim==1
         idx = obj.fes.mesh.isBoundary(@(x)obj.loc(x));
       else
         idx = ':';

@@ -35,8 +35,10 @@ classdef VisualizerMesh3D < VisualizerMesh
       set(h,'facecolor','none','edgecolor','k');
     end
     function showCells(obj, I, flag)
-      e2F = obj.mesh.topology.getConnect(3,2);
-      e2Ed = obj.mesh.topology.getConnect(3,1);
+      e2F = obj.mesh.topology.connectivity{4,3};
+%       e2F = obj.mesh.topology.getConnect(3,2);
+      e2Ed = obj.mesh.topology.connectivity{4,2};
+%       e2Ed = obj.mesh.topology.getConnect(3,1);
       elem = obj.mesh.topology.getEntity(3);
       II = cell(4,1);
       II{4} = I;
@@ -48,7 +50,7 @@ classdef VisualizerMesh3D < VisualizerMesh
       if obj.mesh.topology.isSimplex, I = [1 2 3]; else, I = [1 2 4 3]; end
       h = trimesh(face(II{3},I),nodes(:,1),nodes(:,2),nodes(:,3),'LineWidth',2);
       set(h,'facecolor','none','edgecolor','k');
-      disp(elem(II{4},:));
+%       disp(elem(II{4},:));
       if flag
         for i = 1:numel(flag)
           dim = str2double(flag(i));

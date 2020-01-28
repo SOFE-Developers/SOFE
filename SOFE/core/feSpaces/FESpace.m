@@ -752,9 +752,10 @@ classdef FESpace < SOFE
       dU = obj.evalDoFVector(U, P, [], 1); % nExnPxnCxnD
       dMap = obj.getDoFMap(0); % nBxnE
       R = zeros(obj.getNDoF,nD);
+      CNT = accumarray(dMap(:),1);
       for d = 1:nD
         rhs = sign(dMap).*(lhs\reshape(permute(dU(:,:,:,d), [2 3 1]), nB, [])); % nBxnE
-        R(:,d) = accumarray(dMap(:),rhs(:))./accumarray(dMap(:),1); 
+        R(:,d) = accumarray(dMap(:),rhs(:))./CNT; 
       end
     end
   end
