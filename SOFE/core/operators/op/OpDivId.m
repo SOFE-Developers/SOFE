@@ -6,14 +6,17 @@ classdef OpDivId < Operator % (c*div(U), v )
   end
   methods
     function R = assembleOp(obj, k)
-%       dBasisJ = obj.fesTrial.evalGlobalBasis([], 0, 1, {k}); % nExnBxnPxnCxnD
-%       nD = size(dBasisJ,5);
-%       divBasisJ = dBasisJ(:,:,:,1,1); % nExnBxnP
-%       for d = 2:nD
-%         divBasisJ = divBasisJ + dBasisJ(:,:,:,d,d); % nExnBxnP
-%       end
+      if strcmp(obj.fesTrial.element.conformity, 'HDiv')
+        divBasisJ = obj.fesTrial.evalGlobalBasis([], 0, 'div', {k}); % nExnBxnP
+      else
+        dBasisJ = obj.fesTrial.evalGlobalBasis([], 0, 1, {k}); % nExnBxnPxnCxnD
+        nD = size(dBasisJ,5);
+        divBasisJ = dBasisJ(:,:,:,1,1); % nExnBxnP
+        for d = 2:nD
+          divBasisJ = divBasisJ + dBasisJ(:,:,:,d,d); % nExnBxnP
+        end
+      end
       basisI = obj.fesTest.evalGlobalBasis([], 0, 0, {k}); % nExnBxnP
-      divBasisJ = obj.fesTrial.evalGlobalBasis([], 0, 'div', {k}); % nExnBxnP
       R = obj.integrate(basisI, divBasisJ, k);
     end
     function R = getScaling(obj, nRef)

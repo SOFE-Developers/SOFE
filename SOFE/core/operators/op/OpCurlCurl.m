@@ -20,21 +20,15 @@ classdef OpCurlCurl < Operator % ( c*Curl(U), Curl(V) )
         end
         R = obj.integrate(curlBasisI, curlBasisJ, k);
       else
-%         dBasisI = obj.fesTest.evalGlobalBasis([], 0, 1, {k}); % nExnBxnPxnCxnD
-%         curlBasisI(:,:,:,1) = dBasisI(:,:,:,3,2) - dBasisI(:,:,:,2,3); % nExnBxnP
-%         curlBasisI(:,:,:,2) = dBasisI(:,:,:,1,3) - dBasisI(:,:,:,3,1); % nExnBxnP
-%         curlBasisI(:,:,:,3) = dBasisI(:,:,:,2,1) - dBasisI(:,:,:,1,2); % nExnBxnP
-        curlBasisI = obj.fesTest.evalGlobalBasis([], 0, 'curl', {k}); % nExnBxnPxnC
-        if obj.fesTrial ~= obj.fesTest
-%           dBasisJ = obj.fesTrial.evalGlobalBasis([], 0, 1, {k}); % nExnBxnPxnCxnD
-%           curlBasisJ(:,:,:,1) = dBasisJ(:,:,:,3,2) - dBasisJ(:,:,:,2,3); % nExnBxnP
-%           curlBasisJ(:,:,:,2) = dBasisJ(:,:,:,1,3) - dBasisJ(:,:,:,3,1); % nExnBxnP
-%           curlBasisJ(:,:,:,3) = dBasisJ(:,:,:,2,1) - dBasisJ(:,:,:,1,2); % nExnBxnP
-          curlBasisJ = obj.fesTrial.evalGlobalBasis([], 0, 'curl', {k}); % nExnBxnPxnC
-          R = obj.integrate(curlBasisI, curlBasisJ, k);
+        if strcmp(obj.fesTrial.element.conformity, 'HCurl')
+          curlBasisI = obj.fesTest.evalGlobalBasis([], 0, 'curl', {k}); % nExnBxnPxnC
         else
-          R = obj.integrate(curlBasisI, curlBasisI, k);
+          dBasisI = obj.fesTest.evalGlobalBasis([], 0, 1, {k}); % nExnBxnPxnCxnD
+          curlBasisI(:,:,:,1) = dBasisI(:,:,:,3,2) - dBasisI(:,:,:,2,3); % nExnBxnP
+          curlBasisI(:,:,:,2) = dBasisI(:,:,:,1,3) - dBasisI(:,:,:,3,1); % nExnBxnP
+          curlBasisI(:,:,:,3) = dBasisI(:,:,:,2,1) - dBasisI(:,:,:,1,2); % nExnBxnP
         end
+        R = obj.integrate(curlBasisI, curlBasisI, k);
       end
     end
     function R = getScaling(obj, nRef)
