@@ -76,6 +76,13 @@ classdef SOFE < handle
       end
     end
     function pluggedin()
+    function R = is(obj, cmp)
+      if ~exist('OCTAVE_VERSION', 'builtin') % Matlab
+        R = (obj == cmp);
+      else
+        error('Needs to be implemented in subclass');
+      end
+    end
       fprintf('Plugins:\n');
       X = path;
       I = strfind(X,[filesep,'plugins',filesep]);

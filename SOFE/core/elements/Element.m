@@ -54,6 +54,13 @@ classdef Element < SOFE
       Rp = obj.quadRule{codim+1}.points;
       Rw = obj.quadRule{codim+1}.weights;
     end
+    function R = is(obj, cmp)
+      if ~exist('OCTAVE_VERSION', 'builtin') % Matlab
+        R = (obj == cmp);
+      else
+        R = isa(cmp, class(obj)) && obj.dimension==cmp.dimension && obj.order==cmp.order;
+      end
+    end
   end
   methods(Static = true)
     function R = create(nV, dimP)
