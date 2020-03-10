@@ -1,6 +1,6 @@
 % PARAMETERS
 dim = 3; N = 3; ll = [5 ones(1,dim-1)]'; order = 1; isTri = 0;
-T = 10; M = 15000;
+T = 10; M = 4000;
 % MESH
 m = RegularMesh(ll*(N+1), [zeros(dim,1) ll], isTri);
 % ELEMENT
@@ -25,9 +25,9 @@ if dim == 3
 else
   ax = [0 5.5 -2 1.5];
 end
-for k = 1:200:q.nT
-  clf, v.show(q.history{k}, 'g', opt);
-  axis(ax);
+for k = 1:100:q.nT
+  clf, v.show(0.2*q.history{k}, 'g', opt);
+  axis(ax); caxis([[0 1]]);
   drawnow
   fprintf('timestep: %d / %d\n', k, q.nT);
 end

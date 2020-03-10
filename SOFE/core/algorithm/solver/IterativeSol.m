@@ -2,7 +2,7 @@ classdef IterativeSol < Solver
   properties
     type
     precon
-    tol = 1e-10;
+    tol = 1e-6;
     maxit = 1000;
   end
   methods % constructor

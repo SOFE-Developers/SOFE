@@ -15,7 +15,7 @@ q = Integrator(timeline, q, u0);
 q.compute();
 % VISUALIZE
 v = Visualizer.create(fes);
-for k = 1:10:q.nT
+for k = 1:2:q.nT
   clf
   v.show(q.history{k}, 'p');
   view(3), axis([0 1 0 1 -0.1 0.2]); caxis([0.0, 0.1]);

@@ -25,15 +25,15 @@ for k = 1:q.nT
   sol1 = q.history{k}(1:end/2);
   sol2 = q.history{k}(end/2+1:end);
   if ~mod(k,10)
-    figure(1), clf, v.patch(sol1); colormap hot
-    caxis([0 2]), view(2)
+    figure(1), clf, v.patch(sol1);
+    axis([0 1 0 1 0 10]); caxis([0 2]), view(2)
     figure(2), clf, v.patch(sol2); colormap hot
-    caxis([0 0.8]), view(2)
+    axis([0 1 0 1 0 10]); caxis([0 0.8]), view(2)
     fprintf('timestep: %d / %d\n', k, q.nT);
     drawnow;
   end
   prey(k) = mean(sol1); pred(k) = mean(sol2);
-  figure(3)
-  plot(1:k, prey(1:k), 1:k, pred(1:k)); axis([0 q.nT 0 1.5]);
-  title(sprintf('time %6.2f / %6.2f',(k-1)*T/q.nT, T));
+%  figure(3)
+%  plot(1:k, prey(1:k), 1:k, pred(1:k)); axis([0 q.nT 0 1.5]);
+%  title(sprintf('time %6.2f / %6.2f',(k-1)*T/q.nT, T));
 end

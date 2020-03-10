@@ -1,5 +1,5 @@
 %% PARAMETERS
-dim = 2; T = 10; N = 80; M = 1000; isTri = 1;
+dim = 1; T = 10; N = 80; M = 1000; isTri = 1;
 cc = 0.5*ones(1,dim);
 %% MESH
 m = RegularMesh(N*ones(dim,1), repmat([0 1],dim,1), 0);
