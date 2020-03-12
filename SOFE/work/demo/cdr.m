@@ -1,18 +1,18 @@
-% PARAMETERS
+%% PARAMETERS
 dim = 3; N = 30; order = 1; isTri = 0;
-% DATA
+%% DATA
 data = struct('a',0.1,'b',-1,'c',1,'f',1);
-% MESH
+%% MESH
 m = RegularMesh(N*ones(dim,1), repmat([0 1],dim,1), isTri);
-% FESPACE
+%% FESPACE
 if isTri, e = PpL(dim, order); else, e = QpL(dim, order); end
 fes = FESpace(m, e, @(x) x(:,1) < Inf);
-% PDE
+%% PDE
 p = CDR(data, fes);
-% ALGORITHM
+%% ALGORITHM
 q = StaticAlg(p, IterativeSol('bicgstab', 'ilu'));
 q.compute();
-% VISUALIZE
+%% VISUALIZE
 v = Visualizer.create(fes);
 switch dim
   case 1

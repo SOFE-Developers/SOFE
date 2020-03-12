@@ -1,18 +1,18 @@
-% PARAMETERS
+%% PARAMETERS
 N = 50; M = 100; T = 5;
-% MESH
+%% MESH
 m = RegularMesh([N; N], [0 1; 0 1], 0);
-% FESPACE
+%% FESPACE
 fes = FESpace(m, QpL(2,1), @(x)x(:,1)<-Inf);
-% PDE
-p = Poisson(struct('a',0.01*i,'f',0), fes);
+%% PDE
+p = Poisson(struct('a',0.01*1i,'f',0), fes);
 timeline = RegularMesh(M, [0 T], 0);
 u0 = @(x)0.1+0.2*1i*exp(-((x(:,1)-0.3).^2+(x(:,2)-0.3).^2)/0.01);
-% ALGORITHM
+%% ALGORITHM
 q = TimeStep.create('theta0.5', Mass(fes), p, DirectSol(1));
 q = Integrator(timeline, q, u0);
 q.compute();
-% VISUALIZE
+%% VISUALIZE
 v = Visualizer.create(fes);
 for k = 1:2:q.nT
   clf

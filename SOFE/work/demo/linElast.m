@@ -1,15 +1,15 @@
-% PARAMETERS
+%% PARAMETERS
 dim = 2; N = 3; M = [5 ones(1,dim-1)]'; order = 2; isTri = 1;
-% MESH
+%% MESH
 m = RegularMesh(M*(N+1), [zeros(dim,1) M], isTri);
-% FESPACE
+%% FESPACE
 if isTri==1, e = PpL(dim, order); else, e = QpL(dim, order); end
 fes = FESpace(m, VecElem(e), @(x)x(:,1)==0);
-% PDE
+%% PDE
 p = LinElast(struct('nu', 0.33,'E', 1e3, 'f', [zeros(1,dim-1) -1]), fes);
 q = StaticAlg(p, DirectSol());
 q.compute();
-% VISUALIZE
+%% VISUALIZE
 v = Visualizer.create(fes); clf
 opt.N = M*30; opt.deform = true;
 if dim == 3

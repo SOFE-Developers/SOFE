@@ -1,19 +1,19 @@
-% PARAMETERS
+%% PARAMETERS
 N = 50; M = 100;
-% MESH
+%% MESH
 m = RegularMesh([N; N], [0 1; 0 1], 0);
-% FESPACE
+%% FESPACE
 fes = FESpace(m, QpL(2,1));
-% PDE
+%% PDE
 p = CDR(struct('a',0.00,'b',@(x)5*[-x(:,2)+0.5, x(:,1)-0.5]), fes);
 m0 = Mass(fes);
 timeline = RegularMesh(M, [0 1], 0);
 u0 = @(x)0.2*exp(-((x(:,1)-0.3).^2+(x(:,2)-0.3).^2)/0.01);
-% ALGORITHM
+%% ALGORITHM
 q = TimeStep.create('dG2', Mass(fes), p, DirectSol(1));
 q = Integrator(timeline, q, u0);
 q.compute();
-% VISUALIZE
+%% VISUALIZE
 v = Visualizer.create(fes);
 for k = 1:2:q.nT
   clf

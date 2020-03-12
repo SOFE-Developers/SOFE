@@ -1,18 +1,18 @@
-% PARAMETERS
+%% PARAMETERS
 dim = 2; N = 30; order = 2; isTri = 1;
-% MESH
+%% MESH
 m = RegularMesh(N*ones(dim,1), repmat([0 1],dim,1), isTri);
-% FESPACE
+%% FESPACE
 if isTri==1, e = PpL(dim, order); else, e = QpL(dim, order); end
 fes = FESpace(m, e, @(x) x(:,1) < Inf);
-% PDE
+%% PDE
 data = struct('a',1,'f', @(x)sin(16*pi*prod(x,2)));
 p = Poisson(data, fes);
-% SOLVE
+%% SOLVE
 q = StaticAlg(p, IterativeSol('bicgstab', 'ilu'));
 % q = StaticAlg(p, DirectSol());
 q.compute();
-% VISUALIZE
+%% VISUALIZE
 v = Visualizer.create(fes);
 switch dim
   case 1
