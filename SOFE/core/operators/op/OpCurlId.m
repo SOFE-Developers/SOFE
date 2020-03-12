@@ -15,7 +15,7 @@ classdef OpCurlId < Operator % ( c*Curl(U), V )
           curlBasis(:,:,:,2) = -dBasis(:,:,:,1,1); % nExnBxnP
         end
       else
-        if strcmp(obj.fesTrial.element.conformity, 'HCurl')
+        if strcmp(obj.fesTrial.element.conformity, 'HRot')
           curlBasis = obj.fesTrial.evalGlobalBasis([], 0, 'curl', {k}); % nExnBxnPxnC
         else
           dBasis = obj.fesTrial.evalGlobalBasis([], 0, 1, {k}); % nExnBxnPxnCxnD

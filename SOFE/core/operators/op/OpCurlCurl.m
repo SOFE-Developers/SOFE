@@ -20,7 +20,7 @@ classdef OpCurlCurl < Operator % ( c*Curl(U), Curl(V) )
         end
         R = obj.integrate(curlBasisI, curlBasisJ, k);
       else
-        if strcmp(obj.fesTrial.element.conformity, 'HCurl')
+        if strcmp(obj.fesTrial.element.conformity, 'HRot')
           curlBasisI = obj.fesTest.evalGlobalBasis([], 0, 'curl', {k}); % nExnBxnPxnC
         else
           dBasisI = obj.fesTest.evalGlobalBasis([], 0, 1, {k}); % nExnBxnPxnCxnD
