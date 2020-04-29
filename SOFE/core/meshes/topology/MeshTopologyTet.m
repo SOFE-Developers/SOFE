@@ -24,7 +24,7 @@ classdef MeshTopologyTet < MeshTopology
       obj.connectivity{3,3} = (1:size(obj.connectivity{3,1},1))';
       obj.connectivity{4,4} = (1:size(obj.connectivity{4,1},1))';
       %
-      obj.connectivity{3,2} = obj.getFace2Edge();      
+      obj.connectivity{3,2} = obj.getFace2Edge();
     end
   end
   methods % connectivity information
