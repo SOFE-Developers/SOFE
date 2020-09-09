@@ -51,6 +51,17 @@ classdef MeshTopologyTri < MeshTopology
       obj.elemType = [repmat(obj.elemType,3,1); mod(obj.elemType,2)+1];
       obj.update(el);
     end
+    function R = bisectRefine(obj)
+      el = obj.getEntity(2);
+      nN = obj.getNumber(0);
+      idxF = unique(obj.connectivity{3,2}(:,2));
+      refFaces = obj.connectivity{2,1}(idxF,:);
+      nF = size(refFaces,1);
+      R = [speye(nN); sparse(repmat((1:nF)',1,2), refFaces, 0.5, nF, nN)];
+      newIndices = accumarray(idxF, (1:nF)');
+      el = [repmat(nN+newIndices(obj.connectivity{3,2}(:,2)),2,1), [el(:,[1 2]); el(:, [3 1])]];
+      obj.update(el);
+    end
     function R = uniformRefine(obj)
       fc = obj.getEntity(1); el = obj.getEntity(2);
       e2F = obj.connectivity{3,2}; oo = obj.getOrientation(2,1)==2;

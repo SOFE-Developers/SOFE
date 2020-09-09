@@ -599,7 +599,16 @@ classdef FESpace < SOFE
       end
       obj.mesh.uniformRefine();
       if nargout>0
-        R = obj.getProlongator(dM0, obj.getDoFMap(0));
+        R = obj.getProlongator(dM0, obj.getDoFMap(0)); % uniform
+      end
+    end
+    function R = bisectRefine(obj)
+      if nargout>0
+        dM0 = obj.getDoFMap(0);
+      end
+      obj.mesh.bisectRefine();
+      if nargout>0
+        R = obj.getProlongator2(dM0, obj.getDoFMap(0)); % bisect
       end
     end
   end
@@ -765,6 +774,27 @@ classdef FESpace < SOFE
       try iCh = varargin{2}; catch, iCh = reshape(1:2^obj.element.dimension*numel(iE),numel(iE),[]); end
       nCh = size(iCh,2); nB = size(dM0,1);
       pCoeff = obj.element.getProlongationCoeff();
+      I = cell(nCh,1); J = cell(nCh,1); C = cell(nCh,1);
+      for k = 1:nCh
+        I{k} = kron(ones(1,nB),dM1(:, iCh(:,k))'); % child
+        J{k} = kron(dM0(:,iE)',ones(1,nB)); % parent
+        C{k} = repmat(reshape(pCoeff(:,:,k),1,[]), numel(iE), 1);
+      end
+      I = cell2mat(I); J = cell2mat(J); C = cell2mat(C);
+      C = C.*sign(I).*sign(J); I = abs(I); J = abs(J);
+%       I = I(I~=0); J = J(I~=0); C = C(I~=0);
+      cnt = sparse(I,J,1);
+      R = sparse(I,J,C);
+      [ii,jj,cnt] = find(cnt);
+      idx = ii+size(R,1)*(jj-1);
+      R(idx) = R(idx)./cnt;
+%       R = bsxfun(@rdivide, sparse(I,J,C), accumarray(I(:),1)/nB); % for non-conforming elements
+    end
+    function R = getProlongator2(obj, dM0, dM1, varargin) % [iE, iCh]
+      try iE = varargin{1}; catch, iE = true(size(dM0,2),1); end
+      try iCh = varargin{2}; catch, iCh = reshape(1:2*numel(iE),numel(iE),[]); end
+      nCh = size(iCh,2); nB = size(dM0,1);
+      pCoeff = obj.element.getProlongationCoeff2();
       I = cell(nCh,1); J = cell(nCh,1); C = cell(nCh,1);
       for k = 1:nCh
         I{k} = kron(ones(1,nB),dM1(:, iCh(:,k))'); % child

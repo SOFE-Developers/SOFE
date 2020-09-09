@@ -201,12 +201,23 @@ classdef Element < SOFE
     end
   end
   methods % prolongation
-    function R = getProlongationCoeff(obj)
-      [P0,D0] = obj.getLagrangeFunctionals(0);
+    function R = getProlongationCoeff(obj) % uniform
+      [P0,D0] = obj.getLagrangeFunctionals(0, 'u');
       F0 = sum(bsxfun(@times,obj.evalBasis(P0,0),permute(D0,[3 1 2])),3)';
       R = cell(1,1,2^obj.dimension);
       for k = 1:numel(R)
-        [P1,D1] = obj.getLagrangeFunctionals(k);
+        [P1,D1] = obj.getLagrangeFunctionals(k, 'u');
+        R{k} = F0 \ sum(bsxfun(@times,obj.evalBasis(P1,0),permute(D1,[3 1 2])),3)';
+        R{k}(abs(R{k})<1e-12) = 0;
+      end
+      R = cell2mat(R);
+    end
+    function R = getProlongationCoeff2(obj) % bisect
+      [P0,D0] = obj.getLagrangeFunctionals(0, 'b');
+      F0 = sum(bsxfun(@times,obj.evalBasis(P0,0),permute(D0,[3 1 2])),3)';
+      R = cell(1,1,2);
+      for k = 1:numel(R)
+        [P1,D1] = obj.getLagrangeFunctionals(k, 'b');
         R{k} = F0 \ sum(bsxfun(@times,obj.evalBasis(P1,0),permute(D1,[3 1 2])),3)';
         R{k}(abs(R{k})<1e-12) = 0;
       end
@@ -214,7 +225,7 @@ classdef Element < SOFE
     end
   end
   methods % Lagrange functionals
-    function [R,D] = getLagrangeFunctionals(obj, childNr, varargin)
+    function [R,D] = getLagrangeFunctionals(obj, childNr, type, varargin)
       [R,D] = obj.getLagrangePoints(obj.dimension, obj.order, varargin{:});
       if childNr>0
         if obj.isSimplex()
@@ -237,7 +248,13 @@ classdef Element < SOFE
                         0 0 1; 1 0 1; 0 1 1; 1 1 1], [1 2 3 4 5 6 7 8]);
           end
         end
-        m.nodes = m.topology.uniformRefine()*m.nodes;
+        switch type
+          case 'u'
+            m.nodes = m.topology.uniformRefine()*m.nodes;
+          case 'b'
+            m.nodes = m.topology.bisectRefine()*m.nodes;
+        end
+          
         R = permute(m.evalReferenceMap(R, 0, childNr),[2 3 1]); % nPxnD
         switch obj.conformity
           case 'H1'

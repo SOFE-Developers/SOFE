@@ -282,6 +282,25 @@ classdef Mesh < SOFE
       fprintf(' DONE\n');
       obj.meshChanged();
     end
+    function R = bisectRefine(obj, varargin) % [N]
+      if ~isempty(varargin), N = varargin{1}; else, N = 1; end
+      fprintf('Uniform bisection refinement /');
+      if nargout > 0
+        R = 1;
+        for i = 1:N
+          R = obj.topology.bisectRefine()*R;
+          fprintf([num2str(i) '/']);
+        end
+        obj.nodes = R*obj.nodes;
+      else
+        for i = 1:N
+          obj.nodes = obj.topology.bisectRefine()*obj.nodes;
+          fprintf([num2str(i) '/']);
+        end
+      end
+      fprintf(' DONE\n');
+      obj.meshChanged();
+    end
   end
   methods % mesh operations
     function rotate(obj, alpha)
